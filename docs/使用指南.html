@@ -476,6 +476,10 @@ copy .env.example .env      # Windows</code></pre>
   <li><strong>同步状态：</strong>显示中央服务器地址和本机标识（详见 <a href="#team-sync">团队协作</a>）</li>
 </ul>
 
+<div class="card card-info">
+  <strong>💡 配置同步：</strong>展开此页面底部的「从中央服务器同步最新配置」折叠面板，可以一键拉取管理员调优后的最新评分标准、结构模式等配置文件，并自动备份旧配置。
+</div>
+
 <h3>3.4 校准引擎</h3>
 
 <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20calibration%20engine%20interface%20with%20file%20upload%20areas%20for%20winner%20and%20loser%20essays%2C%20text%20inputs%20for%20competition%20name%20and%20type%2C%20and%20a%20large%20run%20button%2C%20analytics%20dashboard%20style&image_size=landscape_16_9" alt="校准引擎界面" class="screenshot">
@@ -881,6 +885,28 @@ INSTANCE_NAME=刘老师</code></pre>
   </div>
 </div>
 
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>同步管理员调教后的最新配置（重点！）</h4>
+    <p>当管理员根据校准结果调优了评分标准后，同事可以从中央服务器拉取最新配置：</p>
+    <ol>
+      <li>打开浏览器进入系统 → <strong>「系统状态」</strong> 标签页</li>
+      <li>展开底部的 <strong>「从中央服务器同步最新配置」</strong> 折叠面板</li>
+      <li>点击 <strong>「预览变更」</strong>，查看哪些配置文件会被新增、更新或删除</li>
+      <li>确认无误后，点击 <strong>「确认同步」</strong></li>
+      <li>系统会自动备份旧配置到 <code>data/configs_backup_时间戳/</code>，然后覆盖为新配置</li>
+    </ol>
+
+    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20web%20UI%20panel%20showing%20a%20collapsible%20section%20'Sync%20latest%20configs%20from%20central%20server'%20with%20a%20preview%20button%20and%20confirm%20button%2C%20and%20a%20markdown%20diff%20table%20showing%20file%20changes%2C%20clean%20modern%20UI&image_size=landscape_16_9" alt="同步配置预览界面" class="screenshot">
+    <p class="screenshot-caption">▲ 配置同步：预览变更 → 确认同步 → 自动备份</p>
+
+    <div class="card card-info">
+      <strong>💡 提示：</strong>如果预览显示「本地配置已是最新版本，无需同步」，说明你已经在使用管理员的最新配置。
+    </div>
+  </div>
+</div>
+
 <h3>6.4 管理员：查看汇总数据</h3>
 
 <p>打开浏览器访问 <code>http://你的服务器IP:7860</code>，进入 <strong>「管理看板」</strong> 标签页，点击「加载汇总数据」即可查看所有同事上报的评审和校准记录汇总。</p>
@@ -897,6 +923,41 @@ INSTANCE_NAME=刘老师</code></pre>
 
 <div class="card card-info">
   <strong>💡 使用建议：</strong>定期查看管理看板，了解团队整体的系统使用情况。如果发现某位同事校准特别频繁，可以主动沟通了解他的调教心得，把好的调整合并回主配置文件。
+</div>
+
+<h3>6.5 管理员：把最新配置下发到同事</h3>
+
+<p>当你根据校准报告和人工审核，确认了一组配置调整后，可以一键同步给所有同事：</p>
+
+<div class="card card-success">
+  <p><strong>完整工作流：</strong>同事上报校准数据 → 你看管理看板 → 你在<strong>中央服务器上</strong>手动调优 <code>configs/</code> 目录下的 JSON 文件 → 同事点击「确认同步」拉取最新配置 → 所有人使用统一标准</p>
+</div>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>你在中央服务器上调整配置</h4>
+    <p>在中央服务器的 <code>configs/</code> 目录下直接编辑 JSON 配置文件（评分阈值、结构模式、证据标准等），或把同事优秀的本地配置合并进来。</p>
+    <p>修改后<strong>无需重启服务器</strong>，下一次评审调用就会使用新配置。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>通知同事同步</h4>
+    <p>你改好配置后，通知同事：</p>
+    <pre><code>打开系统 → 系统状态 → 展开「从中央服务器同步最新配置」→ 预览 → 确认同步</code></pre>
+    <p>同事的旧配置会自动备份，不会丢失。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>建议：用 Git 管理配置变更历史</h4>
+    <p>中央服务器的 <code>configs/</code> 目录建议纳入 Git 管理（如果服务器 clone 自 GitHub），每次调整后 commit + push。这样你有了完整的配置变更历史，同事也可以直接 <code>git pull</code> 获取（不依赖 UI 同步，但需要会 Git）。</p>
+  </div>
 </div>
 
 
@@ -998,6 +1059,11 @@ INSTANCE_NAME=刘老师</code></pre>
 <div class="card card-warning">
   <h3>Q: 同事不上报数据也能正常使用系统吗？</h3>
   <p><strong>A:</strong> 可以。如果同事的 <code>.env</code> 中 <code>SYNC_SERVER_URL</code> 为空，系统完全在本地运行，不上报任何数据。团队协作功能是可选、可配置的，不影响评审和校准的全部核心功能。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 管理员调优了评分标准，我怎么同步到最新？</h3>
+  <p><strong>A:</strong> 打开系统 → 「系统状态」标签页 → 展开底部「从中央服务器同步最新配置」→ 点击「预览变更」查看变化 → 点击「确认同步」完成覆盖。旧配置会自动备份到 <code>data/configs_backup_时间戳/</code>，不用担心丢失。</p>
 </div>
 
 <div class="card card-success">

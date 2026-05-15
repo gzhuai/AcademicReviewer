@@ -309,6 +309,23 @@ def build_ui():
                 stats_md = gr.Markdown("点击按钮加载系统统计信息")
                 stats_btn.click(fn=load_stats, outputs=[stats_md])
 
+                with gr.Accordion(" 从中央服务器同步最新配置", open=False):
+                    gr.Markdown("将管理员审核后的最新竞赛评分标准、结构模式、风格指南等同步到本地。")
+                    sync_preview_btn = gr.Button("预览变更", variant="secondary")
+                    sync_apply_btn = gr.Button("确认同步", variant="primary", size="sm")
+                    sync_result = gr.Markdown("")
+
+                    def do_sync_preview():
+                        from app.utils.sync import pull_configs_from_server
+                        return pull_configs_from_server(dry_run=True)
+
+                    def do_sync_apply():
+                        from app.utils.sync import pull_configs_from_server
+                        return pull_configs_from_server(dry_run=False)
+
+                    sync_preview_btn.click(fn=do_sync_preview, outputs=[sync_result])
+                    sync_apply_btn.click(fn=do_sync_apply, outputs=[sync_result])
+
             # Tab 4: Calibration
             with gr.TabItem("校准引擎"):
                 gr.Markdown("### 校准引擎 — 分析获奖/失败文章差距")

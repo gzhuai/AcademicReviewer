@@ -1,4 +1,5 @@
 import json
+import hashlib
 import logging
 import shutil
 import tempfile
@@ -24,6 +25,7 @@ init_db()
 app = FastAPI(title="AcademicReviewer", version="0.2.0")
 
 SUBMISSIONS_DIR = Path(__file__).resolve().parent.parent / "data" / "submissions"
+_CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
 
 
 def _get_llm():
@@ -382,3 +384,19 @@ async def admin_dashboard():
         }
     finally:
         db.close()
+
+
+@app.get("/api/v1/sync/configs")
+async def sync_configs_download():
+    files = {}
+    for json_file in sorted(_CONFIGS_DIR.rglob("*.json")):
+        rel = str(json_file.relative_to(_CONFIGS_DIR)).replace("\\", "/")
+        files[rel] = json_file.read_text(encoding="utf-8")
+
+    payload = json.dumps(files, ensure_ascii=False, sort_keys=True)
+    config_hash = hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+    return {
+        "version": config_hash,
+        "files": files,
+    }
