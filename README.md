@@ -131,3 +131,7 @@ AcademicReviewer/
 ## License
 
 MIT
+
+## 开发者文档
+
+面向 AI 编程助手（Claude Code / Codex / Copilot 等）的接手指南，含完整模块地图、API 参考、编码规范和常见陷阱：[AI_HANDOFF.md](AI_HANDOFF.md)
