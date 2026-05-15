@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
 
+    sync_server_url: str = ""
+    instance_name: str = ""
+
     model_config = {"env_file": PROJECT_ROOT / ".env", "env_file_encoding": "utf-8"}
 
 

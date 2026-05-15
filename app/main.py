@@ -2,6 +2,7 @@ import json
 import logging
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
@@ -12,7 +13,7 @@ from app.config import settings, ensure_dirs
 from app.database import init_db, SessionLocal
 from app.llm.base import LLMFactory
 from app.orchestrator import Orchestrator, ReviewReport
-from app.models.submission import Submission, Review
+from app.models.submission import Submission, Review, CalibrationRecord
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -257,12 +258,15 @@ async def config_stats():
     db = SessionLocal()
     try:
         total_reviews = db.query(func.count(Submission.id)).scalar() or 0
+        total_calibrations = db.query(func.count(CalibrationRecord.id)).scalar() or 0
         db_submissions = db.query(Submission).all()
         by_competition = {}
         for sub in db_submissions:
             by_competition[sub.competition] = by_competition.get(sub.competition, 0) + 1
     finally:
         db.close()
+
+    sync_enabled = bool(settings.sync_server_url.strip())
 
     return {
         "competitions": {
@@ -279,6 +283,102 @@ async def config_stats():
         },
         "db": {
             "total_submissions": total_reviews,
+            "total_calibrations": total_calibrations,
             "by_competition": by_competition,
         },
+        "sync": {
+            "enabled": sync_enabled,
+            "server_url": settings.sync_server_url if sync_enabled else "",
+        },
     }
+
+
+@app.post("/api/v1/sync/review")
+async def sync_review(payload: dict):
+    db = SessionLocal()
+    try:
+        instance_name = payload.get("instance_name", "unknown")
+        record = CalibrationRecord(
+            instance_name=instance_name,
+            competition=payload.get("competition", ""),
+            competition_type=payload.get("competition_type", ""),
+            n_winners=0,
+            n_losers=0,
+            n_external=0,
+            report_json=json.dumps(payload, ensure_ascii=False),
+        )
+        db.add(record)
+        db.commit()
+    finally:
+        db.close()
+    return {"status": "ok"}
+
+
+@app.post("/api/v1/sync/calibration")
+async def sync_calibration(payload: dict):
+    db = SessionLocal()
+    try:
+        record = CalibrationRecord(
+            instance_name=payload.get("instance_name", "unknown"),
+            competition=payload.get("competition", ""),
+            competition_type=payload.get("competition_type", ""),
+            n_winners=payload.get("n_winners", 0),
+            n_losers=payload.get("n_losers", 0),
+            n_external=payload.get("n_external", 0),
+            report_json=json.dumps(payload, ensure_ascii=False),
+        )
+        db.add(record)
+        db.commit()
+    finally:
+        db.close()
+    return {"status": "ok"}
+
+
+@app.get("/api/v1/admin/dashboard")
+async def admin_dashboard():
+    db = SessionLocal()
+    try:
+        total_reviews = db.query(func.count(Submission.id)).scalar() or 0
+        total_calibrations = db.query(func.count(CalibrationRecord.id)).scalar() or 0
+
+        instances = set()
+        db_subs = db.query(Submission).all()
+        by_competition = {}
+        by_instance = {}
+        for sub in db_subs:
+            by_competition[sub.competition] = by_competition.get(sub.competition, 0) + 1
+
+        cals = db.query(CalibrationRecord).all()
+        cal_by_competition = {}
+        cal_by_instance = {}
+        for cal in cals:
+            instances.add(cal.instance_name)
+            cal_by_competition[cal.competition] = cal_by_competition.get(cal.competition, 0) + 1
+            cal_by_instance[cal.instance_name] = cal_by_instance.get(cal.instance_name, 0) + 1
+            by_instance[cal.instance_name] = by_instance.get(cal.instance_name, 0)
+
+        recent_cals = []
+        for cal in sorted(cals, key=lambda c: c.created_at or datetime.min, reverse=True)[:20]:
+            recent_cals.append({
+                "id": cal.id,
+                "instance": cal.instance_name,
+                "competition": cal.competition,
+                "winners": cal.n_winners,
+                "losers": cal.n_losers,
+                "created_at": cal.created_at.isoformat() if cal.created_at else None,
+            })
+
+        return {
+            "summary": {
+                "total_reviews": total_reviews,
+                "total_calibrations": total_calibrations,
+                "total_instances": len(instances),
+                "instances": sorted(instances),
+            },
+            "reviews_by_competition": by_competition,
+            "calibrations_by_competition": cal_by_competition,
+            "calibrations_by_instance": cal_by_instance,
+            "recent_calibrations": recent_cals,
+        }
+    finally:
+        db.close()

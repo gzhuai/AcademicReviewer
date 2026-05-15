@@ -45,3 +45,20 @@ class Review(Base):
 
     def __repr__(self):
         return f"<Review(id={self.id}, submission_id={self.submission_id}, provider={self.model_provider})>"
+
+
+class CalibrationRecord(Base):
+    __tablename__ = "calibrations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    instance_name = Column(String(128), nullable=False, default="")
+    competition = Column(String(128), nullable=False)
+    competition_type = Column(String(64), nullable=False, default="")
+    n_winners = Column(Integer, nullable=False, default=0)
+    n_losers = Column(Integer, nullable=False, default=0)
+    n_external = Column(Integer, nullable=False, default=0)
+    report_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<CalibrationRecord(id={self.id}, instance={self.instance_name}, competition={self.competition})>"

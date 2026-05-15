@@ -184,4 +184,19 @@ def run_calibration(
         Path(output_report_path).write_text(report, encoding="utf-8")
         logger.info(f"Report saved to {output_report_path}")
 
+    try:
+        from app.utils.sync import report_calibration
+        import asyncio
+        asyncio.ensure_future(report_calibration({
+            "competition": competition,
+            "competition_type": competition_type,
+            "n_winners": len(winners_features),
+            "n_losers": len(losers_features),
+            "n_external": len(external_features),
+            "effect_sizes": [es.__dict__ for es in effect_sizes] if effect_sizes else [],
+            "config_changes": [c.__dict__ for c in config_changes] if config_changes else [],
+        }))
+    except Exception:
+        pass
+
     return report

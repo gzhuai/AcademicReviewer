@@ -156,6 +156,19 @@ class Orchestrator:
         report.meta["provider"] = self.llm.provider_name()
 
         logger.info(f"Review completed in {total_elapsed:.1f}s, total_score={report.total_score}")
+
+        try:
+            from app.utils.sync import report_review
+            await report_review({
+                "competition": report.competition,
+                "competition_type": report.competition_type,
+                "total_score": report.total_score,
+                "scores": report.scores,
+                "meta": report.meta,
+            })
+        except Exception:
+            pass
+
         return report
 
     def _compute_total_score(self, report: ReviewReport) -> float | None:

@@ -202,7 +202,28 @@ def load_stats():
 {by_comp_md}
 """
 
-    return comp_md + config_md + db_md
+    return comp_md + config_md + db_md + _sync_status_md()
+
+
+def _sync_status_md():
+    try:
+        from app.utils.sync import is_sync_enabled
+        from app.config import settings
+        if is_sync_enabled():
+            return f"""
+## 同步状态
+- **中央服务器**: {settings.sync_server_url}
+- **本机标识**: {settings.instance_name or '(自动识别)'}
+- 评审和校准数据会自动上报到中央服务器
+"""
+        else:
+            return f"""
+## 同步状态
+- **中央服务器**: 未配置
+- 如需团队协作，请在 .env 中设置 `SYNC_SERVER_URL`
+"""
+    except Exception:
+        return ""
 
 
 # -------------- Build UI --------------
@@ -379,6 +400,56 @@ def build_ui():
                     inputs=[cal_competition, cal_type, cal_winners, cal_losers, cal_external, cal_expert, cal_output],
                     outputs=[cal_report],
                 )
+
+            # Tab 5: Admin Dashboard
+            with gr.TabItem("管理看板"):
+                gr.Markdown("###  数据汇总看板")
+                gr.Markdown("展示所有同事实例上报的评审和校准数据汇总。仅中央服务器可用。")
+
+                admin_btn = gr.Button("加载汇总数据", variant="primary", size="lg")
+                admin_md = gr.Markdown("点击按钮加载...")
+
+                def load_admin_dashboard():
+                    data = _api("/api/v1/admin/dashboard")
+                    if "error" in data:
+                        return f"加载失败: {data['error']}"
+
+                    summary = data.get("summary", {})
+                    reviews_by_comp = data.get("reviews_by_competition", {})
+                    cals_by_comp = data.get("calibrations_by_competition", {})
+                    cals_by_instance = data.get("calibrations_by_instance", {})
+                    recent = data.get("recent_calibrations", [])
+
+                    md = f"""
+##   汇总概览
+- **评审总数**: {summary.get('total_reviews', 0)}
+- **校准次数**: {summary.get('total_calibrations', 0)}
+- **接入实例数**: {summary.get('total_instances', 0)}
+- **实例列表**: {', '.join(summary.get('instances', [])) or '(无)'}
+
+##   评审分布
+"""
+                    for k, v in sorted(reviews_by_comp.items()):
+                        md += f"- {k}: {v} 篇\n"
+
+                    md += f"\n##   校准分布（按实例）\n"
+                    for k, v in sorted(cals_by_instance.items()):
+                        md += f"- {k}: {v} 次\n"
+
+                    md += f"\n##   校准分布（按竞赛）\n"
+                    for k, v in sorted(cals_by_comp.items()):
+                        md += f"- {k}: {v} 次\n"
+
+                    if recent:
+                        md += f"\n##   最近校准记录\n"
+                        md += "| 实例 | 竞赛 | 获奖 | 失败 | 时间 |\n"
+                        md += "|------|------|------|------|------|\n"
+                        for r in recent:
+                            md += f"| {r['instance']} | {r['competition']} | {r['winners']} | {r['losers']} | {r.get('created_at', '')} |\n"
+
+                    return md
+
+                admin_btn.click(fn=load_admin_dashboard, outputs=[admin_md])
 
     return demo
 
