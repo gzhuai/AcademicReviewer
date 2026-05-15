@@ -1,0 +1,27 @@
+{
+  "competition_type": "discursive_economics",
+  "description": "经济类写作证据标准 - 适用于 Marshall Society 等经济学写作竞赛",
+  "extends": "discursive",
+  "differences": {
+    "evidence_standards.min_total_citations": 4,
+    "evidence_standards.acceptable_source_types": [
+      "peer-reviewed economics journal (AER, QJE, JPE, etc.)",
+      "central bank report (Fed, ECB, BoE, PBoC)",
+      "government statistical bulletin",
+      "IMF / World Bank / OECD report",
+      "academic working paper (NBER, CEPR)",
+      "philosophical text on political economy"
+    ]
+  },
+  "quantitative_requirements": {
+    "explain_economic_mechanisms": true,
+    "expect_data_support": true,
+    "graph_usage": "encouraged but not required",
+    "policy_implications": true
+  },
+  "additional_logical_fallacies": [
+    {"id": "correlation_causation", "name": "相关误作因果", "severity": "high", "description": "基于经济变量相关性直接推断因果关系"},
+    {"id": "ceteris_paribus_abuse", "name": "过度依赖其他条件不变", "severity": "medium", "description": "忽略现实世界中多变量联动"},
+    {"id": "composition", "name": "合成谬误", "severity": "medium", "description": "对个体成立的逻辑误推广到整体"}
+  ]
+}

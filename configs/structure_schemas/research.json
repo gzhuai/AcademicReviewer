@@ -1,0 +1,89 @@
+{
+  "competition_type": "research",
+  "description": "高中科研论文结构标准 - 适用于 ISEF/STS/丘成桐等科研型竞赛",
+  "required_sections": [
+    {
+      "name": "Abstract",
+      "keyword_aliases": ["Abstract", "Summary"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "概述研究目的、方法、关键结果与结论"
+    },
+    {
+      "name": "Introduction",
+      "keyword_aliases": ["Introduction", "Background"],
+      "expected_ratio": [10, 20],
+      "required": true,
+      "sub_sections": ["Background", "Literature Review", "Hypothesis / Research Question"],
+      "description": "应包含研究背景、文献综述、知识缺口、研究假设/问题"
+    },
+    {
+      "name": "Materials & Methods",
+      "keyword_aliases": ["Methods", "Materials and Methods", "Methodology", "Experimental Design"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Experimental Design", "Materials", "Procedure", "Data Analysis / Statistical Plan"],
+      "description": "应描述实验设计、材料、步骤、统计分析方法，确保可复现性"
+    },
+    {
+      "name": "Results",
+      "keyword_aliases": ["Results", "Findings"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Descriptive Statistics", "Inferential Statistics", "Figures & Tables"],
+      "description": "客观呈现数据，包含图表、描述性统计和推断性统计结果"
+    },
+    {
+      "name": "Discussion",
+      "keyword_aliases": ["Discussion", "Discussion and Conclusion"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Interpretation", "Comparison with Literature", "Limitations", "Implications"],
+      "description": "解释结果意义，与文献对比，分析局限性，提出未来方向"
+    },
+    {
+      "name": "Conclusion",
+      "keyword_aliases": ["Conclusion", "Conclusions", "Summary"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "总结主要发现，回应研究假设，不引入新信息"
+    },
+    {
+      "name": "References",
+      "keyword_aliases": ["References", "Bibliography", "Works Cited"],
+      "expected_ratio": [3, 10],
+      "required": true,
+      "description": "完整列出所有引用文献，格式统一"
+    }
+  ],
+  "optional_sections": [
+    {
+      "name": "Acknowledgements",
+      "keyword_aliases": ["Acknowledgements", "Acknowledgments"],
+      "description": "致谢部分"
+    },
+    {
+      "name": "Appendix",
+      "keyword_aliases": ["Appendix", "Appendices", "Supplementary Materials"],
+      "description": "补充材料"
+    }
+  ],
+  "logic_checks": {
+    "thesis_required_in_intro": true,
+    "methods_before_results": true,
+    "results_before_discussion": true,
+    "conclusion_no_new_info": true,
+    "expected_transitions": [
+      "Intro → Methods",
+      "Methods → Results",
+      "Results → Discussion",
+      "Discussion → Conclusion"
+    ]
+  },
+  "high_severity_violations": [
+    "missing_methods",
+    "missing_results",
+    "no_hypothesis_or_research_question",
+    "no_statistical_analysis_plan"
+  ]
+}

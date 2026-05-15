@@ -1,0 +1,49 @@
+{
+  "competition_type": "social_science",
+  "description": "社会科学证据标准 - 适用于 CTB 等社科竞赛",
+  "evidence_standards": {
+    "min_total_sources": 5,
+    "min_academic_sources": 3,
+    "acceptable_source_types": [
+      "peer-reviewed social science journal article",
+      "government statistical yearbook / census data",
+      "NGO / think tank report",
+      "academic book chapter",
+      "survey data (own or published)",
+      "interview data with methodology description"
+    ],
+    "unacceptable_source_types": [
+      "personal anecdote without broader data",
+      "unverified social media poll",
+      "outdated survey (>10 years)"
+    ],
+    "require_mixed_methods": "encouraged",
+    "require_data_triangulation": true
+  },
+  "argument_standards": {
+    "require_causal_mechanism": true,
+    "require_generalizability_discussion": true,
+    "require_policy_implication": true
+  },
+  "logical_fallacies": [
+    {"id": "ecological", "name": "生态学谬误", "severity": "high", "description": "用群体数据推断个体行为"},
+    {"id": "spurious_correlation", "name": "虚假相关", "severity": "high", "description": "忽略第三变量导致的相关关系误判"},
+    {"id": "selection_bias", "name": "选择偏差", "severity": "high", "description": "样本不能代表总体"},
+    {"id": "correlation_causation", "name": "相关误作因果", "severity": "high", "description": "基于社会变量相关性直接推断因果关系"},
+    {"id": "confirmation_bias", "name": "确认偏误", "severity": "medium", "description": "只选择支持假设的证据"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_empirical_data",
+      "name": "缺乏实证数据",
+      "description": "全文无任何调查/统计/案例数据",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_methodology",
+      "name": "缺乏方法论",
+      "description": "未描述数据收集和分析方法",
+      "applicable_to": ["all"]
+    }
+  ]
+}

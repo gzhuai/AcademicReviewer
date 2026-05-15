@@ -1,0 +1,17 @@
+{
+  "format": "MLA 9th",
+  "description": "MLA第9版引文规范，适用于人文学科竞赛 (NHD等)",
+  "in_text_patterns": [
+    "(Author Page)",
+    "Author argues that... (Page)",
+    "(Author and Author Page)"
+  ],
+  "reference_entry_pattern": "^[A-Z][a-z]+,\\s+[A-Z][a-z]+.*\".+\".*",
+  "required_elements": ["author", "title", "container", "publisher", "year"],
+  "format_checks": {
+    "hanging_indent": true,
+    "alphabetical_order": true,
+    "works_cited_title": true,
+    "quotation_marks_for_articles": true
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "competition_type": "social_science",
+  "description": "社会科学论文结构标准 - 适用于 CTB (China Thinks Big) 等社科竞赛",
+  "required_sections": [
+    {
+      "name": "Abstract / Executive Summary",
+      "keyword_aliases": ["Abstract", "Executive Summary", "Summary"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "概述研究问题、方法、主要发现与建议"
+    },
+    {
+      "name": "Problem Statement",
+      "keyword_aliases": ["Problem Statement", "Introduction", "Background"],
+      "expected_ratio": [10, 20],
+      "required": true,
+      "sub_sections": ["Background", "Problem Definition", "Research Questions"],
+      "description": "界定社会问题，阐述研究意义与问题"
+    },
+    {
+      "name": "Literature Review",
+      "keyword_aliases": ["Literature Review", "Previous Research", "Theoretical Framework"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "description": "梳理相关研究与理论框架"
+    },
+    {
+      "name": "Research Design / Methodology",
+      "keyword_aliases": ["Methodology", "Research Design", "Methods", "Approach"],
+      "expected_ratio": [12, 20],
+      "required": true,
+      "sub_sections": ["Data Collection", "Sample / Participants", "Analysis Methods"],
+      "description": "描述研究设计、数据收集与分析方法"
+    },
+    {
+      "name": "Findings / Results",
+      "keyword_aliases": ["Findings", "Results", "Data Analysis"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "description": "呈现数据分析结果"
+    },
+    {
+      "name": "Discussion",
+      "keyword_aliases": ["Discussion", "Interpretation", "Implications"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "description": "解释发现、讨论社会意义"
+    },
+    {
+      "name": "Solution / Proposal",
+      "keyword_aliases": ["Solution", "Proposal", "Action Plan", "Recommendations"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "提出创新解决方案或行动计划"
+    },
+    {
+      "name": "Conclusion",
+      "keyword_aliases": ["Conclusion", "Conclusion and Future Work"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "总结核心发现与方案"
+    },
+    {
+      "name": "References",
+      "keyword_aliases": ["References", "Bibliography", "Works Cited"],
+      "expected_ratio": [3, 10],
+      "required": true,
+      "description": "参考文献"
+    }
+  ],
+  "logic_checks": {
+    "problem_before_solution": true,
+    "methods_before_findings": true,
+    "findings_linked_to_solution": true,
+    "social_impact_discussed": true
+  },
+  "high_severity_violations": [
+    "no_clear_problem_statement",
+    "missing_methodology",
+    "no_practical_solution",
+    "no_data_evidence"
+  ]
+}

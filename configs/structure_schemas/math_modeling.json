@@ -1,0 +1,77 @@
+{
+  "competition_type": "math_modeling",
+  "description": "数学建模竞赛论文结构标准 - 适用于 HiMCM 等数学建模竞赛",
+  "required_sections": [
+    {
+      "name": "Summary",
+      "keyword_aliases": ["Summary", "Abstract"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "概括问题、模型方法、主要结果与建议"
+    },
+    {
+      "name": "Problem Restatement & Analysis",
+      "keyword_aliases": ["Problem Restatement", "Problem Analysis", "Introduction"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "重述问题、定义变量与约束、列出假设"
+    },
+    {
+      "name": "Assumptions & Justification",
+      "keyword_aliases": ["Assumptions", "Model Assumptions", "Justification"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "sub_sections": ["Variable Definitions", "Assumption Justification"],
+      "description": "列出模型假设并逐一论证其合理性"
+    },
+    {
+      "name": "Model Development",
+      "keyword_aliases": ["Model", "Modeling", "Model Development", "Mathematical Model"],
+      "expected_ratio": [20, 30],
+      "required": true,
+      "sub_sections": ["Model 1 / Primary Model", "Model 2 / Refined Model", "Model Comparison"],
+      "description": "从简单到复杂构建数学模型，含公式推导"
+    },
+    {
+      "name": "Model Solution & Analysis",
+      "keyword_aliases": ["Solution", "Analysis", "Results", "Computational Results"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Algorithm Description", "Parameter Estimation", "Sensitivity Analysis"],
+      "description": "求解模型，分析结果，进行参数敏感性分析"
+    },
+    {
+      "name": "Model Evaluation",
+      "keyword_aliases": ["Model Evaluation", "Validation", "Strengths and Weaknesses"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "sub_sections": ["Validation", "Sensitivity Analysis", "Strengths", "Weaknesses"],
+      "description": "评估模型优缺点，验证模型有效性"
+    },
+    {
+      "name": "Conclusion & Recommendations",
+      "keyword_aliases": ["Conclusion", "Recommendations"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "description": "总结解决方案，提出建议"
+    },
+    {
+      "name": "References",
+      "keyword_aliases": ["References", "Bibliography"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "列出所有数据来源与参考文献"
+    }
+  ],
+  "logic_checks": {
+    "assumptions_before_model": true,
+    "model_development_progressive": true,
+    "sensitivity_analysis_present": true,
+    "validation_vs_real_data": "recommended"
+  },
+  "high_severity_violations": [
+    "missing_assumptions",
+    "no_sensitivity_analysis",
+    "no_model_validation"
+  ]
+}

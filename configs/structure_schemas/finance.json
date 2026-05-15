@@ -1,0 +1,79 @@
+{
+  "competition_type": "finance",
+  "description": "金融投资分析结构标准 - 适用于 SIC/WGHS/YIS 等金融竞赛",
+  "required_sections": [
+    {
+      "name": "Executive Summary",
+      "keyword_aliases": ["Executive Summary", "Investment Summary"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "简洁陈述投资建议、目标价格、核心逻辑"
+    },
+    {
+      "name": "Company Overview",
+      "keyword_aliases": ["Company Overview", "Business Description"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "sub_sections": ["Business Model", "Revenue Segments", "Competitive Position"],
+      "description": "分析公司业务模式与竞争地位"
+    },
+    {
+      "name": "Industry Analysis",
+      "keyword_aliases": ["Industry Analysis", "Market Analysis", "Macro Environment"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "sub_sections": ["Market Size & Growth", "Porter's Five Forces", "Key Trends"],
+      "description": "行业分析和宏观经济环境评估"
+    },
+    {
+      "name": "Financial Analysis",
+      "keyword_aliases": ["Financial Analysis", "Financial Performance"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Revenue Analysis", "Profitability Ratios", "Cash Flow Analysis", "Balance Sheet Strength"],
+      "description": "深度财务数据分析"
+    },
+    {
+      "name": "Valuation",
+      "keyword_aliases": ["Valuation", "Intrinsic Value"],
+      "expected_ratio": [10, 20],
+      "required": true,
+      "sub_sections": ["DCF Model", "Comparable Company Analysis", "Sensitivity Analysis"],
+      "description": "运用至少两种估值方法得出目标价"
+    },
+    {
+      "name": "Investment Risks",
+      "keyword_aliases": ["Risks", "Risk Factors", "Risk Analysis"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "sub_sections": ["Macro Risks", "Industry Risks", "Company-specific Risks", "Risk Mitigation"],
+      "description": "系统分析投资风险"
+    },
+    {
+      "name": "Recommendation",
+      "keyword_aliases": ["Recommendation", "Investment Thesis", "Conclusion"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "description": "Buy/Hold/Sell，附催化剂与时间框架"
+    },
+    {
+      "name": "References / Appendix",
+      "keyword_aliases": ["References", "Appendix"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "数据来源与详细计算附表"
+    }
+  ],
+  "logic_checks": {
+    "financial_before_valuation": true,
+    "valuation_before_recommendation": true,
+    "risks_explicit": true,
+    "catalyst_identified": true
+  },
+  "high_severity_violations": [
+    "no_financial_ratio_analysis",
+    "no_valuation_model",
+    "no_risk_analysis",
+    "no_comparables"
+  ]
+}

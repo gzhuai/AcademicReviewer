@@ -1,0 +1,35 @@
+# Virtual environment
+venv/
+
+# Environment & secrets
+.env
+
+# Data (SQLite, ChromaDB — runtime artifacts excluded)
+# Keep example expert documents
+data/*
+!data/expert_insights/
+data/expert_insights/*
+!data/expert_insights/*.md
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Distribution
+dist/
+build/
+*.egg-info/

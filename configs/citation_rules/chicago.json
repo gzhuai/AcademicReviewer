@@ -1,0 +1,16 @@
+{
+  "format": "Chicago Notes-Bibliography",
+  "description": "芝加哥注释-参考文献格式，适用于历史竞赛 (NHD)",
+  "in_text_patterns": [
+    "^[0-9]+\\.\\s+.+",
+    "footnote marker"
+  ],
+  "reference_entry_pattern": "^[A-Z][a-z]+,\\s+[A-Z][a-z]+.*\\..+\\d{4}",
+  "required_elements": ["author", "title", "publisher", "year", "page_range"],
+  "format_checks": {
+    "footnote_numbers": "sequential",
+    "bibliography_alphabetical": true,
+    "hanging_indent": true,
+    "first_name_first_in_bibliography": true
+  }
+}

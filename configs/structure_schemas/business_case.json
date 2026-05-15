@@ -1,0 +1,78 @@
+{
+  "competition_type": "business_case",
+  "description": "商科案例分析结构标准 - 适用于 FBLA 等商科竞赛",
+  "required_sections": [
+    {
+      "name": "Executive Summary",
+      "keyword_aliases": ["Executive Summary", "Summary"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "一句话概述公司/问题，总结核心推荐与预期结果"
+    },
+    {
+      "name": "Company / Industry Overview",
+      "keyword_aliases": ["Company Overview", "Industry Analysis", "Background"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "sub_sections": ["Company Profile", "Industry Analysis / Porter's Five Forces", "SWOT Analysis"],
+      "description": "分析公司背景与行业环境"
+    },
+    {
+      "name": "Problem Statement",
+      "keyword_aliases": ["Problem Statement", "Key Issues", "Challenge"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "description": "精准界定核心商业问题"
+    },
+    {
+      "name": "Alternative Analysis",
+      "keyword_aliases": ["Alternatives", "Options", "Evaluation"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Option A", "Option B", "Option C", "Decision Matrix"],
+      "description": "列出并评估 2-4 个方案，附决策矩阵"
+    },
+    {
+      "name": "Recommended Strategy",
+      "keyword_aliases": ["Recommendation", "Strategy", "Action Plan"],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Strategy Details", "Implementation Timeline", "Resource Requirements", "Risk Mitigation"],
+      "description": "详细阐述推荐方案及实施计划"
+    },
+    {
+      "name": "Financial Projections",
+      "keyword_aliases": ["Financial Analysis", "Projections", "ROI", "Financials"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "sub_sections": ["Revenue Projections", "Cost Analysis", "Break-even Analysis", "Sensitivity Analysis"],
+      "description": "量化预期收益、成本与投资回报率"
+    },
+    {
+      "name": "Conclusion",
+      "keyword_aliases": ["Conclusion"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "重申推荐方案与预期成果"
+    },
+    {
+      "name": "References / Appendices",
+      "keyword_aliases": ["References", "Appendices", "Appendix"],
+      "expected_ratio": [3, 10],
+      "required": true,
+      "description": "参考文献与附录（图表、详细计算）"
+    }
+  ],
+  "logic_checks": {
+    "swot_before_strategy": true,
+    "alternatives_before_recommendation": true,
+    "financial_justification_present": true,
+    "implementation_feasible": true
+  },
+  "high_severity_violations": [
+    "missing_alternatives",
+    "no_financial_analysis",
+    "no_implementation_plan",
+    "no_risk_mitigation"
+  ]
+}

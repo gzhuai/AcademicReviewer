@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcademicReviewer 使用指南</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --warning: #ea580c;
+    --danger: #dc2626;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    padding-bottom: 80px;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: #0f172a; color: #e2e8f0; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  .sidebar h2 { font-size: 16px; padding: 0 20px 16px; color: #fff; border-bottom: 1px solid #334155; margin-bottom: 8px; }
+  .sidebar nav a {
+    display: block; padding: 8px 20px; color: #94a3b8; text-decoration: none; font-size: 14px;
+    border-left: 3px solid transparent; transition: all 0.15s;
+  }
+  .sidebar nav a:hover { color: #fff; background: #1e293b; border-left-color: var(--primary); }
+  .sidebar nav a.active { color: #fff; background: #1e293b; border-left-color: var(--primary); }
+
+  /* Main */
+  .main { margin-left: 260px; max-width: 960px; padding: 40px 48px; }
+  h1 { font-size: 32px; margin-bottom: 8px; color: #0f172a; }
+  .subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 40px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); color: #0f172a; }
+  h3 { font-size: 18px; margin: 32px 0 12px; color: #334155; }
+  h4 { font-size: 16px; margin: 20px 0 8px; color: #475569; }
+  p { margin: 8px 0; color: #334155; }
+  ul, ol { margin: 8px 0 16px 24px; color: #334155; }
+  li { margin: 4px 0; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card-info { border-left: 4px solid var(--primary); }
+  .card-success { border-left: 4px solid var(--success); }
+  .card-warning { border-left: 4px solid var(--warning); }
+  .card-danger { border-left: 4px solid var(--danger); }
+
+  /* Screenshot */
+  .screenshot {
+    display: block; margin: 20px auto; border-radius: 8px;
+    border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    max-width: 100%; height: auto;
+  }
+  .screenshot-caption {
+    text-align: center; font-size: 13px; color: var(--text-muted); margin-top: -12px; margin-bottom: 20px;
+  }
+  .screenshot-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 8px;
+    height: 200px; margin: 20px 0; color: #94a3b8; font-size: 14px;
+    text-align: center; padding: 20px;
+  }
+
+  /* Code */
+  code {
+    background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 13px; color: #1e293b;
+  }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 16px 20px; border-radius: 8px;
+    overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; }
+  tr:hover { background: #f8fafc; }
+
+  /* Tags */
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-get { background: #dcfce7; color: #166534; }
+  .tag-post { background: #dbeafe; color: #1e40af; }
+
+  /* Steps */
+  .step { display: flex; gap: 16px; margin: 16px 0; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin: 0 0 4px; }
+
+  /* TOC */
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
+  .toc h3 { margin-top: 0; }
+  .toc ul { list-style: none; margin-left: 0; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>📘 AcademicReviewer</h2>
+  <nav>
+    <a href="#overview">概述</a>
+    <a href="#quickstart">快速开始</a>
+    <a href="#gradio-ui">Gradio 图形界面</a>
+    <a href="#api">API 接口</a>
+    <a href="#calibration">校准引擎</a>
+    <a href="#expert-insights">教师经验注入</a>
+    <a href="#config">配置管理</a>
+    <a href="#faq">常见问题</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>AcademicReviewer 使用指南</h1>
+<p class="subtitle">学术竞赛论文智能评审系统 · 5 Agent 多轮并行架构</p>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#overview">1. 系统概述</a></li>
+    <li><a href="#quickstart">2. 快速开始</a> — 环境配置、启动服务</li>
+    <li><a href="#gradio-ui">3. Gradio 图形界面</a> — 提交评审、查看历史、系统状态、校准引擎</li>
+    <li><a href="#api">4. API 接口参考</a> — 6 个 REST 端点</li>
+    <li><a href="#calibration">5. 校准引擎</a> — CLI 与界面操作，教师经验注入</li>
+    <li><a href="#config">6. 配置管理</a> — 竞赛注册、评分标准、风格模板</li>
+    <li><a href="#faq">7. 常见问题</a></li>
+  </ul>
+</div>
+
+<!-- ==================== 1. 概述 ==================== -->
+<h2 id="overview">1. 系统概述</h2>
+
+<p>AcademicReviewer 是一个基于多 Agent 协作的<strong>学术竞赛论文智能评审系统</strong>，专为辅导高中生参加国际学术竞赛的教师团队设计。</p>
+
+<div class="card card-info">
+  <h3>🎯 核心价值</h3>
+  <p>解决教师团队在辅导多名学生时<strong>评审质量不一致</strong>的核心痛点。系统通过 5 个专用 Agent 两轮并行协作，确保每篇稿件的评审标准高度统一。</p>
+</div>
+
+<h3>系统架构</h3>
+<table>
+  <tr><th>组件</th><th>说明</th></tr>
+  <tr><td>5 个评审 Agent</td><td>A1 评分标准解析、A2 结构与逻辑、A3 论证与证据、A4 语言与风格、A5 学术诚信</td></tr>
+  <tr><td>2 轮并行调度</td><td>Round 1: A1+A2+A3 并行 → Round 2: A4+A5 并行</td></tr>
+  <tr><td>校准引擎</td><td>纯统计分析（无 LLM 调用），分析获奖/失败文章差距，生成配置优化建议</td></tr>
+  <tr><td>4 模型适配</td><td>DeepSeek / GPT / Gemini / GLM，一键切换</td></tr>
+  <tr><td>11 项竞赛</td><td>ISEF、丘成桐、John Locke、HiMCM、SIC 等，不同竞赛自动加载专属评审配置</td></tr>
+</table>
+
+<h3>支持竞赛一览</h3>
+<table>
+  <tr><th>竞赛</th><th>类型</th><th>引用格式</th><th>风格模板</th></tr>
+  <tr><td>ISEF</td><td>科研论文</td><td>APA 7th</td><td>技术学术</td></tr>
+  <tr><td>STS</td><td>科研论文</td><td>APA 7th</td><td>技术学术</td></tr>
+  <tr><td>丘成桐</td><td>科研论文（进阶）</td><td>APA 7th</td><td>技术学术</td></tr>
+  <tr><td>HiMCM</td><td>数学建模</td><td>APA 7th</td><td>技术学术</td></tr>
+  <tr><td>John Locke</td><td>议论文</td><td>MLA 9th</td><td>议论文体</td></tr>
+  <tr><td>Marshall Society</td><td>议论文（经济学）</td><td>MLA 9th</td><td>议论文体</td></tr>
+  <tr><td>CTB</td><td>社会科学</td><td>APA 7th</td><td>社会科学</td></tr>
+  <tr><td>NHD</td><td>历史研究</td><td>Chicago</td><td>历史文体</td></tr>
+  <tr><td>SIC</td><td>金融投资分析</td><td>APA 7th</td><td>商业金融</td></tr>
+  <tr><td>WGHS</td><td>金融投资分析</td><td>APA 7th</td><td>商业金融</td></tr>
+  <tr><td>FBLA</td><td>商业案例</td><td>APA 7th</td><td>商业提案</td></tr>
+</table>
+
+<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20clean%20modern%20architecture%20diagram%20showing%20a%20multi-agent%20AI%20system%20with%205%20agents%20(A1%20to%20A5)%20arranged%20in%20two%20parallel%20rounds%2C%20connected%20to%20a%20central%20orchestrator%2C%20with%20labels%20in%20English%2C%20minimalist%20flat%20design%20on%20white%20background&image_size=landscape_16_9" alt="系统架构示意图" class="screenshot">
+<p class="screenshot-caption">▲ 图1：5 Agent 两轮并行调度架构</p>
+
+<!-- ==================== 2. 快速开始 ==================== -->
+<h2 id="quickstart">2. 快速开始</h2>
+
+<div class="card card-success">
+  <h3>🚀 推荐：一键安装（零命令行 / 一条命令）</h3>
+  <p>项目根目录提供了 <strong>Windows 一键脚本</strong>（双击即可）和 <strong>macOS / Linux Bash 脚本</strong>（终端一条命令），自动完成安装和启动。</p>
+</div>
+
+<h3>2.1 Windows 一键安装（双击即用）</h3>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>打开 <code>scripts</code> 文件夹，双击 <code>install.bat</code> 自动安装</h4>
+    <p>脚本会自动完成以下操作：</p>
+    <ol>
+      <li>检测 Python 是否已安装（需要 3.10+）</li>
+      <li>创建独立虚拟环境 <code>venv\</code>（不污染系统 Python）</li>
+      <li>安装全部依赖（<code>pip install -r requirements.txt</code>）</li>
+      <li>从 <code>.env.example</code> 复制生成 <code>.env</code> 配置文件</li>
+      <li>创建数据目录（<code>data\</code>、<code>data\calibration\</code> 等）</li>
+    </ol>
+
+    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20Windows%20command%20prompt%20window%20showing%20a%20one-click%20installation%20script%20running%20with%20green%20checkmarks%20for%20each%20completed%20step%2C%20terminal%20style%20screenshot&image_size=landscape_16_9" alt="install.bat 运行截图" class="screenshot">
+    <p class="screenshot-caption">▲ 图2：install.bat 自动安装过程</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>编辑 <code>.env</code>，填入 API Key</h4>
+    <p>安装脚本末尾会询问<strong>是否立即编辑 .env</strong>，输入 <code>y</code> 即可打开记事本：</p>
+    <pre><code># 必填：至少配置一个模型的 API Key（将 sk-your-xxx 替换为真实 Key）
+DEEPSEEK_API_KEY=sk-your-deepseek-key
+OPENAI_API_KEY=sk-your-openai-key
+GEMINI_API_KEY=your-gemini-key
+GLM_API_KEY=your-glm-key
+
+# 默认使用的模型（deepseek / openai / gemini / glm）
+LLM_PROVIDER=deepseek</code></pre>
+
+    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20text%20editor%20window%20showing%20an%20environment%20configuration%20file%20with%20API%20keys%20highlighted%2C%20minimalist%20code%20editor%20screenshot&image_size=landscape_16_9" alt="编辑 .env 文件" class="screenshot">
+    <p class="screenshot-caption">▲ 图3：编辑 .env 填入 API Key</p>
+
+    <div class="card card-warning">
+      <strong>⚠️ 注意：</strong>API Key 是必填项，没有 Key 系统无法调用 LLM 进行评审。至少配置一个服务商。占位值 <code>sk-your-xxx</code> 是无效的。
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>双击 <code>start_all.bat</code>（位于 <code>scripts</code> 文件夹）启动系统</h4>
+    <p>脚本会同时启动两个服务窗口：</p>
+    <table>
+      <tr><th>服务</th><th>地址</th><th>说明</th></tr>
+      <tr><td>FastAPI 后端</td><td><code>http://127.0.0.1:8000</code></td><td>API 服务 + Swagger 文档</td></tr>
+      <tr><td>Gradio 前端</td><td><code>http://127.0.0.1:7860</code></td><td>图形化操作界面</td></tr>
+    </table>
+    <p>启动后浏览器会自动打开 Gradio 前端界面。</p>
+
+    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20web%20browser%20showing%20a%20Gradio%20application%20interface%20with%20multiple%20tabs%20labeled%20in%20Chinese%2C%20clean%20modern%20UI%20with%20a%20blue%20theme%2C%20screenshot%20style&image_size=landscape_16_9" alt="Gradio 启动后界面" class="screenshot">
+    <p class="screenshot-caption">▲ 图4：启动后自动打开的 Gradio 前端界面</p>
+
+    <div class="card card-info">
+      <strong>💡 提示：</strong>如果只想单独启动某个服务，可以打开 <code>scripts</code> 文件夹运行 <code>start_backend.bat</code> 或 <code>start_frontend.bat</code>。
+    </div>
+  </div>
+</div>
+
+<h3>2.2 macOS / Linux 一键安装（终端一条命令）</h3>
+
+<div class="card card-info">
+  <strong>🍎 macOS / 🐧 Linux 用户：</strong>打开终端（Terminal），进入项目目录，运行以下命令即可。
+</div>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>运行 <code>bash scripts/install.sh</code> 自动安装</h4>
+    <p>打开终端，进入项目目录后执行：</p>
+    <pre><code>cd ~/Downloads/AcademicReviewer   # 进入项目目录
+bash scripts/install.sh           # 运行安装脚本</code></pre>
+    <p>脚本会自动完成：</p>
+    <ol>
+      <li>检测 Python 3.10+ 环境（自动搜索 <code>python3</code>、<code>python3.12</code> 等）</li>
+      <li>创建独立虚拟环境 <code>venv/</code></li>
+      <li>安装全部依赖（<code>pip install -r requirements.txt</code>）</li>
+      <li>从 <code>.env.example</code> 复制生成 <code>.env</code></li>
+      <li>创建数据目录</li>
+    </ol>
+
+    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20macOS%20terminal%20window%20showing%20a%20bash%20installation%20script%20running%20with%20green%20colored%20output%20and%20checkmarks%20for%20each%20completed%20step%2C%20dark%20terminal%20theme%2C%20clean%20minimalist%20screenshot&image_size=landscape_16_9" alt="bash install.sh 运行截图" class="screenshot">
+    <p class="screenshot-caption">▲ 图2b：macOS 终端运行 install.sh</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>编辑 <code>.env</code>，填入 API Key</h4>
+    <p>安装脚本末尾会询问<strong>是否立即编辑 .env</strong>，输入 <code>y</code> 即可打开编辑器（nano / vim）：</p>
+    <pre><code># 必填：至少配置一个模型的 API Key
+DEEPSEEK_API_KEY=sk-your-deepseek-key
+OPENAI_API_KEY=sk-your-openai-key
+GEMINI_API_KEY=your-gemini-key
+GLM_API_KEY=your-glm-key
+
+# 默认使用的模型
+LLM_PROVIDER=deepseek</code></pre>
+
+    <div class="card card-warning">
+      <strong>⚠️ 注意：</strong>API Key 是必填项，至少配置一个服务商。
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>运行 <code>bash scripts/start_all.sh</code> 启动系统</h4>
+    <pre><code>bash scripts/start_all.sh</code></pre>
+    <p>脚本会自动：</p>
+    <ul>
+      <li>在<strong>两个新终端窗口</strong>中分别启动后端和前端</li>
+      <li>等待 5 秒后端初始化完成后，自动打开浏览器访问前端</li>
+    </ul>
+    <table>
+      <tr><th>服务</th><th>地址</th><th>说明</th></tr>
+      <tr><td>FastAPI 后端</td><td><code>http://127.0.0.1:8000</code></td><td>API 服务 + Swagger 文档</td></tr>
+      <tr><td>Gradio 前端</td><td><code>http://127.0.0.1:7860</code></td><td>图形化操作界面</td></tr>
+    </table>
+
+    <div class="card card-info">
+      <strong>💡 提示：</strong>如果只想单独启动某个服务，可以使用 <code>bash scripts/start_backend.sh</code> 或 <code>bash scripts/start_frontend.sh</code>。
+    </div>
+  </div>
+</div>
+
+<h3>2.3 可选：运行测试</h3>
+<div class="step">
+  <div class="step-num">✓</div>
+  <div class="step-body">
+    <h4>运行端到端测试</h4>
+    <p>确保后端正在运行，然后在 <code>venv</code> 环境中执行：</p>
+    <pre><code>python tests/test_e2e.py</code></pre>
+    <p>测试将使用 <code>tests/fixtures/sample_isef_paper.txt</code> 作为输入，依次调用 5 个 Agent，验证完整审查流水线。</p>
+  </div>
+</div>
+
+<h3>2.4 手动安装（备选方案）</h3>
+<details style="margin: 12px 0;">
+  <summary style="cursor: pointer; font-weight: 600; color: var(--primary); padding: 8px 0;">展开查看手动安装步骤（适用于进阶用户或特殊环境）</summary>
+  <div style="padding: 8px 0 0 16px;">
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>创建虚拟环境 &amp; 安装依赖</h4>
+    <pre><code>python -m venv venv
+venv\Scripts\activate      # Windows
+source venv/bin/activate   # macOS / Linux
+pip install -r requirements.txt</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>配置 .env</h4>
+    <pre><code>cp .env.example .env         # macOS / Linux
+copy .env.example .env      # Windows</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>启动后端</h4>
+    <pre><code>python run.py</code></pre>
+    <p>访问 API 文档：<a href="http://127.0.0.1:8000/docs" target="_blank">http://127.0.0.1:8000/docs</a></p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h4>启动前端（新终端）</h4>
+    <pre><code>python app/gradio_app.py</code></pre>
+    <p>访问前端界面：<a href="http://127.0.0.1:7860" target="_blank">http://127.0.0.1:7860</a></p>
+  </div>
+</div>
+
+  </div>
+</details>
+
+
+<!-- ==================== 3. Gradio 界面 ==================== -->
+<h2 id="gradio-ui">3. Gradio 图形界面</h2>
+
+<p>Gradio 界面提供 4 个功能标签页，无需记忆命令即可完成所有操作。</p>
+
+<h3>3.1 提交评审</h3>
+
+<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20clean%20web%20application%20interface%20for%20submitting%20essay%20reviews%2C%20showing%20a%20file%20upload%20area%2C%20dropdown%20menus%20for%20competition%20selection%2C%20text%20input%20for%20student%20name%2C%20and%20a%20blue%20submit%20button%2C%20minimalist%20UI%20design&image_size=landscape_16_9" alt="提交评审界面" class="screenshot">
+<p class="screenshot-caption">▲ 图3：提交评审标签页</p>
+
+<p><strong>操作步骤：</strong></p>
+<ol>
+  <li>点击 <strong>"上传文件"</strong>，选择学生的论文文件（支持 <code>.txt</code>、<code>.pdf</code>、<code>.docx</code>）</li>
+  <li>从下拉框选择 <strong>竞赛名称</strong>（如 ISEF、John Locke 等）</li>
+  <li>可选填写 <strong>学生姓名</strong></li>
+  <li>选择 <strong>模型提供商</strong>（DeepSeek / OpenAI / Gemini / GLM）</li>
+  <li>点击 <strong>"开始评审"</strong> 按钮</li>
+  <li>等待约 30-120 秒，右侧将显示：
+    <ul>
+      <li><strong>评分明细</strong> — 5 个 Agent 的分项评分</li>
+      <li><strong>元数据</strong> — 总评分、字数、模型、耗时</li>
+      <li>如有错误会单独列出</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="card card-info">
+  <strong>💡 提示：</strong>如果竞赛列表中没有看到你需要的竞赛，点击 <strong>"刷新竞赛列表"</strong> 按钮即可重新加载。
+</div>
+
+<h3>3.2 评审历史</h3>
+
+<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20web%20application%20data%20table%20showing%20review%20history%20records%20with%20columns%20for%20ID%2C%20student%20name%2C%20competition%2C%20score%2C%20and%20date%2C%20with%20pagination%20controls%20and%20a%20detail%20view%20panel%2C%20clean%20professional%20UI%20design&image_size=landscape_16_9" alt="评审历史界面" class="screenshot">
+<p class="screenshot-caption">▲ 图4：评审历史标签页</p>
+
+<p><strong>功能说明：</strong></p>
+<ul>
+  <li><strong>分页浏览：</strong>使用页码滑块和每页条数控制浏览记录</li>
+  <li><strong>表格展示：</strong>显示 ID、学生、竞赛、类型、文件名、字数、评分、模型、提交时间</li>
+  <li><strong>查看详情：</strong>展开折叠面板，输入 Submission ID，点击 <strong>"加载详情"</strong> 查看完整评审报告，包括：
+    <ul>
+      <li>5 个 Agent 的分项评分</li>
+      <li>审查耗时和成本</li>
+      <li>完整反馈内容</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>3.3 系统状态</h3>
+
+<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20system%20dashboard%20page%20showing%20statistics%20with%20numbers%20for%20configuration%20file%20counts%2C%20competition%20types%2C%20and%20database%20submission%20counts%20in%20a%20clean%20minimalist%20layout%20with%20cards&image_size=landscape_16_9" alt="系统状态界面" class="screenshot">
+<p class="screenshot-caption">▲ 图5：系统状态标签页</p>
+
+<p>点击 <strong>"加载统计"</strong> 按钮，查看：</p>
+<ul>
+  <li><strong>竞赛配置：</strong>已注册的竞赛数量和类型</li>
+  <li><strong>配置文件统计：</strong>评分标准、结构模式、证据模式、风格指南、引用规则各自的数量</li>
+  <li><strong>数据库统计：</strong>总提交数、按竞赛分布</li>
+</ul>
+
+<h3>3.4 校准引擎</h3>
+
+<img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=A%20calibration%20engine%20interface%20with%20file%20upload%20areas%20for%20winner%20and%20loser%20essays%2C%20text%20inputs%20for%20competition%20name%20and%20type%2C%20and%20a%20large%20run%20button%2C%20analytics%20dashboard%20style&image_size=landscape_16_9" alt="校准引擎界面" class="screenshot">
+<p class="screenshot-caption">▲ 图6：校准引擎标签页</p>
+
+<p><strong>使用场景：</strong>当你积累了一批获奖文章和失败文章后，校准引擎会：</p>
+<ol>
+  <li>自动提取每篇文章的 21 项文本特征</li>
+  <li>计算 Cohen's d 效应量（识别关键差异特征）</li>
+  <li>生成配置优化建议</li>
+  <li>输出 Markdown 校准报告</li>
+</ol>
+
+<p><strong>操作步骤：</strong></p>
+<ol>
+  <li>填写竞赛名称和类型</li>
+  <li>上传 <strong>我方获奖文章</strong>（多选文件）</li>
+  <li>上传 <strong>我方失败文章</strong>（多选文件）</li>
+  <li>可选上传 <strong>外部获奖文章</strong>（用于交叉验证）</li>
+  <li>可选上传 <strong>教师经验文档</strong>（.md 格式，支持三模式自适应解析）</li>
+  <li>可选填写输出路径，留空则在界面显示报告</li>
+  <li>点击 <strong>"运行校准"</strong></li>
+</ol>
+
+<div class="card card-info">
+  <strong>💡 提示：</strong>校准引擎是<strong>纯统计分析</strong>，不调用任何 LLM，完全免费运行。建议每积累 20+ 篇文章后运行一次。
+</div>
+
+
+<!-- ==================== 4. API 接口 ==================== -->
+<h2 id="api">4. API 接口参考</h2>
+
+<p>所有接口前缀为 <code>/api/v1/</code>。以下用 <code>curl</code> 示例演示。</p>
+
+<h3>4.1 健康检查</h3>
+<pre><code><span class="tag tag-get">GET</span> /api/v1/health</code></pre>
+<p>返回系统运行状态、模型提供商标识和环境信息。</p>
+<pre><code>curl http://127.0.0.1:8000/api/v1/health</code></pre>
+
+<h3>4.2 提交评审</h3>
+<pre><code><span class="tag tag-post">POST</span> /api/v1/review</code></pre>
+<p>上传论文文件并启动 5 Agent 评审。请求体为 <code>multipart/form-data</code>：</p>
+<table>
+  <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+  <tr><td><code>file</code></td><td>file</td><td>✅</td><td>论文文件 (.txt/.pdf/.docx)</td></tr>
+  <tr><td><code>competition</code></td><td>string</td><td>✅</td><td>竞赛名称，如 ISEF、John Locke</td></tr>
+  <tr><td><code>student_name</code></td><td>string</td><td></td><td>学生姓名（可选）</td></tr>
+  <tr><td><code>model_provider</code></td><td>string</td><td></td><td>覆盖默认模型（deepseek/openai/gemini/glm）</td></tr>
+</table>
+<pre><code>curl -X POST http://127.0.0.1:8000/api/v1/review \
+  -F "file=@student_paper.txt" \
+  -F "competition=ISEF" \
+  -F "student_name=张三" \
+  -F "model_provider=deepseek"</code></pre>
+
+<p><strong>返回示例：</strong></p>
+<pre><code>{
+  "submission_id": 1,
+  "total_score": 7.8,
+  "competition_type": "research",
+  "scores": {
+    "rubric": 8.0,
+    "structure": 7.5,
+    "argument": 7.0,
+    "language": 8.5,
+    "integrity": 8.0
+  },
+  "rubric": { "positive_points": [...], "key_issues": [...] },
+  "structure": { ... },
+  "argument": { ... },
+  "language": { "rewrites": [...], "suggestions": [...] },
+  "integrity": { "citation_issues": [...], "originality_check": {...} },
+  "meta": {
+    "word_count": 2500,
+    "model": "deepseek-v4-pro",
+    "duration_seconds": 45.2,
+    "cost_usd": 0.015
+  }
+}</code></pre>
+
+<h3>4.3 竞赛列表</h3>
+<pre><code><span class="tag tag-get">GET</span> /api/v1/competitions</code></pre>
+<pre><code>curl http://127.0.0.1:8000/api/v1/competitions</code></pre>
+
+<h3>4.4 评审历史列表</h3>
+<pre><code><span class="tag tag-get">GET</span> /api/v1/reviews?offset=0&limit=20</code></pre>
+<table>
+  <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+  <tr><td><code>offset</code></td><td>int</td><td>0</td><td>分页偏移</td></tr>
+  <tr><td><code>limit</code></td><td>int</td><td>20</td><td>每页条数 (1-100)</td></tr>
+</table>
+<pre><code>curl "http://127.0.0.1:8000/api/v1/reviews?offset=0&limit=5"</code></pre>
+
+<h3>4.5 单条评审详情</h3>
+<pre><code><span class="tag tag-get">GET</span> /api/v1/reviews/{submission_id}</code></pre>
+<pre><code>curl http://127.0.0.1:8000/api/v1/reviews/1</code></pre>
+<p>返回该次提交的完整信息及所有历史审查记录（多次评审同一稿件时）。</p>
+
+<h3>4.6 配置统计</h3>
+<pre><code><span class="tag tag-get">GET</span> /api/v1/config/stats</code></pre>
+<pre><code>curl http://127.0.0.1:8000/api/v1/config/stats</code></pre>
+<p>返回竞赛数量、各类型配置文件数量、数据库提交统计。</p>
+
+
+<!-- ==================== 5. 校准引擎 ==================== -->
+<h2 id="calibration">5. 校准引擎</h2>
+
+<p>校准引擎是系统的<strong>质量持续改进</strong>工具，通过统计分析获奖文章与失败文章的差异，自动生成配置优化建议。</p>
+
+<div class="card card-info">
+  <h3>🧪 校准引擎特点</h3>
+  <ul>
+    <li><strong>零 LLM 调用：</strong>纯规则引擎 + 统计分析，完全免费</li>
+    <li><strong>21 项特征提取：</strong>句式参数、引用密度、被动语态比例、词汇多样性、逻辑标记密度等</li>
+    <li><strong>Cohen's d 效应量：</strong>识别获奖文章与失败文章之间的关键差异特征（|d|≥0.8=关键差异）</li>
+    <li><strong>交叉验证：</strong>支持引入外部获奖文章进行特征验证</li>
+    <li><strong>配置变更建议：</strong>自动将统计发现映射到配置参数调整建议</li>
+  </ul>
+</div>
+
+<h3>5.1 准备工作</h3>
+<p>在运行校准之前，需要准备以下文件结构：</p>
+<pre><code>data/
+└── calibration/
+    ├── winners/        ← 获奖文章文件夹 (.txt/.md)
+    │   ├── paper1.txt
+    │   └── paper2.txt
+    ├── losers/         ← 失败文章文件夹 (.txt/.md)
+    │   ├── paper3.txt
+    │   └── paper4.txt
+    └── external/       ← 外部获奖文章（可选，用于交叉验证）
+        └── ref_paper1.txt</code></pre>
+
+<h3>5.2 CLI 命令行方式</h3>
+<pre><code>python cli/calibrate.py \
+  --competition ISEF \
+  --type research \
+  --winners data/calibration/winners \
+  --losers data/calibration/losers \
+  --external data/calibration/external \
+  --expert-docs data/expert_insights/ISEF_teacher_experience.md \
+  --output data/calibration/report.md</code></pre>
+<p>参数说明：</p>
+<table>
+  <tr><th>参数</th><th>必填</th><th>说明</th></tr>
+  <tr><td><code>--competition</code></td><td>✅</td><td>竞赛名称</td></tr>
+  <tr><td><code>--type</code></td><td>✅</td><td>竞赛类型（如 research、discursive）</td></tr>
+  <tr><td><code>--winners</code></td><td>✅</td><td>获奖文章目录</td></tr>
+  <tr><td><code>--losers</code></td><td>✅</td><td>失败文章目录</td></tr>
+  <tr><td><code>--external</code></td><td></td><td>外部获奖文章目录（交叉验证用）</td></tr>
+  <tr><td><code>--expert-docs</code></td><td></td><td>教师经验文档路径（支持多文件，空格分隔）</td></tr>
+  <tr><td><code>--output</code></td><td></td><td>报告输出路径</td></tr>
+</table>
+
+<h3>5.3 Gradio 界面方式</h3>
+<p>在 Gradio 的 <strong>"校准引擎"</strong> 标签页中直接上传文件并运行。详见 <a href="#gradio-ui">3.4 节</a>。</p>
+
+<h3>5.4 报告解读</h3>
+<p>校准报告包含以下部分：</p>
+<table>
+  <tr><th>章节</th><th>内容</th></tr>
+  <tr><td>效应量排序表</td><td>按 |d| 降序排列，标注关键差异/中效应/小效应/无差异</td></tr>
+  <tr><td>交叉验证表</td><td>与外部获奖文章的对比验证</td></tr>
+  <tr><td>配置变更建议</td><td>具体的配置参数调整方案</td></tr>
+  <tr><td>致命缺陷检测</td><td>失败文章中普遍缺失的二元特征（如无 p 值、无对照组）</td></tr>
+  <tr><td>人工复核清单</td><td>需要教师确认的关键发现</td></tr>
+</table>
+
+<h3>5.5 教师经验注入</h3>
+
+<p>校准引擎支持将教师多年的辅导经验以<strong>文档形式注入</strong>校准流程，使配置优化建议不仅基于统计数据，还融合了教师的主观经验判断。</p>
+
+<div class="card card-success">
+  <h3>🎓 为什么需要教师经验注入？</h3>
+  <p>纯粹的统计校准只能告诉你"获奖文章有什么特征"，但无法解释"为什么这些特征重要"。教师多年的辅导经验——例如评委偏好、常见失分原因、教学心得——恰恰是解读统计数据的关键上下文。将这些经验纳入校准，报告中的"配置变更建议"将更精准、更有可操作性。</p>
+</div>
+
+<h4>5.5.1 三模式自适应解析</h4>
+
+<p>系统支持三种文档格式，教师可以根据自己的习惯自由选择。引擎会自动检测文档格式并选择合适的解析方式：</p>
+
+<table>
+  <tr><th>模式</th><th>格式要求</th><th>解析方式</th><th>适合场景</th></tr>
+  <tr>
+    <td><strong>Mode 3</strong><br>完全结构化</td>
+    <td>使用 <code>### [pattern] 特征名</code> 格式编写，每个条目后跟描述</td>
+    <td>正则精确解析，<strong>零 LLM 调用</strong></td>
+    <td>教师愿意严格按模板编写时，精度最高</td>
+  </tr>
+  <tr>
+    <td><strong>Mode 2</strong><br>半结构化</td>
+    <td>使用系统提供的章节标题（见下方标题体系）将文档分成若干小节，每节自由撰写</td>
+    <td>章节路由 + LLM 逐节抽取，特征映射为本地关键词匹配</td>
+    <td>教师愿意按章节组织内容，但每节内容自由发挥</td>
+  </tr>
+  <tr>
+    <td><strong>Mode 1</strong><br>纯自由格式</td>
+    <td>没有任何格式要求，纯粹的随笔、心得、总结</td>
+    <td>LLM 全文语义解析 + 本地关键词特征映射</td>
+    <td>教师只想随手写写心得，最低门槛</td>
+  </tr>
+</table>
+
+<div class="card card-info">
+  <strong>💡 安全性设计：</strong>Mode 1 和 Mode 2 中，LLM 只负责<strong>将文本拆分为知识点条目</strong>（标题 + 描述 + 类型），而<strong>特征映射始终走本地关键词匹配</strong>。这意味着即使 LLM 出现幻觉，也不会错误地将经验映射到不相关的特征上，保证了校准建议的准确性。
+</div>
+
+<h4>5.5.2 Mode 2 章节标题体系（20+ 标题）</h4>
+
+<p>以下是系统支持的章节标题，分为 5 大类。教师选择任意一个标题来组织自己的经验，系统将自动识别并归类：</p>
+
+<table>
+  <tr><th>类别</th><th>标注类型</th><th>支持的章节标题（任选其一即可）</th></tr>
+  <tr>
+    <td>获奖经验</td>
+    <td><code>pattern</code></td>
+    <td>获奖经验、获奖规律、成功案例总结、高分特征、高频特征、晋级规律、获奖论文的共同特征、制胜关键、历届获奖作品特点、我观察到的得分规律、学生获奖的共性</td>
+  </tr>
+  <tr>
+    <td>常见问题</td>
+    <td><code>pitfall</code></td>
+    <td>常见问题、常见错误、失分原因、扣分点、评审中常见的问题、学生常犯错误、需要避免的问题、失败案例分析、容易忽略的点、我踩过的坑、常见误区、低级失误</td>
+  </tr>
+  <tr>
+    <td>高分信号</td>
+    <td><code>signal</code></td>
+    <td>高分信号、加分项、评委偏好、评委在意的点、能打动评委的细节、评审看重的、出彩的技巧、区分度高的特征、脱颖而出的关键、拿分的细节</td>
+  </tr>
+  <tr>
+    <td>教学方法</td>
+    <td><code>strategy</code></td>
+    <td>教学方法、辅导策略、有效的训练方法、我常用的教学技巧、提升途径、备考策略、写作训练方法</td>
+  </tr>
+  <tr>
+    <td>评分标准解读</td>
+    <td><code>rubric</code></td>
+    <td>评分标准解读、评分细则分析、我对评分表的理解、如何理解评审标准、得分要点分析、各维度的评分侧重点</td>
+  </tr>
+</table>
+
+<div class="card card-info">
+  <strong>💡 用法举例：</strong>在你的文档中写 <code>## 获奖经验</code> 或 <code>## 常见问题</code> 或 <code>## 高分信号</code> 等二级标题，系统即可自动识别并分类处理。标题下的内容可以自由撰写，无需固定格式。
+</div>
+
+<h4>5.5.3 编写教师经验文档</h4>
+
+<p><strong>Step 1 — 创建 Markdown 文件：</strong></p>
+<pre><code>data/expert_insights/
+└── ISEF_刘老师经验.md</code></pre>
+
+<p><strong>Step 2 — 编写内容（Mode 2 示例）：</strong></p>
+<pre><code>## 竞赛: ISEF
+## 作者: 刘老师
+
+## 获奖经验
+我带过 3 届 ISEF 获奖学生，发现他们的论文都有一个共同点：
+Introduction 部分不仅描述研究背景，还明确交代了研究空白和假设……
+
+## 常见问题
+很多学生忽略了对立假设的讨论。ISEF 评审很看重这个……
+
+## 高分信号
+评审特别喜欢看到学生对实验局限性的反思。这不是扣分项，
+反而是加分项——展示科学素养的关键时刻……
+
+## 教学方法
+我通常让学生在初稿阶段先不要管语言，用中文把逻辑链条理顺，
+然后再翻译成英文。这样出来的文章逻辑明显更清晰……</code></pre>
+
+<p><strong>Step 3 — 在 CLI 中引用：</strong></p>
+<pre><code>python cli/calibrate.py \
+  --competition ISEF --type research \
+  --winners data/calibration/winners \
+  --losers data/calibration/losers \
+  --expert-docs data/expert_insights/ISEF_刘老师经验.md \
+  --output data/calibration/report.md</code></pre>
+
+<h4>5.5.4 报告中的教师经验章节</h4>
+
+<p>当校准引擎检测到教师经验文档后，生成的报告将新增以下章节：</p>
+<table>
+  <tr><th>章节</th><th>内容</th></tr>
+  <tr><td>教师经验摘要</td><td>从文档中提取的所有知识点，按类型（pattern/pitfall/signal/strategy/rubric）分类展示</td></tr>
+  <tr><td>经验与统计交叉验证</td><td>将教师的经验判断与 Cohen's d 统计结果进行对比，标注"统计验证通过"或"需进一步观察"</td></tr>
+  <tr><td>融合建议</td><td>结合统计发现和教师经验，给出综合性的配置调整建议</td></tr>
+</table>
+
+
+<!-- ==================== 6. 配置管理 ==================== -->
+<h2 id="config">6. 配置管理</h2>
+
+<h3>6.1 配置文件体系</h3>
+<pre><code>configs/
+├── competition_registry.json     ← 竞赛注册表（添删竞赛在此）
+├── rubrics/                      ← 评分标准
+│   └── isef_2026.json
+├── structure_schemas/            ← 结构模式（8 个）
+│   ├── research.json
+│   ├── discursive.json
+│   ├── finance.json
+│   └── ...
+├── evidence_patterns/            ← 证据模式（9 个）
+│   ├── research.json
+│   ├── discursive_economics.json
+│   └── ...
+├── style_guides/                 ← 风格指南（6 个）
+│   ├── tech_academic.json
+│   ├── discursive.json
+│   └── ...
+└── citation_rules/               ← 引用规则（3 个）
+    ├── apa.json
+    ├── mla.json
+    └── chicago.json</code></pre>
+
+<h3>6.2 添加新竞赛</h3>
+<p>编辑 <code>configs/competition_registry.json</code>，在 <code>competitions</code> 中添加：</p>
+<pre><code>"新竞赛名": {
+  "type": "竞赛类型",
+  "subtype": null,
+  "structure_schema": "对应的结构模式.json",
+  "evidence_config": "对应的证据模式.json",
+  "style_template": "对应的风格指南.json",
+  "citation_style": "APA"
+}</code></pre>
+<p>保存后刷新 Gradio 竞赛列表即可使用。</p>
+
+<h3>6.3 调优评分阈值</h3>
+<p>每种竞赛类型的配置文件（<code>structure_schemas/</code>、<code>evidence_patterns/</code> 等）中的数值阈值均可按需调整。建议在校准引擎运行后，参考其输出的配置变更建议来调优。</p>
+
+
+<!-- ==================== 7. FAQ ==================== -->
+<h2 id="faq">7. 常见问题</h2>
+
+<div class="card card-warning">
+  <h3>Q: 启动报错 "ModuleNotFoundError: No module named 'xxx'"</h3>
+  <p><strong>A:</strong> 确保已安装全部依赖：<code>pip install -r requirements.txt</code>。如果使用了虚拟环境，请确认已激活。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 评审返回错误 "未配置 API Key"</h3>
+  <p><strong>A:</strong> 检查 <code>.env</code> 文件中是否已填入对应 <code>LLM_PROVIDER</code> 的 API Key。API Key 不能是 <code>sk-xxx</code> 或 <code>xxx</code> 这样的占位值。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 可以同时使用多个模型吗？</h3>
+  <p><strong>A:</strong> 单次评审使用一个模型，但可以在 Gradio 界面或 API 调用时每次选择不同的模型提供商。配置所有 4 个 API Key 后可以灵活切换。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 评审一篇论文大概多长时间？</h3>
+  <p><strong>A:</strong> 取决于论文长度和模型响应速度，通常在 <strong>30-120 秒</strong>。5 个 Agent 分两轮并行执行，Round 1（A1+A2+A3）和 Round 2（A4+A5）各等待一次 LLM 响应。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 校准引擎需要多少文章才能运行？</h3>
+  <p><strong>A:</strong> 最少需要 <strong>2 篇获奖 + 2 篇失败</strong> 文章。但建议积累至少 10 篇以上再运行，以获得有统计意义的结果。外部获奖文章是可选的。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 数据库和向量数据存储在哪里？</h3>
+  <p><strong>A:</strong> SQLite 数据库存储在 <code>data/academic_reviewer.db</code>，ChromaDB 向量数据存储在 <code>data/chroma/</code>。这些都是本地文件，无需额外安装数据库服务。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 如何修改 A4 Agent 的改写边界（Iron Law）？</h3>
+  <p><strong>A:</strong> A4 的改写限制在提示词中定义（<code>prompts/a4_language_style.txt</code>）。当前规则：仅拼写/语法/标点/中式英语可以直接改写；风格/词汇/结构调整只能给出建议。如需调整，直接修改提示词文件即可。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 支持哪些文件格式？</h3>
+  <p><strong>A:</strong> 支持 <code>.txt</code>、<code>.pdf</code>、<code>.docx</code> 三种格式。PDF 使用 PyPDF2 提取文本，如果 PDF 是扫描版（图片），提取效果可能不理想。建议优先使用 <code>.txt</code> 或 <code>.docx</code> 格式。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 教师经验文档需要 LLM 吗？成本如何？</h3>
+  <p><strong>A:</strong> 取决于选择的模式。Mode 3（完全结构化，使用 <code>### [pattern] 特征名</code> 格式）<strong>不需要 LLM</strong>，零成本。Mode 2（半结构化，使用系统提供的章节标题分节）和 Mode 1（纯自由格式随笔）需要调一次 LLM 来完成文本到知识点的拆分，成本约等同于一次评审调用的 1/3。对于同一个文档，LLM 只调用一次。在系统未配置 API Key 的情况下，Mode 1 和 Mode 2 会报错并提示需要 LLM。</p>
+</div>
+
+<div class="card card-success">
+  <h3>💡 使用建议</h3>
+  <ul>
+    <li><strong>先跑校准再调配置：</strong>积累一定量的评审数据后运行校准引擎，用数据驱动的方式优化评分阈值</li>
+    <li><strong>多模型对比：</strong>同一篇论文用不同模型评审，观察评分一致性</li>
+    <li><strong>定期查历史：</strong>利用评审历史功能追踪学生的进步轨迹</li>
+    <li><strong>A5 原创性检查：</strong>将已批改的优秀论文索引到 ChromaDB，后续稿件自动查重</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>

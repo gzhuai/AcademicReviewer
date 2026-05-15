@@ -1,0 +1,36 @@
+{
+  "competition_type": "social_science",
+  "description": "社会科学写作风格指南 - 适用于 CTB 等社科竞赛",
+  "iron_law": {
+    "can_rewrite": ["spelling", "grammar", "punctuation", "Chinglish expressions"],
+    "cannot_rewrite": ["sentence structure", "voice (active/passive)", "word choice (synonym substitution)", "paragraph rhythm and flow", "register shift (formal/informal)", "social science terminology", "methodological description"]
+  },
+  "style_parameters": {
+    "max_passive_ratio": 0.35,
+    "min_ttr": 0.43,
+    "max_avg_sentence_length": 30,
+    "min_avg_sentence_length": 14,
+    "preferred_voice": "balanced active/passive, APA academic register",
+    "expected_tone": "objective, evidence-based, solution-oriented"
+  },
+  "clarity_checks": {
+    "no_run_on_sentences": true,
+    "no_sentence_fragments": true,
+    "subject_verb_agreement": true,
+    "article_usage": true,
+    "methodology_tense_consistency": true
+  },
+  "expected_features": [
+    "清晰的研究问题陈述",
+    "操作化定义清晰",
+    "数据分析与解释的区别明确",
+    "社会影响的讨论",
+    "可操作的解决方案"
+  ],
+  "common_issues": [
+    "方法论描述过于简略",
+    "缺乏操作化定义",
+    "数据和讨论混在一起",
+    "社会意义陈述过于笼统"
+  ]
+}

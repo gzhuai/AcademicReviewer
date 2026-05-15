@@ -1,0 +1,36 @@
+{
+  "competition_type": "biz_proposal",
+  "description": "商业提案写作风格指南 - 适用于 FBLA 等商科竞赛",
+  "iron_law": {
+    "can_rewrite": ["spelling", "grammar", "punctuation", "Chinglish expressions"],
+    "cannot_rewrite": ["sentence structure", "voice (active/passive)", "word choice (synonym substitution)", "paragraph rhythm and flow", "register shift (formal/informal)", "strategic framing", "persuasive techniques"]
+  },
+  "style_parameters": {
+    "max_passive_ratio": 0.25,
+    "min_ttr": 0.42,
+    "max_avg_sentence_length": 25,
+    "min_avg_sentence_length": 10,
+    "preferred_voice": "active, direct, business register",
+    "expected_tone": "professional, confident, persuasive"
+  },
+  "clarity_checks": {
+    "no_run_on_sentences": true,
+    "no_sentence_fragments": true,
+    "subject_verb_agreement": true,
+    "article_usage": true,
+    "no_jargon_overload": true
+  },
+  "expected_features": [
+    "简洁有力的执行摘要",
+    "清晰的数据呈现",
+    "专业术语恰当使用",
+    "有说服力的行动号召",
+    "逻辑清晰的层次结构"
+  ],
+  "common_issues": [
+    "过于学术化、不够实务导向",
+    "缺乏数据驱动的说服力",
+    "执行建议模糊",
+    "行业术语误用"
+  ]
+}

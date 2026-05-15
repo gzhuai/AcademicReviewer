@@ -1,0 +1,32 @@
+{
+  "competition_type": "tech_academic",
+  "description": "理工科学术英语写作风格指南 - 适用于 ISEF/STS/丘成桐等科研型竞赛",
+  "iron_law": {
+    "can_rewrite": ["spelling", "grammar", "punctuation", "Chinglish expressions"],
+    "cannot_rewrite": ["sentence structure", "voice (active/passive)", "word choice (synonym substitution)", "paragraph rhythm and flow", "register shift (formal/informal)", "rhetorical strategy"]
+  },
+  "style_parameters": {
+    "max_passive_ratio": 0.40,
+    "min_ttr": 0.45,
+    "max_avg_sentence_length": 28,
+    "min_avg_sentence_length": 12,
+    "max_sentence_length_std": 12,
+    "preferred_voice": "active, with judicious passive for methods"
+  },
+  "clarity_checks": {
+    "no_run_on_sentences": true,
+    "no_sentence_fragments": true,
+    "subject_verb_agreement": true,
+    "article_usage": true,
+    "no_dangling_modifiers": true,
+    "parallel_structure": true
+  },
+  "common_issues": [
+    "Chinglish: 直接用中文语序翻译的英文",
+    "过度使用被动语态导致冗长",
+    "长句缺乏停顿",
+    "词汇重复使用",
+    "代词指代不清",
+    "时态不一致"
+  ]
+}

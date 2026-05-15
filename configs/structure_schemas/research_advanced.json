@@ -1,0 +1,34 @@
+{
+  "competition_type": "research_advanced",
+  "description": "深度科研论文结构标准 - 适用于丘成桐等高级科研竞赛",
+  "extends": "research",
+  "differences": {
+    "Introduction.expected_ratio": [12, 25],
+    "Materials & Methods.expected_ratio": [20, 30],
+    "Discussion.expected_ratio": [20, 30]
+  },
+  "additional_required_sections": [
+    {
+      "name": "Literature Review",
+      "keyword_aliases": ["Literature Review", "Related Work"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "系统性文献综述，展示对领域知识的深度掌握"
+    },
+    {
+      "name": "Research Contribution",
+      "keyword_aliases": ["Contribution", "Significance", "Innovation"],
+      "expected_ratio": [3, 8],
+      "required": true,
+      "description": "明确阐述研究的创新点与学术贡献"
+    }
+  ],
+  "high_severity_violations": [
+    "missing_methods",
+    "missing_results",
+    "no_hypothesis_or_research_question",
+    "no_statistical_analysis_plan",
+    "no_literature_review",
+    "no_contribution_statement"
+  ]
+}

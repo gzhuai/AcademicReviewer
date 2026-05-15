@@ -1,0 +1,64 @@
+{
+  "competition_type": "history",
+  "description": "历史研究写作结构标准 - 适用于 NHD (National History Day) 等历史竞赛",
+  "required_sections": [
+    {
+      "name": "Introduction / Hook",
+      "keyword_aliases": ["Introduction"],
+      "expected_ratio": [5, 12],
+      "required": true,
+      "sub_sections": ["Hook", "Historical Context", "Thesis Statement"],
+      "description": "通过历史叙事吸引读者，引出论点"
+    },
+    {
+      "name": "Historical Context",
+      "keyword_aliases": ["Historical Context", "Background", "Setting the Stage"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "description": "构建历史背景与时代框架"
+    },
+    {
+      "name": "Thesis & Arguments",
+      "keyword_aliases": [],
+      "expected_ratio": [30, 45],
+      "required": true,
+      "sub_sections": ["Primary Source Analysis", "Multiple Perspectives", "Cause and Effect"],
+      "description": "用一手史料支撑论点，分析多重历史视角"
+    },
+    {
+      "name": "Significance / Legacy",
+      "keyword_aliases": ["Significance", "Legacy", "Impact", "Long-term Effects"],
+      "expected_ratio": [10, 18],
+      "required": true,
+      "description": "阐述历史事件的长远意义与当代连接"
+    },
+    {
+      "name": "Conclusion",
+      "keyword_aliases": ["Conclusion"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "description": "总结核心论点，重申历史意义"
+    },
+    {
+      "name": "Annotated Bibliography",
+      "keyword_aliases": ["Annotated Bibliography", "Bibliography", "Sources"],
+      "expected_ratio": [10, 20],
+      "required": true,
+      "sub_sections": ["Primary Sources", "Secondary Sources"],
+      "description": "区分一手和二手史料，附注释说明每条史料如何支持论文"
+    }
+  ],
+  "logic_checks": {
+    "thesis_arguable": true,
+    "primary_source_ratio": true,
+    "multiple_perspectives": true,
+    "cause_effect_chain": true,
+    "annotated_bibliography_format": true
+  },
+  "high_severity_violations": [
+    "no_primary_sources",
+    "no_multiple_perspectives",
+    "no_annotations_in_bibliography",
+    "no_argument_just_storytelling"
+  ]
+}

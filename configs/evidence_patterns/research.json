@@ -1,0 +1,94 @@
+{
+  "competition_type": "research",
+  "description": "高中科研竞赛证据标准 - 适用于 ISEF/STS/丘成桐等科研型竞赛",
+  "quantitative_requirements": {
+    "expects_p_value": true,
+    "expects_effect_size": true,
+    "expects_confidence_interval": false,
+    "expects_sample_size_justification": true,
+    "expects_sensitivity_analysis": false,
+    "min_statistical_tests": 1
+  },
+  "evidence_standards": {
+    "min_total_citations": 5,
+    "min_peer_reviewed": 3,
+    "max_average_age_years": 10,
+    "require_primary_research": true,
+    "acceptable_source_types": [
+      "peer-reviewed journal article",
+      "conference proceedings",
+      "government report",
+      "academic book chapter"
+    ],
+    "unacceptable_source_types": [
+      "Wikipedia",
+      "personal blog",
+      "YouTube video",
+      "general news article without primary data"
+    ]
+  },
+  "logical_fallacies": [
+    {
+      "id": "correlation_causation",
+      "name": "相关关系误作因果关系",
+      "severity": "high",
+      "description": "基于相关关系直接推断因果关系，未排除混淆变量"
+    },
+    {
+      "id": "small_sample",
+      "name": "小样本过度推断",
+      "severity": "high",
+      "description": "基于过小样本量（n<3 per group）得出普遍性结论"
+    },
+    {
+      "id": "confirmation_bias",
+      "name": "确认偏误/选择性报告",
+      "severity": "high",
+      "description": "只报告支持假设的数据，忽略不利数据"
+    },
+    {
+      "id": "false_cause",
+      "name": "因果方向倒置",
+      "severity": "medium",
+      "description": "因果逻辑链条方向错误"
+    },
+    {
+      "id": "overgeneralization",
+      "name": "过度泛化",
+      "severity": "medium",
+      "description": "将特定条件下的结论推广到一般情况，未限定边界"
+    },
+    {
+      "id": "straw_man",
+      "name": "稻草人论证",
+      "severity": "low",
+      "description": "歪曲或简化对立观点后攻击"
+    },
+    {
+      "id": "slippery_slope",
+      "name": "滑坡论证",
+      "severity": "low",
+      "description": "连串可能事件链推导极端后果，但每步缺乏依据"
+    }
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_control_group",
+      "name": "缺乏对照组",
+      "description": "实验设计中完全没有对照组或基线比较",
+      "applicable_to": ["experimental", "intervention"]
+    },
+    {
+      "id": "no_statistical_analysis",
+      "name": "缺乏统计分析",
+      "description": "仅以原始数据或百分比呈现结果，无任何统计检验",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "data_fabrication_indicators",
+      "name": "数据完整性疑虑",
+      "description": "数据过于完美、无变异、重复模式异常等疑似数据捏造的特征",
+      "applicable_to": ["all"]
+    }
+  ]
+}

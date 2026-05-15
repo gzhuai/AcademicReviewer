@@ -1,0 +1,38 @@
+{
+  "competition_type": "history",
+  "description": "历史研究写作风格指南 - 适用于 NHD 等历史竞赛",
+  "iron_law": {
+    "can_rewrite": ["spelling", "grammar", "punctuation", "Chinglish expressions"],
+    "cannot_rewrite": ["sentence structure", "voice (active/passive)", "word choice (synonym substitution)", "paragraph rhythm and flow", "register shift (formal/informal)", "narrative tone", "historical interpretation"]
+  },
+  "style_parameters": {
+    "max_passive_ratio": 0.30,
+    "min_ttr": 0.45,
+    "max_avg_sentence_length": 28,
+    "min_avg_sentence_length": 14,
+    "preferred_voice": "active for argument, passive acceptable for historical description",
+    "expected_tone": "scholarly yet engaging, Chicago style"
+  },
+  "clarity_checks": {
+    "no_run_on_sentences": true,
+    "no_sentence_fragments": true,
+    "subject_verb_agreement": true,
+    "article_usage": true,
+    "tense_consistency": true,
+    "footnote_format": true
+  },
+  "expected_features": [
+    "清晰的可辩驳论点（thesis）",
+    "一手史料的融入",
+    "多重历史视角的呈现",
+    "历史因果链条的建立",
+    "注释参考文献格式正确"
+  ],
+  "common_issues": [
+    "叙事过多、论证不足",
+    "缺乏多重视角",
+    "时态不一致",
+    "当下主义（presentism）",
+    "注释格式不规范"
+  ]
+}

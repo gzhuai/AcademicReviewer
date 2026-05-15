@@ -1,0 +1,108 @@
+{
+  "competition_name": "ISEF",
+  "season": "2026",
+  "dimensions": [
+    {
+      "name": "研究问题与假设",
+      "weight": 0.20,
+      "max_score": 10,
+      "criteria": [
+        "研究问题清晰且具有科学意义",
+        "假设基于充分的文献调研",
+        "变量定义明确且可操作化",
+        "问题范围适合高中生水平"
+      ],
+      "keywords": ["hypothesis", "research question", "variable", "independent", "dependent", "controlled"],
+      "level_descriptions": {
+        "excellent": "研究问题具有原创性，假设严格基于文献推导，变量操作化精确",
+        "good": "研究问题清晰，假设有文献支持，变量基本明确",
+        "needs_improvement": "研究问题模糊或不具有科学性，假设缺乏依据，变量混乱"
+      }
+    },
+    {
+      "name": "实验设计与方法",
+      "weight": 0.25,
+      "max_score": 10,
+      "criteria": [
+        "实验设计科学合理，能有效检验假设",
+        "样本量适当，有对照组",
+        "实验步骤可复现",
+        "设备与材料选择恰当",
+        "安全与伦理考虑充分"
+      ],
+      "keywords": ["method", "control group", "sample size", "replication", "protocol", "ethics", "procedure"],
+      "level_descriptions": {
+        "excellent": "实验设计严谨，有对照组与重复实验，步骤详尽可完全复现",
+        "good": "实验设计合理，有基本对照组，步骤可理解",
+        "needs_improvement": "缺乏对照组，样本量不足，实验步骤不可复现"
+      }
+    },
+    {
+      "name": "数据分析与解读",
+      "weight": 0.25,
+      "max_score": 10,
+      "criteria": [
+        "统计方法选择恰当",
+        "数据可视化清晰有效",
+        "结果解读客观准确",
+        "误差分析与不确定性讨论充分",
+        "区分相关性与因果性"
+      ],
+      "keywords": ["p-value", "statistical significance", "correlation", "causation", "error bar", "standard deviation", "regression"],
+      "level_descriptions": {
+        "excellent": "统计方法严谨，P值/效应量报告完整，图表专业，误差分析深入",
+        "good": "统计方法基本正确，有基本图表和数据解读",
+        "needs_improvement": "缺少统计分析，图表不清晰，结果解读主观或过度推断"
+      }
+    },
+    {
+      "name": "结论与讨论",
+      "weight": 0.15,
+      "max_score": 10,
+      "criteria": [
+        "结论严格基于实验数据",
+        "讨论指出研究的局限性",
+        "提出合理的未来研究方向",
+        "结论与假设之间的逻辑闭合"
+      ],
+      "keywords": ["conclusion", "limitation", "future work", "implication", "significance"],
+      "level_descriptions": {
+        "excellent": "结论严谨精准，局限性讨论坦诚深入，未来方向具体可行",
+        "good": "结论与数据一致，有局限性讨论",
+        "needs_improvement": "结论超越数据支持范围，缺少局限性反思"
+      }
+    },
+    {
+      "name": "学术写作与展示",
+      "weight": 0.15,
+      "max_score": 10,
+      "criteria": [
+        "逻辑清晰、结构完整",
+        "引用格式规范",
+        "图表与文字配合得当",
+        "语言准确专业"
+      ],
+      "keywords": ["abstract", "introduction", "literature review", "methodology", "results", "discussion", "reference"],
+      "level_descriptions": {
+        "excellent": "结构完美，引用规范，图表专业，语言精练",
+        "good": "结构完整，引用基本规范，有图表",
+        "needs_improvement": "结构混乱，引用缺失或格式错误，缺少关键图表"
+      }
+    }
+  ],
+  "overall_standards": [
+    "研究必须由学生独立完成或主要完成",
+    "论文需用英文撰写",
+    "格式需符合ISEF官方模板要求"
+  ],
+  "taboo_items": [
+    "抄袭或数据造假",
+    "使用AI生成全篇内容",
+    "未经IRB批准涉及人体实验"
+  ],
+  "format_requirements": {
+    "word_limit": {"min": 3000, "max": 5000},
+    "citation_style": "APA",
+    "extra": ["需要摘要", "需要附录"]
+  }
+}

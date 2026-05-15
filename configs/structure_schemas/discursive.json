@@ -1,0 +1,76 @@
+{
+  "competition_type": "discursive",
+  "description": "议论文/时政写作结构标准 - 适用于 John Locke 等思辨写作竞赛",
+  "required_sections": [
+    {
+      "name": "Introduction / Hook",
+      "keyword_aliases": ["Introduction", "Prologue"],
+      "expected_ratio": [5, 12],
+      "required": true,
+      "sub_sections": ["Hook / Opening", "Context", "Thesis Statement"],
+      "description": "通过引人入胜的开篇吸引读者，明确论点"
+    },
+    {
+      "name": "Definition & Framework",
+      "keyword_aliases": ["Definition", "Key Concepts", "Framework"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "界定核心概念，建立论证框架"
+    },
+    {
+      "name": "Argument Body 1",
+      "keyword_aliases": [],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Claim", "Evidence", "Analysis"],
+      "description": "主论点一，含论据与分析"
+    },
+    {
+      "name": "Argument Body 2",
+      "keyword_aliases": [],
+      "expected_ratio": [15, 25],
+      "required": true,
+      "sub_sections": ["Claim", "Evidence", "Analysis"],
+      "description": "主论点二，含论据与分析"
+    },
+    {
+      "name": "Counterargument & Rebuttal",
+      "keyword_aliases": ["Counterargument", "Objection", "Rebuttal"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "回应反方观点，增强论证说服力"
+    },
+    {
+      "name": "Synthesis / Resolution",
+      "keyword_aliases": ["Synthesis", "Resolution", "Implications"],
+      "expected_ratio": [8, 15],
+      "required": true,
+      "description": "综合论证，推导深层含义"
+    },
+    {
+      "name": "Conclusion",
+      "keyword_aliases": ["Conclusion"],
+      "expected_ratio": [5, 10],
+      "required": true,
+      "description": "回应论点、总结核心主张"
+    },
+    {
+      "name": "References / Footnotes",
+      "keyword_aliases": ["References", "Bibliography", "Footnotes", "Notes"],
+      "expected_ratio": [3, 10],
+      "required": true,
+      "description": "列出引用来源"
+    }
+  ],
+  "logic_checks": {
+    "thesis_in_intro": true,
+    "counterargument_present": true,
+    "rebuttal_present": true,
+    "synthesis_above_summary": true
+  },
+  "high_severity_violations": [
+    "no_thesis_statement",
+    "no_counterargument",
+    "one_sided_argument"
+  ]
+}

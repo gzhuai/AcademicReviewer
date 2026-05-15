@@ -1,0 +1,92 @@
+{
+  "competitions": {
+    "ISEF": {
+      "type": "research",
+      "subtype": null,
+      "structure_schema": "research.json",
+      "evidence_config": "research.json",
+      "style_template": "tech_academic.json",
+      "citation_style": "APA"
+    },
+    "STS": {
+      "type": "research",
+      "subtype": null,
+      "structure_schema": "research.json",
+      "evidence_config": "research.json",
+      "style_template": "tech_academic.json",
+      "citation_style": "APA"
+    },
+    "丘成桐": {
+      "type": "research",
+      "subtype": "advanced",
+      "structure_schema": "research.json",
+      "evidence_config": "research_advanced.json",
+      "style_template": "tech_academic.json",
+      "citation_style": "APA"
+    },
+    "HiMCM": {
+      "type": "math_modeling",
+      "subtype": null,
+      "structure_schema": "math_modeling.json",
+      "evidence_config": "math_modeling.json",
+      "style_template": "tech_academic.json",
+      "citation_style": "APA"
+    },
+    "John Locke": {
+      "type": "discursive",
+      "subtype": null,
+      "structure_schema": "discursive.json",
+      "evidence_config": "discursive.json",
+      "style_template": "discursive.json",
+      "citation_style": "MLA"
+    },
+    "Marshall Society": {
+      "type": "discursive",
+      "subtype": "economics",
+      "structure_schema": "discursive.json",
+      "evidence_config": "discursive_economics.json",
+      "style_template": "discursive.json",
+      "citation_style": "MLA"
+    },
+    "CTB": {
+      "type": "social_science",
+      "subtype": null,
+      "structure_schema": "social_science.json",
+      "evidence_config": "social_science.json",
+      "style_template": "social_science.json",
+      "citation_style": "APA"
+    },
+    "NHD": {
+      "type": "history",
+      "subtype": null,
+      "structure_schema": "history.json",
+      "evidence_config": "history.json",
+      "style_template": "history.json",
+      "citation_style": "Chicago"
+    },
+    "SIC": {
+      "type": "finance",
+      "subtype": null,
+      "structure_schema": "finance.json",
+      "evidence_config": "finance.json",
+      "style_template": "biz_finance.json",
+      "citation_style": "APA"
+    },
+    "WGHS": {
+      "type": "finance",
+      "subtype": null,
+      "structure_schema": "finance.json",
+      "evidence_config": "finance.json",
+      "style_template": "biz_finance.json",
+      "citation_style": "APA"
+    },
+    "FBLA": {
+      "type": "business_case",
+      "subtype": null,
+      "structure_schema": "business_case.json",
+      "evidence_config": "business_case.json",
+      "style_template": "biz_proposal.json",
+      "citation_style": "APA"
+    }
+  }
+}

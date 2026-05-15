@@ -1,0 +1,54 @@
+{
+  "competition_type": "math_modeling",
+  "description": "数学建模竞赛证据标准 - 适用于 HiMCM 等数学建模竞赛",
+  "evidence_standards": {
+    "min_total_citations": 3,
+    "acceptable_source_types": [
+      "academic journal article with mathematical model",
+      "government statistical dataset",
+      "peer-reviewed conference paper",
+      "textbook with mathematical methods",
+      "official organization data report"
+    ],
+    "unacceptable_source_types": [
+      "Wikipedia as primary source",
+      "unverified personal blog",
+      "non-reproducible data"
+    ],
+    "data_reproducibility_required": true,
+    "model_validation_data_required": true
+  },
+  "model_requirements": {
+    "expects_sensitivity_analysis": true,
+    "expects_parameter_justification": true,
+    "expects_model_validation": true,
+    "expects_assumption_discussion": true,
+    "expects_model_comparison": true,
+    "expects_error_analysis": true
+  },
+  "logical_fallacies": [
+    {"id": "uncritical_assumptions", "name": "未验证的假设", "severity": "high", "description": "关键假设缺乏合理性论证"},
+    {"id": "overfitting", "name": "过度拟合", "severity": "high", "description": "模型过于复杂但未论证复杂度与拟合质量的权衡"},
+    {"id": "extrapolation_error", "name": "外推错误", "severity": "medium", "description": "在模型有效范围外进行预测"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_assumptions_justification",
+      "name": "无假设论证",
+      "description": "未列出并论证模型关键假设",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_sensitivity_analysis",
+      "name": "无敏感性分析",
+      "description": "未对关键参数进行敏感性分析",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_validation",
+      "name": "无模型验证",
+      "description": "未验证模型输出与实际数据的一致性",
+      "applicable_to": ["all"]
+    }
+  ]
+}

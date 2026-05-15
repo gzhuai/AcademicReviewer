@@ -1,0 +1,16 @@
+{
+  "competition_type": "research_advanced",
+  "description": "深度科研证据标准 - 适用于丘成桐等高级科研竞赛",
+  "extends": "research",
+  "differences": {
+    "quantitative_requirements.min_statistical_tests": 2,
+    "quantitative_requirements.expects_sensitivity_analysis": true,
+    "evidence_standards.min_total_citations": 10,
+    "evidence_standards.min_peer_reviewed": 6
+  },
+  "additional_requirements": {
+    "expects_originality_statement": true,
+    "expects_methodological_rigor_check": true,
+    "expects_literature_gap_identification": true
+  }
+}

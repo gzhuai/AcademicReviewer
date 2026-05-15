@@ -1,0 +1,60 @@
+{
+  "competition_type": "discursive",
+  "description": "议论文/思辨写作证据标准 - 适用于 John Locke 等思辨写作竞赛",
+  "evidence_standards": {
+    "min_total_citations": 3,
+    "acceptable_source_types": [
+      "philosophical text",
+      "academic journal article",
+      "primary historical document",
+      "legal text / court ruling",
+      "government report",
+      "reputable news source with named author",
+      "published interview with expert"
+    ],
+    "unacceptable_source_types": [
+      "Wikipedia as primary source",
+      "anonymous blog",
+      "social media post without verification"
+    ],
+    "prefer_primary_over_secondary": true,
+    "encourage_interdisciplinary_evidence": true
+  },
+  "argument_standards": {
+    "min_independent_claims": 2,
+    "require_counterargument": true,
+    "require_rebuttal": true,
+    "require_conceptual_framework": true,
+    "synthesis_weight": "significant"
+  },
+  "logical_fallacies": [
+    {"id": "straw_man", "name": "稻草人论证", "severity": "high", "description": "歪曲或简化对立观点后攻击"},
+    {"id": "slippery_slope", "name": "滑坡论证", "severity": "medium", "description": "缺乏每步依据的极端后果推导"},
+    {"id": "false_dichotomy", "name": "虚假二分", "severity": "high", "description": "将复杂问题简化为非此即彼"},
+    {"id": "begging_question", "name": "乞题谬误", "severity": "high", "description": "将待证结论预设为论证前提"},
+    {"id": "appeal_to_emotion", "name": "诉诸情感", "severity": "medium", "description": "以情感替代逻辑论证"},
+    {"id": "ad_hominem", "name": "人身攻击", "severity": "high", "description": "攻击立场者而非立场本身"},
+    {"id": "hasty_generalization", "name": "轻率概括", "severity": "medium", "description": "基于不足证据得出普遍结论"},
+    {"id": "weak_analogy", "name": "弱类比", "severity": "medium", "description": "类比要素间相似性不足以支撑结论"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_counterargument",
+      "name": "缺乏反方论点回应",
+      "description": "全文未涉及对立观点及其回应",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "circular_reasoning",
+      "name": "循环论证",
+      "description": "前提与结论互相依赖，无独立论据",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "unsupported_assertions",
+      "name": "无据断言的断言",
+      "description": "核心主张缺乏任何形式的经验或逻辑支持",
+      "applicable_to": ["all"]
+    }
+  ]
+}

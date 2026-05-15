@@ -1,0 +1,38 @@
+{
+  "competition_type": "biz_finance",
+  "description": "金融投资分析写作风格指南 - 适用于 SIC/WGHS/YIS 等金融竞赛",
+  "iron_law": {
+    "can_rewrite": ["spelling", "grammar", "punctuation", "Chinglish expressions"],
+    "cannot_rewrite": ["sentence structure", "voice (active/passive)", "word choice (synonym substitution)", "paragraph rhythm and flow", "register shift (formal/informal)", "investment thesis framing", "financial terminology"]
+  },
+  "style_parameters": {
+    "max_passive_ratio": 0.30,
+    "min_ttr": 0.40,
+    "max_avg_sentence_length": 26,
+    "min_avg_sentence_length": 10,
+    "preferred_voice": "active, analytical, investment banking register",
+    "expected_tone": "objective, data-driven, decisive"
+  },
+  "clarity_checks": {
+    "no_run_on_sentences": true,
+    "no_sentence_fragments": true,
+    "subject_verb_agreement": true,
+    "article_usage": true,
+    "number_format_consistency": true,
+    "currency_unit_consistency": true
+  },
+  "expected_features": [
+    "清晰的投资论点（thesis statement）",
+    "量化的财务数据呈现",
+    "对估值方法论的清晰解释",
+    "风险因素的系统性呈现",
+    "催化剂/时间框架的明确陈述"
+  ],
+  "common_issues": [
+    "财务术语不精确",
+    "数字单位/货币不一致",
+    "缺乏数据驱动的说服力",
+    "投资建议模糊",
+    "风险分析流于表面"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "competition_type": "business_case",
+  "description": "商科案例分析证据标准 - 适用于 FBLA 等商科竞赛",
+  "evidence_standards": {
+    "min_total_sources": 5,
+    "acceptable_source_types": [
+      "company annual report / 10-K / SEC filing",
+      "industry analysis report (McKinsey, BCG, Bain, Deloitte)",
+      "financial data (Bloomberg, Reuters, Capital IQ)",
+      "business case study (Harvard, Ivey, etc.)",
+      "trade journal (HBR, MIT Sloan Management Review)",
+      "government economic data (Bureau of Labor Statistics, Census)"
+    ],
+    "unacceptable_source_types": [
+      "unverified company fan blog",
+      "outdated industry data (>3 years)",
+      "competitor marketing materials as factual source"
+    ],
+    "data_recency_required": true,
+    "max_data_age_years": 3
+  },
+  "analysis_standards": {
+    "require_framework_usage": true,
+    "expect_pestle_or_porter": true,
+    "expect_financial_projection": true,
+    "expect_competitor_analysis": true,
+    "require_implementation_feasibility": true
+  },
+  "logical_fallacies": [
+    {"id": "planning_fallacy", "name": "计划谬误", "severity": "high", "description": "低估实施所需的成本和时间"},
+    {"id": "survivorship_bias", "name": "幸存者偏差", "severity": "high", "description": "仅以成功公司为案例分析，忽略失败案例"},
+    {"id": "one_size_fits_all", "name": "一刀切策略", "severity": "medium", "description": "将通用策略不加调整地应用于特定情境"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_framework",
+      "name": "缺乏分析框架",
+      "description": "未使用任何公认的商业分析框架",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_competitor_analysis",
+      "name": "缺乏竞品分析",
+      "description": "未提及或分析任何竞争对手",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_financial_data",
+      "name": "缺乏财务数据",
+      "description": "全文无任何财务数字或量化分析",
+      "applicable_to": ["all"]
+    }
+  ]
+}

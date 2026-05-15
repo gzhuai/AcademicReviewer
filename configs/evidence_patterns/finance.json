@@ -1,0 +1,56 @@
+{
+  "competition_type": "finance",
+  "description": "金融投资分析证据标准 - 适用于 SIC/WGHS/YIS 等金融竞赛",
+  "evidence_standards": {
+    "min_total_sources": 5,
+    "acceptable_source_types": [
+      "company annual report / 10-K / 10-Q",
+      "Bloomberg / Reuters / Wind financial data",
+      "SEC filings",
+      "industry analysis report (McKinsey, BCG, Bain)",
+      "financial news (WSJ, FT, Bloomberg)",
+      "academic finance journal",
+      "rating agency report (Moody's, S&P, Fitch)"
+    ],
+    "unacceptable_source_types": [
+      "stock tip blog",
+      "unverified social media analysis",
+      "outdated data (>2 years for current analysis)"
+    ],
+    "data_recency_required": true,
+    "max_data_age_months": 24
+  },
+  "analysis_standards": {
+    "require_qualitative_and_quantitative": true,
+    "require_risk_assessment": true,
+    "require_valuation_model": "strongly encouraged",
+    "benchmark_comparison": "required",
+    "macro_environment_analysis": "required"
+  },
+  "logical_fallacies": [
+    {"id": "hindsight_bias", "name": "后见之明偏误", "severity": "high", "description": "用事后已知信息评价事前决策"},
+    {"id": "survivorship_bias", "name": "幸存者偏差", "severity": "high", "description": "仅基于现存成功案例得出结论"},
+    {"id": "recency_bias", "name": "近因偏误", "severity": "medium", "description": "过度强调近期数据而忽视长期趋势"},
+    {"id": "correlation_causation", "name": "相关误作因果", "severity": "high", "description": "将经济指标相关性误作因果关系"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_quantitative_analysis",
+      "name": "缺乏量化分析",
+      "description": "全文无任何财务数据、比率计算或估值分析",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_risk_analysis",
+      "name": "缺乏风险分析",
+      "description": "未讨论任何投资风险因素",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_comparables",
+      "name": "缺乏对标分析",
+      "description": "未列出对标公司/行业基准进行对比",
+      "applicable_to": ["all"]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "competition_type": "history",
+  "description": "历史研究证据标准 - 适用于 NHD 等历史竞赛",
+  "evidence_standards": {
+    "min_primary_sources": 3,
+    "min_secondary_sources": 3,
+    "acceptable_primary_sources": [
+      "original document (letter, diary, newspaper from the era)",
+      "photograph",
+      "government record",
+      "oral history",
+      "artifact",
+      "map from the era",
+      "speech transcript"
+    ],
+    "acceptable_secondary_sources": [
+      "academic history monograph",
+      "peer-reviewed history journal article",
+      "biography by credentialed historian",
+      "documentary with scholarly review"
+    ],
+    "unacceptable_source_types": [
+      "Wikipedia as cited source",
+      "historical fiction as factual evidence",
+      "personal blog without credentials"
+    ],
+    "require_source_analysis": true,
+    "require_multiple_perspectives": true
+  },
+  "argument_standards": {
+    "thesis_must_be_arguable": true,
+    "require_counter_interpretation": true,
+    "require_historical_context": true
+  },
+  "logical_fallacies": [
+    {"id": "presentism", "name": "现在主义", "severity": "high", "description": "用当代价值观和标准评判历史事件"},
+    {"id": "one_sided", "name": "单视角解释", "severity": "high", "description": "仅呈现单一历史叙述，忽略多视角"},
+    {"id": "hasty_generalization", "name": "以偏概全", "severity": "high", "description": "用孤例推导普遍历史规律"},
+    {"id": "post_hoc", "name": "事后归因（post hoc ergo propter hoc）", "severity": "medium", "description": "先发生即原因，忽视多重因果"}
+  ],
+  "fatal_defects": [
+    {
+      "id": "no_primary_sources",
+      "name": "缺乏一手史料",
+      "description": "全文无任何一手史料引用",
+      "applicable_to": ["all"]
+    },
+    {
+      "id": "no_historiography",
+      "name": "缺乏史学对话",
+      "description": "未引述任何其他历史学家的研究成果",
+      "applicable_to": ["all"]
+    }
+  ]
+}
