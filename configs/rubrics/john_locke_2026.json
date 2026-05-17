@@ -1,143 +1,174 @@
 {
+  "_meta": {
+    "source": "HYPOTHESIS - Inferred from 3 official prize-winning essays (2021-2023) + johnlockeinstitute.com official description",
+    "confidence": "MEDIUM (样本量 n=3，需更多范文和真实晋级/非晋级数据验证)",
+    "methodology": "官网无公开 Rubric（'Our grading system is proprietary'），从官网PDF获奖文章提取特征 + 官网FAQ描述反推。置信度需后续校准验证。",
+    "source_essays": [
+      {"author": "Huaming Li", "year": 2021, "category": "Law", "prize": "2nd", "url": "https://www.johnlockeinstitute.com/_files/ugd/43b920_40ecdba38119493f8aab2648768e012a.pdf"},
+      {"author": "Shivrav Sharma", "year": 2023, "category": "Theology", "prize": "2nd", "url": "https://www.johnlockeinstitute.com/_files/ugd/43b920_2797114132ec4bdda3ec0257776e55d1.pdf"},
+      {"author": "Major Shokar", "year": 2021, "category": "History", "prize": "1st", "url": "https://www.johnlockeinstitute.com/_files/ugd/43b920_ef25c1fb2cb6436e8941a207d8aedf10.pdf"}
+    ],
+    "official_description_from_website": "Essays will be judged on knowledge and understanding of the relevant material, the competent use of evidence, quality of argumentation, originality, structure, writing style and persuasive force. The very best essays are likely to be those which would be capable of changing somebody's mind."
+  },
   "competition_name": "John Locke",
   "season": "2025",
-  "description": "Based on official John Locke Institute 7 judging criteria",
+  "description": "[假设性] 基于3篇官网获奖范文特征 + 官方描述反推。待真实晋级/非晋级数据验证。",
   "dimensions": [
     {
       "name": "知识理解与深度",
       "weight": 0.20,
       "max_score": 10,
+      "confidence": "HIGH (明确出现在官网描述中)",
       "criteria": [
-        "精准理解题目涉及的核心概念和理论框架",
+        "精准理解题目核心概念并提出清晰的分析框架",
         "引用领域内权威学者和经典文献",
-        "展现超越课程范围的知识广度",
-        "概念定义清晰，术语使用准确"
+        "展现超越高中课程的知识广度与理论深度",
+        "概念定义精密，术语使用专业"
       ],
-      "keywords": ["thesis", "argument", "framework", "conceptual", "philosopher", "scholar", "theory", "principle"],
+      "evidence_from_winners": "3篇获奖范文均使用精确学术术语定义核心概念（如 epistemic peer, presentism, presumption of innocence），引用密度高（Law=3.9 cites/千词），引用来源为牛津教授/最高法院判例/学术期刊，远高于普通中学生的知识储备",
       "level_descriptions": {
-        "excellent": "深刻理解题目并展现超越预期的知识储备，精准引用权威学者，概念使用无懈可击",
-        "good": "理解题目核心概念，有适当的文献引用，概念使用基本正确",
-        "needs_improvement": "对题目理解停留在表面，缺乏文献支撑，概念使用混乱或错误"
+        "excellent": "展现对复杂理论框架的深刻理解，引用权威一手学术来源，概念使用精准",
+        "good": "理解核心概念，有学术文献引用，概念定义基本准确",
+        "needs_improvement": "概念理解模糊或错误，缺乏学术文献支撑，术语使用不当"
+      }
+    },
+    {
+      "name": "论证质量",
+      "weight": 0.25,
+      "max_score": 10,
+      "confidence": "HIGH (明确出现在官网描述中，且特征数据充分支持)",
+      "criteria": [
+        "论证逻辑链条清晰完整，论点有层次推进",
+        "正反方观点均有充分展开和回应",
+        "无逻辑谬误",
+        "每个论点有独立论据支撑"
+      ],
+      "evidence_from_winners": "3篇获奖范文均严格遵循 thesis→定义→正面论证→反方观点→rebuttal→综合→结论 结构。独立论点数量高（5-11个），逻辑连接词密度 21-30/千词，论证密集且复杂。反方论点呈现充分（如 Law 论文正面论述 PIP 不适用的三个理由，History 论文深入讨论了 5 个对立史学观点）",
+      "level_descriptions": {
+        "excellent": "论证链严丝合缝，反方论点充分呈现并有力回应，逻辑形式多样",
+        "good": "论证基本清晰，有反方回应，逻辑基本成立",
+        "needs_improvement": "论证跳跃或循环，忽略反方，存在逻辑谬误"
+      }
+    },
+    {
+      "name": "原创性与独立思辨",
+      "weight": 0.20,
+      "max_score": 10,
+      "confidence": "MEDIUM (官网明确提及但难以量化，需更多样本验证)",
+      "criteria": [
+        "提出独创的分析框架而非复述已知观点",
+        "对权威理论有批判性评价",
+        "展现独立的学术声音和思想深度",
+        "不盲从主流观点"
+      ],
+      "evidence_from_winners": "Theology 论文原创性地引入 Mahabharata 中的 Arjuna-Krishna 叙事作为哲学论证起点，并提出了 epistemic peer 的宗教不适用性论点。History 论文创造性地提出 distance continuum 概念替代 Williams 的 distance line。Law 论文的三段式论证结构（功能差异→言论自由→执行不可行）设计精致",
+      "level_descriptions": {
+        "excellent": "提出原创分析框架或新颖论证视角，对权威有独立批判",
+        "good": "有个人观点和一定独创性，但主要整合已有理论",
+        "needs_improvement": "仅复述他人观点，缺乏独立思考和批判性评价"
       }
     },
     {
       "name": "证据使用能力",
       "weight": 0.15,
       "max_score": 10,
+      "confidence": "HIGH (官网明确提及，特征数据明确)",
       "criteria": [
-        "使用高质量、多样化的证据来源",
-        "引用权威一手资料（primary sources）优先于二手转述",
-        "跨学科证据整合（哲学/历史/法学/经济学等）",
-        "每条论点都有对应的证据支撑"
+        "使用高质量、多样化的一手和二手学术来源",
+        "引用的权威性高（学术期刊/专著/判例优先于科普/新闻）",
+        "每条核心论点有对应证据支撑",
+        "引用格式严谨（官方接受 MLA/APA/Chicago）"
       ],
-      "keywords": ["evidence", "citation", "source", "primary", "data", "example", "reference", "quote"],
+      "evidence_from_winners": "Law 论文引用 14 条来源（含最高法院判例、哲学期刊、联合国公约），均为最高权威级别的学术/法律来源。History 论文引用 12 条来源覆盖法语原始文献和英美哲学经典。证据密度高且跨学科。注意：官网 FAQ 规定不接受脚注（footnotes），但接受文内引用（in-text citations）和尾注（endnotes）",
       "level_descriptions": {
-        "excellent": "证据来源权威且多样，一手资料与二手资料搭配合理，跨学科整合自然",
-        "good": "证据来源可信，有基本的引用支撑论点",
-        "needs_improvement": "证据缺乏或来源不可靠，论点缺乏支撑，引用格式混乱"
-      }
-    },
-    {
-      "name": "论证质量",
-      "weight": 0.20,
-      "max_score": 10,
-      "criteria": [
-        "论证逻辑链条清晰、完整、无跳跃",
-        "正反方观点均有充分展开",
-        "使用类比、演绎、归纳等多种论证方式",
-        "避免逻辑谬误（稻草人、虚假二分、滑坡等）"
-      ],
-      "keywords": ["argument", "logic", "reasoning", "fallacy", "deduction", "induction", "analogy", "premise", "conclusion"],
-      "level_descriptions": {
-        "excellent": "论证链严丝合缝，对反方观点给予充分尊重和有力回应，逻辑形式多样且精准",
-        "good": "论证基本清晰，有反方观点回应，逻辑基本成立",
-        "needs_improvement": "论证跳跃或循环，忽略反方观点，存在明显逻辑谬误"
-      }
-    },
-    {
-      "name": "原创性与独立思辨",
-      "weight": 0.15,
-      "max_score": 10,
-      "criteria": [
-        "提出独特的分析视角或原创论据",
-        "不满足于复述已知观点，展现个人独立思考",
-        "对经典理论有批判性评价而非盲从",
-        "展现思想上的勇气和创造力"
-      ],
-      "keywords": ["original", "independent", "novel", "critical", "creative", "perspective", "insight", "challenge"],
-      "level_descriptions": {
-        "excellent": "提出令人信服的原创见解，对权威观点有独立批判，展现出思想家的潜力",
-        "good": "有个人观点和一定原创性，但以整合已有观点为主",
-        "needs_improvement": "仅复述他人观点，缺乏独立思考和批判性评价"
-      }
-    },
-    {
-      "name": "结构与清晰度",
-      "weight": 0.10,
-      "max_score": 10,
-      "criteria": [
-        "文章结构合理：引言→定义→论证→反方回应→综合→结论",
-        "段落之间过渡自然，读者不迷路",
-        "每个段落有明确的主题句",
-        "整体论证路径一目了然"
-      ],
-      "keywords": ["structure", "organization", "transition", "flow", "paragraph", "section", "coherence", "outline"],
-      "level_descriptions": {
-        "excellent": "结构完美，每个段落服务于整体论证，过渡流畅，如同导航引导读者",
-        "good": "结构基本合理，段落有主题，过渡基本自然",
-        "needs_improvement": "结构松散或混乱，段落之间跳跃，读者难以跟随论证"
+        "excellent": "证据来源权威且多样，引用格式严谨，每条论点有充分支撑",
+        "good": "证据来源可信，有基本引用支撑论点",
+        "needs_improvement": "证据缺乏或来源不可靠，论点无支撑，引用格式混乱"
       }
     },
     {
       "name": "写作风格与说服力",
       "weight": 0.10,
       "max_score": 10,
+      "confidence": "MEDIUM (官网明确提及 persuasive force，但主观性强)",
       "criteria": [
-        "语言精准、生动，能打动读者",
-        "句式多样化，节奏把控得当",
-        "修辞手法使用恰当（设问、排比、对比等）",
-        "学术但不晦涩——让非专业读者也能理解"
+        "语言精准有力，以主动语态为主",
+        "句式变化丰富（标准差 > 12）",
+        "学术但不晦涩——保持可读性",
+        "能用精准的语言表达复杂思想"
       ],
-      "keywords": ["style", "language", "rhetoric", "persuasive", "elegant", "clarity", "voice", "tone"],
+      "evidence_from_winners": "3篇获奖范文的被动语态比例均低（4%-15%），以主动语态主导。平均句长 20-22 词，句长标准差 12-14，显示句式变化丰富。TTR 0.35-0.40 在学术写作中属正常范围。段落长度大（113-128词/段），说明论证密度高，非碎片化写作",
       "level_descriptions": {
-        "excellent": "文笔优美有力，能用简洁的语言表达复杂思想，阅后令人信服",
-        "good": "语言通顺，表达清晰，有基本的说服力",
+        "excellent": "文笔精准有力，主动语态主导，句式变化丰富，非母语读者也能流畅阅读",
+        "good": "语言通顺，表达清晰，有基本说服力",
         "needs_improvement": "语言生硬或浮夸，表达不清，缺乏说服力"
       }
     },
     {
-      "name": "反方观点回应",
-      "weight": 0.10,
+      "name": "结构与清晰度",
+      "weight": 0.05,
       "max_score": 10,
+      "confidence": "HIGH (官网明确提及，结构模式清晰可识别)",
       "criteria": [
-        "主动寻找并充分呈现最强反方论点",
-        "对反方论点给予公正、有说服力的回应（rebuttal）",
-        "不回避反方论证中最不利于己方的部分",
-        "回应使论证整体更有力而非削弱"
+        "清晰的 thesis→定义→论证→反方→综合→结论 结构",
+        "段落有明确主题句，过渡自然",
+        "整体论证路径一目了然"
       ],
-      "keywords": ["counterargument", "rebuttal", "objection", "opposing", "against", "critics", "challenge", "concede"],
+      "evidence_from_winners": "3篇范文均遵循标准的 discursive 议论文结构。thesis 在开篇明确陈述，定义段专门界定关键词，论证分层推进，反方观点有独立段落，结论呼应 thesis。段落长度大（120+词）但逻辑清晰",
       "level_descriptions": {
-        "excellent": "找到最有力的反方论点并给予有说服力的回应，回应过程反而增强了己方论证",
-        "good": "有反方论点和基本回应，但反方论点可能较弱或回应不够充分",
-        "needs_improvement": "缺乏反方论点回应，或仅回应了最弱版本的反方观点（稻草人）"
+        "excellent": "结构完美，每段服务于整体论证，读后能清晰复述论证路径",
+        "good": "结构合理，段落有主题句，过渡基本自然",
+        "needs_improvement": "结构松散或混乱，段落跳跃，读者难以跟随论证"
+      }
+    },
+    {
+      "name": "格式规范与学术诚信",
+      "weight": 0.05,
+      "max_score": 10,
+      "confidence": "HIGH (官网 FAQ 明确规定了多项格式要求)",
+      "criteria": [
+        "字数在 2000 词限制内",
+        "引用格式正确（MLA/APA/Chicago 任一）",
+        "包含完整的参考文献列表",
+        "无抄袭或 AI 生成痕迹"
+      ],
+      "evidence_from_winners": "3篇范文均严格遵守 2000 词限制，均包含完整的学术 Bibliography，引用格式统一。官网 FAQ 明确允许 AI 辅助但强调过度依赖 AI 会降低评估",
+      "level_descriptions": {
+        "excellent": "格式完美，引用精准，字数控制在限制内",
+        "good": "格式基本正确，有参考文献列表",
+        "needs_improvement": "格式混乱，引用缺失，超字数或严重不足"
       }
     }
   ],
+  "_feature_ranges_from_winners": {
+    "word_count": {"min": 904, "max": 2052, "note": "官网限制 2000 词，Law 范文轻微超出（含题头信息）"},
+    "avg_sentence_length": {"min": 19.7, "max": 21.8, "note": "复杂论证需要长句，但不建议超过 25"},
+    "sentence_length_std": {"min": 12.0, "max": 14.0, "note": "句式变化大是好的信号"},
+    "passive_voice_ratio": {"min": 0.04, "max": 0.15, "note": "以主动语态为主"},
+    "vocabulary_diversity_ttr": {"min": 0.35, "max": 0.40, "note": "此范围对学术写作正常"},
+    "logic_marker_density_per_1000w": {"min": 21, "max": 30, "note": "论证密集型文本的逻辑标记密度"},
+    "avg_paragraph_length": {"min": 113, "max": 128, "note": "长段落 = 论证展开充分"},
+    "claim_count_estimate": {"min": 5, "max": 11, "note": "独立论点多 = 论证丰富"},
+    "citation_style": "MLA/APA/Chicago 均可，不接受脚注，接受文内引用和尾注",
+    "word_limit": 2000,
+    "no_footnotes": true
+  },
+  "_validation_status": {
+    "status": "需验证",
+    "next_steps": [
+      "收集更多官网获奖范文（目标 n≥10）",
+      "收集同事/学生的非晋级论文作为对照",
+      "运行校准引擎对比获奖 vs 非获奖特征差异",
+      "根据 Cohen's d 修正各维度权重和阈值",
+      "确认后更新 confidence 状态为 HIGH"
+    ]
+  },
   "overall_standards": [
-    "论文需用英文撰写，不超过2000词",
-    "必须包含参考文献（MLA格式）",
-    "不得使用AI生成内容",
-    "需要学术推荐人验证原创性"
-  ],
-  "taboo_items": [
-    "使用AI生成内容（会被技术检测淘汰）",
-    "抄袭或过度借鉴",
-    "仅陈述观点无证据支持",
-    "忽略对立立场"
-  ],
-  "format_requirements": {
-    "word_limit": {"min": 800, "max": 2000},
-    "citation_style": "MLA",
-    "extra": ["需要参考文献", "需要学术推荐人信息"]
-  }
+    "论文需用英文撰写",
+    "不超过 2000 词（不含参考文献/尾注）",
+    "不接受脚注（footnotes），接受文内引用和尾注",
+    "可以讨论论文但不允许他人代写",
+    "允许使用 AI 但过度依赖会降低评分",
+    "不对 John Locke Institute 的立场做任何假设——获奖者中大量持与评委相反立场"
+  ]
 }
