@@ -38,6 +38,8 @@ CITE_PATTERNS = [
     re.compile(r"\(([\w\s]+,?\s*\d{4}[a-z]?)\)"),
     re.compile(r"\(([\w\s]+et\s*al\.?,?\s*\d{4}[a-z]?)\)"),
     re.compile(r"([A-Z][a-z]+\s*et\s*al\.?\s*\(\d{4}[a-z]?\))"),
+    re.compile(r"\(([A-Z][a-z]+(?:\s+et\s+al\.?)?)\s+\d+\)"),
+    re.compile(r"([A-Z][a-z]+(?:\s+et\s+al\.?)?)\s+\(\d{4}[a-z]?\)"),
 ]
 
 
@@ -64,8 +66,9 @@ def check_citations(text: str, ref_section: str) -> CitationReport:
     pairs = []
     for cite in cite_keys:
         matched_ref = None
+        cite_surname = cite.split(",")[0].split(" et")[0].strip()
         for i, ref in enumerate(ref_lines):
-            if cite in ref:
+            if cite_surname.lower() in ref.lower():
                 matched_ref = ref
                 matched_cites.add(cite)
                 matched_refs.add(i)

@@ -208,7 +208,8 @@ class Orchestrator:
             return None
 
     def _load_rubric_config(self, competition: str) -> dict:
-        rubric_path = CONFIGS_DIR / "rubrics" / f"{competition.lower()}_2026.json"
+        safe_name = competition.lower().replace(" ", "_").replace("-", "_")
+        rubric_path = CONFIGS_DIR / "rubrics" / f"{safe_name}_2026.json"
         if not rubric_path.exists():
             rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
         return json.loads(rubric_path.read_text(encoding="utf-8"))

@@ -1,0 +1,143 @@
+{
+  "competition_name": "John Locke",
+  "season": "2025",
+  "description": "Based on official John Locke Institute 7 judging criteria",
+  "dimensions": [
+    {
+      "name": "知识理解与深度",
+      "weight": 0.20,
+      "max_score": 10,
+      "criteria": [
+        "精准理解题目涉及的核心概念和理论框架",
+        "引用领域内权威学者和经典文献",
+        "展现超越课程范围的知识广度",
+        "概念定义清晰，术语使用准确"
+      ],
+      "keywords": ["thesis", "argument", "framework", "conceptual", "philosopher", "scholar", "theory", "principle"],
+      "level_descriptions": {
+        "excellent": "深刻理解题目并展现超越预期的知识储备，精准引用权威学者，概念使用无懈可击",
+        "good": "理解题目核心概念，有适当的文献引用，概念使用基本正确",
+        "needs_improvement": "对题目理解停留在表面，缺乏文献支撑，概念使用混乱或错误"
+      }
+    },
+    {
+      "name": "证据使用能力",
+      "weight": 0.15,
+      "max_score": 10,
+      "criteria": [
+        "使用高质量、多样化的证据来源",
+        "引用权威一手资料（primary sources）优先于二手转述",
+        "跨学科证据整合（哲学/历史/法学/经济学等）",
+        "每条论点都有对应的证据支撑"
+      ],
+      "keywords": ["evidence", "citation", "source", "primary", "data", "example", "reference", "quote"],
+      "level_descriptions": {
+        "excellent": "证据来源权威且多样，一手资料与二手资料搭配合理，跨学科整合自然",
+        "good": "证据来源可信，有基本的引用支撑论点",
+        "needs_improvement": "证据缺乏或来源不可靠，论点缺乏支撑，引用格式混乱"
+      }
+    },
+    {
+      "name": "论证质量",
+      "weight": 0.20,
+      "max_score": 10,
+      "criteria": [
+        "论证逻辑链条清晰、完整、无跳跃",
+        "正反方观点均有充分展开",
+        "使用类比、演绎、归纳等多种论证方式",
+        "避免逻辑谬误（稻草人、虚假二分、滑坡等）"
+      ],
+      "keywords": ["argument", "logic", "reasoning", "fallacy", "deduction", "induction", "analogy", "premise", "conclusion"],
+      "level_descriptions": {
+        "excellent": "论证链严丝合缝，对反方观点给予充分尊重和有力回应，逻辑形式多样且精准",
+        "good": "论证基本清晰，有反方观点回应，逻辑基本成立",
+        "needs_improvement": "论证跳跃或循环，忽略反方观点，存在明显逻辑谬误"
+      }
+    },
+    {
+      "name": "原创性与独立思辨",
+      "weight": 0.15,
+      "max_score": 10,
+      "criteria": [
+        "提出独特的分析视角或原创论据",
+        "不满足于复述已知观点，展现个人独立思考",
+        "对经典理论有批判性评价而非盲从",
+        "展现思想上的勇气和创造力"
+      ],
+      "keywords": ["original", "independent", "novel", "critical", "creative", "perspective", "insight", "challenge"],
+      "level_descriptions": {
+        "excellent": "提出令人信服的原创见解，对权威观点有独立批判，展现出思想家的潜力",
+        "good": "有个人观点和一定原创性，但以整合已有观点为主",
+        "needs_improvement": "仅复述他人观点，缺乏独立思考和批判性评价"
+      }
+    },
+    {
+      "name": "结构与清晰度",
+      "weight": 0.10,
+      "max_score": 10,
+      "criteria": [
+        "文章结构合理：引言→定义→论证→反方回应→综合→结论",
+        "段落之间过渡自然，读者不迷路",
+        "每个段落有明确的主题句",
+        "整体论证路径一目了然"
+      ],
+      "keywords": ["structure", "organization", "transition", "flow", "paragraph", "section", "coherence", "outline"],
+      "level_descriptions": {
+        "excellent": "结构完美，每个段落服务于整体论证，过渡流畅，如同导航引导读者",
+        "good": "结构基本合理，段落有主题，过渡基本自然",
+        "needs_improvement": "结构松散或混乱，段落之间跳跃，读者难以跟随论证"
+      }
+    },
+    {
+      "name": "写作风格与说服力",
+      "weight": 0.10,
+      "max_score": 10,
+      "criteria": [
+        "语言精准、生动，能打动读者",
+        "句式多样化，节奏把控得当",
+        "修辞手法使用恰当（设问、排比、对比等）",
+        "学术但不晦涩——让非专业读者也能理解"
+      ],
+      "keywords": ["style", "language", "rhetoric", "persuasive", "elegant", "clarity", "voice", "tone"],
+      "level_descriptions": {
+        "excellent": "文笔优美有力，能用简洁的语言表达复杂思想，阅后令人信服",
+        "good": "语言通顺，表达清晰，有基本的说服力",
+        "needs_improvement": "语言生硬或浮夸，表达不清，缺乏说服力"
+      }
+    },
+    {
+      "name": "反方观点回应",
+      "weight": 0.10,
+      "max_score": 10,
+      "criteria": [
+        "主动寻找并充分呈现最强反方论点",
+        "对反方论点给予公正、有说服力的回应（rebuttal）",
+        "不回避反方论证中最不利于己方的部分",
+        "回应使论证整体更有力而非削弱"
+      ],
+      "keywords": ["counterargument", "rebuttal", "objection", "opposing", "against", "critics", "challenge", "concede"],
+      "level_descriptions": {
+        "excellent": "找到最有力的反方论点并给予有说服力的回应，回应过程反而增强了己方论证",
+        "good": "有反方论点和基本回应，但反方论点可能较弱或回应不够充分",
+        "needs_improvement": "缺乏反方论点回应，或仅回应了最弱版本的反方观点（稻草人）"
+      }
+    }
+  ],
+  "overall_standards": [
+    "论文需用英文撰写，不超过2000词",
+    "必须包含参考文献（MLA格式）",
+    "不得使用AI生成内容",
+    "需要学术推荐人验证原创性"
+  ],
+  "taboo_items": [
+    "使用AI生成内容（会被技术检测淘汰）",
+    "抄袭或过度借鉴",
+    "仅陈述观点无证据支持",
+    "忽略对立立场"
+  ],
+  "format_requirements": {
+    "word_limit": {"min": 800, "max": 2000},
+    "citation_style": "MLA",
+    "extra": ["需要参考文献", "需要学术推荐人信息"]
+  }
+}
