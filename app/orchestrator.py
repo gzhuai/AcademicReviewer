@@ -23,10 +23,10 @@ AGENT_WEIGHTS = {
 }
 
 REFERENCES_HEADERS = [
-    r"(?i)^References\s*$",
-    r"(?i)^Bibliography\s*$",
-    r"(?i)^Works\s+Cited\s*$",
-    r"(?i)^Literature\s+Cited\s*$",
+    r"^References\s*$",
+    r"^Bibliography\s*$",
+    r"^Works\s+Cited\s*$",
+    r"^Literature\s+Cited\s*$",
 ]
 
 
@@ -216,7 +216,7 @@ class Orchestrator:
     @staticmethod
     def _extract_references_section(text: str) -> str:
         for header_pattern in REFERENCES_HEADERS:
-            match = re.search(rf"(?:^|\n){header_pattern}\s*\n", text, re.MULTILINE)
+            match = re.search(rf"(?:^|\n){header_pattern}\s*\n", text, re.MULTILINE | re.IGNORECASE)
             if match:
                 start = match.end()
                 remaining = text[start:]

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcademicReviewer 测试计划与步骤</title>
+<style>
+  :root {
+    --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #f8fafc; --card: #ffffff;
+    --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+    --success: #16a34a; --warning: #ea580c; --danger: #dc2626;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.8; padding-bottom: 80px;
+  }
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: #0f172a; color: #e2e8f0; overflow-y: auto; z-index: 100; padding: 24px 0;
+  }
+  .sidebar h2 { font-size: 16px; padding: 0 20px 16px; color: #fff; border-bottom: 1px solid #334155; margin-bottom: 8px; }
+  .sidebar nav a {
+    display: block; padding: 8px 20px; color: #94a3b8; text-decoration: none; font-size: 14px;
+    border-left: 3px solid transparent; transition: all 0.15s;
+  }
+  .sidebar nav a:hover, .sidebar nav a.active { color: #fff; background: #1e293b; border-left-color: var(--primary); }
+  .main { margin-left: 260px; max-width: 960px; padding: 40px 48px; }
+  h1 { font-size: 32px; margin-bottom: 8px; color: #0f172a; }
+  .subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 40px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); color: #0f172a; }
+  h3 { font-size: 18px; margin: 32px 0 12px; color: #334155; }
+  h4 { font-size: 16px; margin: 20px 0 8px; color: #475569; }
+  p { margin: 8px 0; color: #334155; }
+  ul, ol { margin: 8px 0 16px 24px; color: #334155; }
+  li { margin: 4px 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card-info { border-left: 4px solid var(--primary); }
+  .card-success { border-left: 4px solid var(--success); }
+  .card-warning { border-left: 4px solid var(--warning); }
+  .card-danger { border-left: 4px solid var(--danger); }
+  code {
+    background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace; font-size: 13px; color: #1e293b;
+  }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 16px 20px; border-radius: 8px;
+    overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 13px; }
+  tr:hover { background: #f8fafc; }
+  .step { display: flex; gap: 16px; margin: 16px 0; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin: 0 0 4px; }
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
+  .toc h3 { margin-top: 0; }
+  .toc ul { list-style: none; margin-left: 0; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .test-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .test-card h4 { margin-top: 0; color: var(--primary); }
+  .test-table { margin: 10px 0; }
+  .test-table th { font-size: 12px; }
+  .test-table td { font-size: 13px; vertical-align: top; }
+  .checklist { margin: 8px 0; padding-left: 20px; }
+  .checklist li { list-style: none; margin: 3px 0; font-size: 14px; }
+  .summary-box {
+    background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 20px 24px; margin: 16px 0;
+    font-family: "JetBrains Mono", "Fira Code", monospace; font-size: 13px; line-height: 1.7; white-space: pre-wrap;
+  }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .tag-get { background: #dcfce7; color: #166534; }
+  .tag-post { background: #dbeafe; color: #1e40af; }
+  .progress-bar {
+    background: #e2e8f0; border-radius: 20px; height: 8px; margin: 4px 0 12px; overflow: hidden;
+  }
+  .progress-fill { background: var(--success); height: 100%; border-radius: 20px; transition: width 0.3s; }
+  .status-pass { color: var(--success); font-weight: 600; }
+  .status-fail { color: var(--danger); font-weight: 600; }
+  .status-skip { color: var(--text-muted); }
+  .group-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff; padding: 16px 24px; border-radius: 12px 12px 0 0; margin: 32px 0 0;
+  }
+  .group-header h3 { margin: 0; color: #fff; }
+  .group-header p { margin: 4px 0 0; color: #bfdbfe; font-size: 14px; }
+  .group-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 20px 24px; background: #fff; }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>🧪 测试计划</h2>
+  <nav>
+    <a href="#prep">准备</a>
+    <a href="#group1">组1 基础设施</a>
+    <a href="#group2">组2 核心评审</a>
+    <a href="#group3">组3 多竞赛</a>
+    <a href="#group4">组4 文件格式</a>
+    <a href="#group5">组5 评审历史</a>
+    <a href="#group6">组6 模型切换</a>
+    <a href="#group7">组7 校准引擎</a>
+    <a href="#group75">组7.5 教师经验</a>
+    <a href="#group8">组8 异常边界</a>
+    <a href="#group9">组9 自动化</a>
+    <a href="#matrix">功能矩阵</a>
+    <a href="#report">测试报告</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>AcademicReviewer 测试计划与步骤</h1>
+<p class="subtitle">49 项测试 · 9 个测试组 · 预计单人 2~3 小时 / 多人并行 1 小时</p>
+
+<div class="card card-info">
+  <strong>📋 目的：</strong>让团队同事能够按照明确步骤逐一验证系统各项功能，确保上线前所有模块稳定可用。<br>
+  <strong>⏱ 预计耗时：</strong>单人完整约 2~3 小时（含等待 LLM 响应）；多人并行约 1 小时。<br>
+  <strong>💰 成本提示：</strong>组 2 和组 3 消耗 API 费用，建议先用最便宜的模型跑通。校准引擎（组 7）大部分零成本。
+</div>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#prep">一、测试前准备</a></li>
+    <li><a href="#group1">二、测试组 1：基础设施验证（5 项）</a></li>
+    <li><a href="#group2">二、测试组 2：核心评审流水线（2 项）</a></li>
+    <li><a href="#group3">二、测试组 3：多竞赛类型覆盖（6 项）</a></li>
+    <li><a href="#group4">二、测试组 4：文件格式兼容性（4 项）</a></li>
+    <li><a href="#group5">二、测试组 5：评审历史与查询（3 项）</a></li>
+    <li><a href="#group6">二、测试组 6：模型切换与对比（4 项）</a></li>
+    <li><a href="#group7">二、测试组 7：校准引擎（6 项）</a></li>
+    <li><a href="#group75">二、测试组 7.5：教师经验文档解析（12 项）</a></li>
+    <li><a href="#group8">二、测试组 8：异常与边界情况（6 项）</a></li>
+    <li><a href="#group9">二、测试组 9：端到端自动化（1 项）</a></li>
+    <li><a href="#matrix">三、功能矩阵总览</a></li>
+    <li><a href="#report">四、测试报告模板</a></li>
+    <li><a href="#tips">五、快速上手建议</a></li>
+  </ul>
+</div>
+
+<!-- ==================== 一、准备 ==================== -->
+<h2 id="prep">一、测试前准备（所有人必做）</h2>
+
+<h3>1.1 环境检查清单</h3>
+<table>
+  <tr><th>#</th><th>检查项</th><th>命令</th><th>通过标准</th></tr>
+  <tr><td>1</td><td>Python 版本</td><td><code>python --version</code></td><td>3.10 或更高</td></tr>
+  <tr><td>2</td><td>依赖安装</td><td><code>pip install -r requirements.txt</code></td><td>无报错</td></tr>
+  <tr><td>3</td><td>.env 配置</td><td>确认文件存在且 API Key 非占位值</td><td>至少 1 个 Key 有效</td></tr>
+  <tr><td>4</td><td>数据目录</td><td>启动后自动创建 <code>data/</code></td><td>系统自动处理</td></tr>
+</table>
+
+<h3>1.2 启动服务</h3>
+
+<p><strong>终端 1 — FastAPI 后端：</strong></p>
+<pre><code>python run.py</code></pre>
+<p>验证：浏览器打开 <code>http://127.0.0.1:8000/docs</code>，应看到 Swagger UI 文档页面。</p>
+
+<p><strong>终端 2 — Gradio 前端：</strong></p>
+<pre><code>python app/gradio_app.py</code></pre>
+<p>验证：浏览器打开 <code>http://127.0.0.1:7860</code>，应看到 5 个标签页界面。</p>
+
+<h3>1.3 测试文件准备</h3>
+<table>
+  <tr><th>编号</th><th>用途</th><th>建议</th></tr>
+  <tr><td>文件A</td><td>ISEF 科研论文 (.txt)</td><td>使用 <code>tests/fixtures/sample_isef_paper.txt</code></td></tr>
+  <tr><td>文件B</td><td>John Locke 议论文 (.txt)</td><td>自己写 800 字观点论述</td></tr>
+  <tr><td>文件C</td><td>引文问题论文 (.txt)</td><td>正文引用 [1][2] 但参考文献缺一条</td></tr>
+  <tr><td>文件D</td><td>同论文 .pdf/.docx</td><td>测试格式兼容性</td></tr>
+  <tr><td>文件E-G</td><td>3 获奖 + 3 失败</td><td>校准引擎测试用</td></tr>
+  <tr><td>文件H-I</td><td>2 篇教师经验文档</td><td>使用 <code>data/expert_insights/</code> 下示例</td></tr>
+</table>
+
+<!-- ==================== 组 1 ==================== -->
+<div class="group-header"><h3>📦 测试组 1：基础设施验证（10 分钟）</h3><p>确认服务正常启动，基础 API 可访问。⭐⭐⭐ 关键</p></div>
+<div class="group-body">
+
+<div class="test-card">
+<h4>测试 1.1 — 健康检查</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl http://127.0.0.1:8000/api/v1/health</code> 或浏览器直接访问</td></tr>
+  <tr><th>预期</th><td>返回 JSON，含 <code>status: "ok"</code> 字段</td></tr>
+  <tr><th>通过标准</th><td>HTTP 200，status 为 ok</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 1.2 — 竞赛列表</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl http://127.0.0.1:8000/api/v1/competitions</code></td></tr>
+  <tr><th>预期</th><td>返回 11 个竞赛（ISEF、STS、丘成桐、HiMCM、John Locke、Marshall Society、CTB、NHD、SIC、WGHS、FBLA）</td></tr>
+  <tr><th>通过标准</th><td>11 个竞赛全部列出，各有 type 和 subtype</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 1.3 — 配置统计</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl http://127.0.0.1:8000/api/v1/config/stats</code></td></tr>
+  <tr><th>预期</th><td>competitions (total: 11, types: 7)；configs (rubrics≥1, structure_schemas≥8, evidence_patterns≥9, style_guides≥6, citation_rules≥3)；db (total_submissions 初始为 0)</td></tr>
+  <tr><th>通过标准</th><td>各统计值与项目实际相符</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 1.4 — Swagger UI</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td>浏览器打开 <code>http://127.0.0.1:8000/docs</code></td></tr>
+  <tr><th>预期</th><td>看到 10 个 API 端点，可展开查看请求/响应格式</td></tr>
+  <tr><th>通过标准</th><td>所有端点显示正常，可交互测试</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 1.5 — Gradio 界面可访问</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td>浏览器打开 <code>http://127.0.0.1:7860</code></td></tr>
+  <tr><th>预期</th><td>看到 5 个标签页：提交评审、评审历史、系统状态、校准引擎、管理看板</td></tr>
+  <tr><th>通过标准</th><td>5 个标签页均可切换，UI 无错乱</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+</div><!-- end group 1 -->
+
+<!-- ==================== 组 2 ==================== -->
+<div class="group-header"><h3>📦 测试组 2：核心评审流水线（30 分钟）</h3><p>验证 5-Agent 审查流程完整可用。⭐⭐⭐ 关键</p></div>
+<div class="group-body">
+
+<div class="test-card">
+<h4>测试 2.1 — 标准 ISEF 论文评审（最重要！）</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><pre style="margin:0;font-size:12px"><code>curl -X POST http://127.0.0.1:8000/api/v1/review \
+  -F "file=@tests/fixtures/sample_isef_paper.txt" \
+  -F "competition=ISEF" \
+  -F "student_name=测试学生"</code></pre></td></tr>
+  <tr><th>预期</th><td>返回 JSON，含 submission_id、total_score、5 个分项评分、5 个 Agent 反馈详情、meta 元数据</td></tr>
+  <tr><th>通过标准</th><td>HTTP 200；total_score 在 0-10 之间；5 个 scores 字段都有数值；rubric/structure/argument/language/integrity 反馈非空；meta 含 word_count/model/duration_seconds</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+<p><strong>关键验证点：</strong></p>
+<ul class="checklist">
+  <li>☐ A1 Rubric Parser 能正确解析 ISEF 评分标准并给出 rubric_score</li>
+  <li>☐ A2 Structure &amp; Logic 反馈中提到了论文结构（Abstract, Introduction, Methods, Results, Discussion, Conclusion）</li>
+  <li>☐ A3 Argument &amp; Evidence 提到了 p 值、对照组、样本量等</li>
+  <li>☐ A4 Language &amp; Style 有两种反馈：rewrites（直接改写）和 suggestions（建议）</li>
+  <li>☐ A5 Academic Integrity 有引用检查结果（正文 [1][2][3][4] 与参考文献交叉匹配）</li>
+</ul>
+</div>
+
+<div class="test-card">
+<h4>测试 2.2 — Gradio 图形界面提交评审</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td>Gradio "提交评审"标签页：上传文件A → 选择竞赛 "ISEF" → 填写学生姓名 → 选模型 → 点击"开始评审"</td></tr>
+  <tr><th>预期</th><td>右侧出现评分明细和元数据</td></tr>
+  <tr><th>通过标准</th><td>显示结果与 API 返回一致；完整 JSON 报告可展开查看</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+</div><!-- end group 2 -->
+
+<!-- ==================== 组 3 ==================== -->
+<div class="group-header"><h3>📦 测试组 3：多竞赛类型覆盖（20 分钟）</h3><p>验证每种竞赛类型能正确加载专属配置。⭐⭐⭐ 关键</p></div>
+<div class="group-body">
+
+<p>每个竞赛用同一段简短文本（50-100 字）即可，主要验证配置加载和 Agent 路由是否正确。</p>
+
+<table>
+  <tr><th>编号</th><th>竞赛</th><th>类型</th><th>特殊验证点</th><th>结果</th><th>执行人</th></tr>
+  <tr>
+    <td>3.1</td><td>John Locke</td><td>议论文</td>
+    <td>A2 按议论文结构（引言-论点-反驳-结论）评审；A5 用 MLA 格式</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+  <tr>
+    <td>3.2</td><td>HiMCM</td><td>数学建模</td>
+    <td>A2 按数学建模结构（假设-模型-求解-验证）评审；A3 关注模型合理性</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+  <tr>
+    <td>3.3</td><td>SIC</td><td>金融分析</td>
+    <td>A2 按金融分析结构评审；风格为商业金融体</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+  <tr>
+    <td>3.4</td><td>FBLA</td><td>商业案例</td>
+    <td>A2 按商业案例结构评审；风格为商业提案</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+  <tr>
+    <td>3.5</td><td>CTB</td><td>社会科学</td>
+    <td>A2 按社会科学结构；A5 用 APA 格式</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+  <tr>
+    <td>3.6</td><td>NHD</td><td>历史研究</td>
+    <td>A5 用 Chicago 格式检查引用</td>
+    <td>☐ 通过 ☐ 失败</td><td></td>
+  </tr>
+</table>
+
+</div><!-- end group 3 -->
+
+<!-- ==================== 组 4 ==================== -->
+<div class="group-header"><h3>📦 测试组 4：文件格式兼容性（10 分钟）</h3><p>验证系统能正确解析不同文件格式。⭐⭐ 中等</p></div>
+<div class="group-body">
+
+<table>
+  <tr><th>编号</th><th>格式</th><th>操作</th><th>预期</th><th>结果</th><th>执行人</th></tr>
+  <tr><td>4.1</td><td>.txt</td><td>用文件A</td><td>正常解析</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>4.2</td><td>.pdf</td><td>将文件A转存为 PDF 后上传</td><td>能提取到文本内容（非图片 PDF）</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>4.3</td><td>.docx</td><td>将文件A另存为 Word 后上传</td><td>正常解析</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>4.4</td><td>大文件</td><td>上传一篇 10000+ 字的论文</td><td>不超时，正常返回</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+</table>
+<p><strong>通过标准：</strong>每种格式均能成功上传并返回评审结果，word_count 显示合理数值。</p>
+
+</div><!-- end group 4 -->
+
+<!-- ==================== 组 5 ==================== -->
+<div class="group-header"><h3>📦 测试组 5：评审历史与查询（10 分钟）</h3><p>验证评审数据持久化存储和查询功能。⭐⭐ 中等</p></div>
+<div class="group-body">
+
+<div class="test-card">
+<h4>测试 5.1 — 评审历史列表</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl "http://127.0.0.1:8000/api/v1/reviews?offset=0&limit=20"</code> 或 Gradio "评审历史"标签页</td></tr>
+  <tr><th>预期</th><td>返回之前所有测试提交的记录，含学生名、竞赛、评分、提交时间</td></tr>
+  <tr><th>通过标准</th><td>记录数 ≥ 之前测试提交的次数；每条记录字段完整</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 5.2 — 单条评审详情</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl http://127.0.0.1:8000/api/v1/reviews/1</code> 或 Gradio 详情面板</td></tr>
+  <tr><th>预期</th><td>返回该次提交的完整信息 + 所有历史审查版本</td></tr>
+  <tr><th>通过标准</th><td>5 个 Agent 分项评分均可查看；反馈内容完整</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 5.3 — 分页功能</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>curl "http://127.0.0.1:8000/api/v1/reviews?offset=0&limit=2"</code> 然后 <code>offset=2&limit=2</code></td></tr>
+  <tr><th>预期</th><td>两次请求返回不同记录，不重复</td></tr>
+  <tr><th>通过标准</th><td>total 值一致，分页偏移正确</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+</div><!-- end group 5 -->
+
+<!-- ==================== 组 6 ==================== -->
+<div class="group-header"><h3>📦 测试组 6：模型切换与对比（15 分钟）</h3><p>验证多 LLM 适配器正常，评分一致性可接受。⭐⭐ 中等</p></div>
+<div class="group-body">
+
+<table>
+  <tr><th>编号</th><th>模型</th><th>操作</th><th>关注点</th><th>可用？</th><th>结果</th><th>执行人</th></tr>
+  <tr><td>6.1</td><td>DeepSeek</td><td>用文件A，选择 deepseek</td><td>基础对照</td><td>☐</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>6.2</td><td>OpenAI</td><td>用文件A，选择 openai</td><td>评分与 6.1 差异 &lt;2 分</td><td>☐</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>6.3</td><td>Gemini</td><td>用文件A，选择 gemini</td><td>评分与 6.1 差异 &lt;2 分</td><td>☐</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>6.4</td><td>GLM</td><td>用文件A，选择 glm</td><td>评分与 6.1 差异 &lt;2 分</td><td>☐</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+</table>
+<div class="card card-warning"><strong>⚠️ 注意：</strong>需要配置对应 API Key 才能测试。通过标准：各模型均能返回完整评审，不同模型之间 total_score 差 ≤ 2.0。</div>
+
+</div><!-- end group 6 -->
+
+<!-- ==================== 组 7 ==================== -->
+<div class="group-header"><h3>📦 测试组 7：校准引擎（20 分钟）</h3><p>验证特征提取、Cohen's d 计算和报告生成功能。⭐⭐ 中等</p></div>
+<div class="group-body">
+
+<div class="test-card">
+<h4>测试 7.1 — 命令行校准</h4>
+<table class="test-table">
+  <tr><th>准备</th><td>在 <code>data/calibration/</code> 下创建 <code>winners/</code> 和 <code>losers/</code> 文件夹，各放入 3 篇以上 .txt 文件</td></tr>
+  <tr><th style="width:80px">方式</th><td><pre style="margin:0;font-size:12px"><code>python cli/calibrate.py \
+  --competition ISEF --type research \
+  --winners data/calibration/winners \
+  --losers data/calibration/losers \
+  --output data/calibration/report.md</code></pre></td></tr>
+  <tr><th>通过标准</th><td>report.md 存在且内容非空；含效应量排序表；含配置变更建议；含人工复核清单</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 7.2 — 交叉验证</h4>
+<table class="test-table">
+  <tr><th>准备</th><td>在 <code>data/calibration/external/</code> 下放入外部获奖文章</td></tr>
+  <tr><th style="width:80px">方式</th><td><code>python cli/calibrate.py --competition ISEF --type research --winners data/calibration/winners --losers data/calibration/losers --external data/calibration/external</code></td></tr>
+  <tr><th>通过标准</th><td>报告含"交叉验证"章节，交叉验证表显示各特征的验证状态</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<div class="test-card">
+<h4>测试 7.3 — Gradio 校准</h4>
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td>Gradio "校准引擎"标签页：填写竞赛信息，上传获奖/失败文章，点击"运行校准"</td></tr>
+  <tr><th>预期</th><td>界面显示 Markdown 格式校准报告</td></tr>
+  <tr><th>通过标准</th><td>报告内容与 CLI 输出一致</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<h4>测试 7.4 — 空目录/单文件边界情况</h4>
+<table>
+  <tr><th>用例</th><th>操作</th><th>预期</th><th>结果</th><th>执行人</th></tr>
+  <tr><td>7.4a 最小文件数</td><td>仅 1 篇获奖 + 1 篇失败</td><td>能运行但置信度较低</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.4b 空目录</td><td>传入空目录</td><td>正常处理（特征为空列表）</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.4c 混合格式</td><td>混入 .pdf 或 .docx</td><td>能读取</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+</table>
+
+</div><!-- end group 7 -->
+
+<!-- ==================== 组 7.5 ==================== -->
+<h2 id="group75">测试组 7.5：教师经验文档解析（15 分钟）</h2>
+<p style="color: var(--text-muted)">验证三模式自适应解析引擎对教师经验文档的解析正确性。⭐⭐ 中等</p>
+
+<h3>测试 7.5a — Mode 3 完全结构化解析</h3>
+<div class="test-card">
+<table class="test-table">
+  <tr><th>准备</th><td>使用 <code>data/expert_insights/</code> 下的 Mode 3 文档（<code>### [pattern] 特征名</code> 格式）</td></tr>
+  <tr><th style="width:80px">方式</th><td>通过 CLI 校准命令传入 <code>--expert-docs</code></td></tr>
+  <tr><th>通过标准</th><td>日志显示 detected mode=3；无 LLM 调用；所有 <code>### [type]</code> 条目被正确提取；特征映射正确</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<h3>测试 7.5b — Mode 2 半结构化解析</h3>
+<div class="test-card">
+<table class="test-table">
+  <tr><th>准备</th><td>使用 <code>data/expert_insights/HiMCM_Mode2_example.md</code></td></tr>
+  <tr><th style="width:80px">方式</th><td>通过 CLI 传入 <code>--expert-docs data/expert_insights/HiMCM_Mode2_example.md</code></td></tr>
+  <tr><th>通过标准</th><td>日志显示 detected mode=2；识别出 4 个章节；每个章节 ≥1 条 ExpertAnnotation；特征映射正确；元数据提取正确</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<h3>测试 7.5c — Mode 1 纯自由格式解析</h3>
+<div class="test-card">
+<table class="test-table">
+  <tr><th>准备</th><td>使用 <code>data/expert_insights/ISEF_Mode1_freeform_example.md</code></td></tr>
+  <tr><th style="width:80px">方式</th><td>通过 CLI 传入 <code>--expert-docs data/expert_insights/ISEF_Mode1_freeform_example.md</code></td></tr>
+  <tr><th>通过标准</th><td>日志显示 detected mode=1；LLM 返回 ≥3 条不同标注类型；至少含 pattern/pitfall/signal 两种；特征映射通过本地关键词匹配</td></tr>
+  <tr><th>结果</th><td>☐ 通过 &nbsp;&nbsp; ☐ 失败 &nbsp;&nbsp; 执行人：________</td></tr>
+</table>
+</div>
+
+<h3>测试 7.5d — 无 LLM 时 Mode 1/2 错误处理</h3>
+<table>
+  <tr><th>用例</th><th>操作</th><th>预期</th><th>结果</th><th>执行人</th></tr>
+  <tr><td>7.5d-1</td><td>未配置 API Key 时提交 Mode 1 文档</td><td>抛出 ValueError 提示"需要 LLM"，系统不崩溃</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5d-2</td><td>未配置 API Key 时提交 Mode 2 文档</td><td>回退到启发式提取，至少产生部分结果</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5d-3</td><td>配置错误 Key 时提交 Mode 1 文档</td><td>回退到段落拆分，Mode 2 回退到首行提取，不崩溃</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+</table>
+
+<h3>测试 7.5e — 模式检测准确性</h3>
+<table>
+  <tr><th>用例</th><th>文档特征</th><th>预期检测</th><th>结果</th><th>执行人</th></tr>
+  <tr><td>7.5e-1</td><td>含 <code>### [pattern] xxx</code></td><td>Mode 3</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5e-2</td><td>含 <code>## 获奖经验</code> 等章节标题</td><td>Mode 2</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5e-3</td><td>纯文本随笔</td><td>Mode 1</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5e-4</td><td>同时含 <code>### [pattern]</code> + <code>## 获奖经验</code></td><td>Mode 3（优先级最高）</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+  <tr><td>7.5e-5</td><td>0 字节空文档</td><td>无异常抛出，无结果</td><td>☐ 通过 ☐ 失败</td><td></td></tr>
+</table>
+
+<h3>测试 7.5f — 多教师文档整合</h3>
+<div class="test-card">
+<table class="test-table">
+  <tr><th style="width:80px">方式</th><td><code>--expert-docs doc1.md doc2.md</code> 传入 2 个不同教师经验文档</td></tr>
+  <tr><th>预期</th><td>两份文档各自解析，结果合并到同一份校准报告中</td></tr>
+  <tr><th>通过标准</th><td>报告含两份文档的摘要；不同作者的经验分别标注来源</td></tr>
+  <tr><th>结果</th><td>☐
