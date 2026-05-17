@@ -5,11 +5,14 @@ venv/
 .env
 
 # Data (SQLite, ChromaDB — runtime artifacts excluded)
-# Keep example expert documents
+# Keep example expert documents and real winning essays
 data/*
 !data/expert_insights/
 data/expert_insights/*
 !data/expert_insights/*.md
+!data/real_winners/
+data/real_winners/*
+!data/real_winners/*.txt
 
 # Python bytecode
 __pycache__/
