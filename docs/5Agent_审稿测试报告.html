@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5-Agent 审稿测试报告 — John Locke 论文</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--text-muted:#64748b;--border:#e2e8f0;--success:#16a34a;--warning:#ea580c;--danger:#dc2626}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding-bottom:80px}
+.sidebar{position:fixed;top:0;left:0;width:280px;height:100vh;background:#0f172a;color:#e2e8f0;overflow-y:auto;z-index:100;padding:24px 0}
+.sidebar h2{font-size:15px;padding:0 20px 16px;color:#fff;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar nav a{display:block;padding:7px 20px;color:#94a3b8;text-decoration:none;font-size:13px;border-left:3px solid transparent;transition:all .15s}
+.sidebar nav a:hover{color:#fff;background:#1e293b;border-left-color:var(--primary)}
+.main{margin-left:280px;max-width:1000px;padding:40px 48px}
+h1{font-size:30px;margin-bottom:6px;color:#0f172a}
+.subtitle{color:var(--text-muted);font-size:15px;margin-bottom:36px}
+h2{font-size:22px;margin:40px 0 14px;padding-bottom:6px;border-bottom:2px solid var(--border);color:#0f172a}
+h3{font-size:17px;margin:28px 0 10px;color:#334155}
+h4{font-size:15px;margin:18px 0 8px;color:#475569}
+p{margin:8px 0;color:#334155}
+ul,ol{margin:6px 0 14px 24px;color:#334155}
+li{margin:3px 0}
+code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-family:"JetBrains Mono","Cascadia Code",monospace;font-size:13px;color:#1e293b}
+pre{background:#0f172a;color:#e2e8f0;padding:16px 20px;border-radius:8px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f8fafc;font-weight:600;color:#475569;font-size:12px;text-transform:uppercase}
+tr:hover{background:#f8fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card-info{border-left:4px solid var(--primary)}
+.card-success{border-left:4px solid var(--success)}
+.card-warning{border-left:4px solid var(--warning)}
+.card-danger{border-left:4px solid var(--danger)}
+.score-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:16px}
+.score-high{background:#dcfce7;color:#166534}
+.score-mid{background:#fef9c3;color:#854d0e}
+.score-low{background:#fee2e2;color:#991b1b}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.badge-fix{background:#dbeafe;color:#1e40af}
+.badge-new{background:#dcfce7;color:#166534}
+.badge-info{background:#fef3c7;color:#92400e}
+.issue-card{margin:12px 0;padding:14px 18px;border-radius:8px;border:1px solid var(--border)}
+.issue-card.severity-high{border-left:4px solid var(--danger);background:#fef2f2}
+.issue-card.severity-medium{border-left:4px solid var(--warning);background:#fffbeb}
+.issue-card.severity-low{border-left:4px solid var(--primary);background:#eff6ff}
+.issue-card .severity-tag{font-size:11px;font-weight:700;text-transform:uppercase}
+.issue-card .severity-tag.low{color:#1d4ed8}
+.issue-card .severity-tag.medium{color:#c2410c}
+.issue-card .severity-tag.high{color:#dc2626}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 24px;margin:20px 0}
+.toc h3{margin-top:0}
+.toc ul{list-style:none;margin-left:0}
+.toc li{margin:5px 0}
+.toc a{color:var(--primary);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.sev{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.sev-h{background:#fee2e2;color:#991b1b}
+.sev-m{background:#ffedd5;color:#9a3412}
+.sev-l{background:#dbeafe;color:#1d4ed8}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2> 5-Agent 审稿报告</h2>
+  <nav>
+    <a href="#overview">一、测试概述</a>
+    <a href="#paper">二、测试论文</a>
+    <a href="#scores">三、综合得分</a>
+    <a href="#a2">四、A2 StructureLogic</a>
+    <a href="#a3">五、A3 ArgumentEvidence</a>
+    <a href="#a4">六、A4 LanguageStyle</a>
+    <a href="#a5">七、A5 AcademicIntegrity</a>
+    <a href="#a1">八、A1 RubricParser</a>
+    <a href="#summary">九、改进建议汇总</a>
+    <a href="#files">十、输出文件</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>5-Agent 审稿测试报告</h1>
+<p class="subtitle">John Locke Essay Competition · DeepSeek · 2026-05-26 · 总耗时 42s（含 5 个 LLM 并行调用）</p>
+
+<div class="toc">
+  <h3>导航</h3>
+  <ul>
+    <li><a href="#overview">一、测试概述</a></li>
+    <li><a href="#paper">二、测试论文（1223 词，AI 道德责任主题）</a></li>
+    <li><a href="#scores">三、综合得分 7.7/10</a></li>
+    <li><a href="#a2">四、A2 StructureLogic — 结构审稿 8.5 分</a></li>
+    <li><a href="#a3">五、A3 ArgumentEvidence — 论证审稿 8.0 分</a></li>
+    <li><a href="#a4">六、A4 LanguageStyle — 语言审稿</a></li>
+    <li><a href="#a5">七、A5 AcademicIntegrity — 学术诚信<br>审稿 6.0 分</a></li>
+    <li><a href="#a1">八、A1 RubricParser — 评分标准解析</a></li>
+    <li><a href="#summary">九、改进建议汇总（按严重度排序）</a></li>
+    <li><a href="#files">十、输出文件列表</a></li>
+  </ul>
+</div>
+
+<!-- ====== 一 ====== -->
+<h2 id="overview">一、测试概述</h2>
+
+<div class="card card-info">
+  <p><strong>测试目标：</strong>生成一篇 John Locke 风格议论文 → 用配置了官网真实获奖范文推断 Rubric 的 5-Agent 系统进行完整审稿 → 收集所有 Agent 反馈原文 → 验证系统各 Agent 的审稿质量。</p>
+  <p><strong>与上次的区别：</strong>本次使用基于<strong>3 篇官网真实获奖范文</strong>反推的假设性 Rubric（而非 Aralia 第三方总结），每个维度标注了置信度。引用检查经过 Bug 修复。</p>
+</div>
+
+<table>
+  <tr><th>项目</th><th>内容</th></tr>
+  <tr><td>测试日期</td><td>2026-05-26</td></tr>
+  <tr><td>竞赛</td><td>John Locke Essay Competition (discursive)</td></tr>
+  <tr><td>使用 Rubric</td><td>基于 3 篇官网获奖范文反推（MEDIUM 置信度）</td></tr>
+  <tr><td>LLM 模型</td><td>DeepSeek (deepseek-chat)</td></tr>
+  <tr><td>总耗时</td><td>42 秒（Round 1: A1+A2+A3 → Round 2: A4+A5）</td></tr>
+  <tr><td>总评得分</td><td><span class="score-badge score-mid">7.7 / 10</span></td></tr>
+</table>
+
+<!-- ====== 二 ====== -->
+<h2 id="paper">二、测试论文</h2>
+
+<div class="card">
+  <h4>"Should Machines Be Held Morally Responsible for Their Decisions?"</h4>
+  <table>
+    <tr><th>属性</th><th>内容</th></tr>
+    <tr><td>主题</td><td>AI 道德责任——机器是否应为其决策承担道德责任</td></tr>
+    <tr><td>字数</td><td>1,223 words</td></tr>
+    <tr><td>核心论点</td><td>机器不具备道德责任的哲学条件（Aristotle 的 voluntary+knowledge），将责任归于机器是对人类问责的危险逃避</td></tr>
+    <tr><td>结构</td><td>Introduction (Cruise案例 hook) → Definition → Argument 1 (Aristotle+Hart) → Counterargument (Dennett's intentional stance) → Synthesis (vicarious liability) → Conclusion</td></tr>
+    <tr><td>引用</td><td>Aristotle · HLA Hart · Daniel Dennett · Restatement of Torts — 4 条学术引用</td></tr>
+    <tr><td>文件</td><td><code>tests/fixtures/john_locke_sample_2.txt</code></td></tr>
+  </table>
+</div>
+
+<!-- ====== 三 ====== -->
+<h2 id="scores">三、综合得分</h2>
+
+<div class="card card-success">
+  <table>
+    <tr><th style="width:200px">指标</th><th>值</th></tr>
+    <tr><td>综合评分</td><td><span class="score-badge score-mid">7.7 / 10</span></td></tr>
+    <tr><td>加权计算</td><td>加权平均（0.15×A2 + 0.25×A3 + 0.15×A5）—— A1 未给分，A4 未给分</td></tr>
+    <tr><td>竞赛类型</td><td>discursive ✅ 正确识别</td></tr>
+    <tr><td>模型</td><td>DeepSeek (deepseek-chat)</td></tr>
+    <tr><td>评审耗时</td><td>41.5 秒</td></tr>
+  </table>
+
+  <table style="margin-top:14px">
+    <tr><th>Agent</th><th>角色</th><th>分数</th><th>核心发现</th></tr>
+    <tr><td>A1 RubricParser</td><td>评分标准解析</td><td>—</td><td>✅ 正确加载 John Locke 7 维假设性 rubric</td></tr>
+    <tr><td>A2 StructureLogic</td><td>结构审查</td><td><span class="score-badge score-high">8.5</span></td><td>7/8 结构段落齐全（缺 Argument Body 2）；3 个结构问题 + 2 个逻辑衔接问题</td></tr>
+    <tr><td>A3 ArgumentEvidence</td><td>论证审查</td><td><span class="score-badge score-high">8.0</span></td><td>4 条独立论点（3 good + 1 fair）；2 个逻辑谬误（弱类比 + 稻草人）</td></tr>
+    <tr><td>A4 LanguageStyle</td><td>语言审查</td><td>—</td><td>检测到所有语法项均正确（未扣分），Iron Law 判定无需修改</td></tr>
+    <tr><td>A5 AcademicIntegrity</td><td>学术诚信</td><td><span class="score-badge score-low">6.0</span></td><td>引用数为 0（正文未用引文标记）；原创性 8.5；检测到 AI 生成痕迹</td></tr>
+  </table>
+</div>
+
+<!-- ====== 四 ====== -->
+<h2 id="a2">四、A2 StructureLogic — 结构审稿 <span class="score-badge score-high">8.5</span></h2>
+
+<div class="card">
+  <h4>已检测到的结构段落（7/8）</h4>
+  <p><span class="sev sev-h">缺失</span> <strong>Argument Body 2</strong> — 根据 discursive schema 应有两个独立的 Argument Body，本稿只有一个。</p>
+  <ol>
+    <li>✅ Introduction / Hook</li>
+    <li>✅ Definition & Framework</li>
+    <li>✅ Argument Body 1</li>
+    <li>❌ <strong>Argument Body 2 — 缺失</strong></li>
+    <li>✅ Counterargument & Rebuttal</li>
+    <li>✅ Synthesis / Resolution</li>
+    <li>✅ Conclusion</li>
+    <li>✅ References / Footnotes</li>
+  </ol>
+</div>
+
+<h4>结构问题</h4>
+
+<div class="issue-card severity-high"><span class="severity-tag high">HIGH</span><strong> 缺少第二个主论点段落 (Argument Body 2)</strong><br>建议增加第二个主论点，例如从 "epistemic responsibility" 或 "social contract" 角度展开。</div>
+<div class="issue-card severity-low"><span class="severity-tag low">LOW</span><strong> Introduction 缺少明确子章节标记</strong><br>虽然内容上已通过案例实现钩子效果，但可以考虑明确标注 "Hook" 或 "Opening"。</div>
+<div class="issue-card severity-low"><span class="severity-tag low">LOW</span><strong> Synthesis 章节未使用标题标记</strong><br>内容充实但缺少 "Synthesis" 或 "Resolution" 标题，建议添加以明确结构。</div>
+
+<h4>逻辑衔接问题</h4>
+
+<div class="issue-card severity-medium"><span class="severity-tag medium">MEDIUM</span><strong> Argument Body 1 → Counterargument 转换生硬</strong><br>从 Aristotle 的道德责任条件直接跳转到 Dennett 的反驳，缺少过渡段落总结主论点一。<br>建议：添加过渡句如 "Despite this philosophical foundation, some argue that…"</div>
+<div class="issue-card severity-low"><span class="severity-tag low">LOW</span><strong> Counterargument → Synthesis 衔接可更平滑</strong><br>反驳结尾与综合开头之间逻辑连贯但可进一步优化。<br>建议：添加如 "Yet this binary view may be too simplistic; a more nuanced resolution is possible."</div>
+
+<h4>正面评价</h4>
+<ul>
+  <li>✅ Thesis 陈述清晰且贯穿全文，一致性高</li>
+  <li>✅ Definition & Framework 章节概念界定精准</li>
+  <li>✅ Counterargument & Rebuttal 处理得当，有效回应 Dennett</li>
+  <li>✅ Synthesis 提出 vicarious liability 模型，具有原创性和深度</li>
+  <li>✅ 引用规范，参考文献格式正确</li>
+</ul>
+
+<!-- ====== 五 ====== -->
+<h2 id="a3">五、A3 ArgumentEvidence — 论证审稿 <span class="score-badge score-high">8.0</span></h2>
+
+<h4>检测到的 4 条独立论点</h4>
+
+<table>
+  <tr><th>#</th><th>论点</th><th>证据</th><th>质量</th><th>问题</th></tr>
+  <tr>
+    <td>1</td>
+    <td>机器缺乏 Aristotle 的道德责任条件（voluntary + knowledge）</td>
+    <td>Aristotle Nicomachean Ethics · HLA Hart Punishment and Responsibility</td>
+    <td class="badge-fix">good</td>
+    <td>未讨论当代对 voluntariness 的扩展解释（如兼容论）</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Dennett 的 intentional stance 效用上可接受但形而上学上无效</td>
+    <td>Dennett "Intentional Systems" (1971)</td>
+    <td class="badge-fix">good</td>
+    <td>反驳主要靠直觉类比（飓风），缺少对 Dennett 更深入的哲学回应</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>vicarious liability + strict liability 提供了更好的问责框架</td>
+    <td>Restatement (Third) of Torts · Cruise 2023 事故</td>
+    <td class="badge-fix">good</td>
+    <td>Cruise 事件未提供具体来源链接</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>归责于机器是危险的对人类问责的逃避</td>
+    <td>逻辑综合论证</td>
+    <td class="badge-info">fair</td>
+    <td>综合性结论缺乏独立的经验证据（如实证研究证明归责于机器确实减少了人类问责）</td>
+  </tr>
+</table>
+
+<h4>检测到的逻辑谬误</h4>
+
+<div class="issue-card severity-medium"><span class="severity-tag medium">MEDIUM</span><strong> 稻草人论证 (straw_man)</strong> — 第 4 段<br>对 Dennett intentional stance 的回应可能过于简化：将 "intentional stance" 等同于 "假装机器有意图"，但 Dennett 的立场更微妙——intentional stance 是一种预测策略，不必然承诺形而上学立场。</div>
+<div class="issue-card severity-low"><span class="severity-tag low">LOW</span><strong> 弱类比 (weak_analogy)</strong> — 第 2 段结尾<br>将地震与自动驾驶汽车进行类比：地震是自然现象，而机器是人类设计的产物，两者在因果链中的位置不同。</div>
+
+<h4>正面评价</h4>
+<ul>
+  <li>✅ 概念框架清晰（moral responsibility vs causal responsibility, agent vs patient）</li>
+  <li>✅ 反方论点得到充分呈现（Dennett 的 pragmatic argument）</li>
+  <li>✅ 法律框架（vicarious liability, strict liability）增强了论证的实践维度</li>
+  <li>✅ 语言精准，逻辑连贯</li>
+</ul>
+
+<h4>关键问题</h4>
+<ul>
+  <li>⚠ 缺乏当代 AI 伦理文献引用（如 Floridi, Bostrom, Coeckelbergh）</li>
+  <li>⚠ 核心主张"归责于机器会减少人类问责"缺乏经验证据</li>
+  <li>⚠ Cruise 案例未提供具体来源</li>
+</ul>
+
+<!-- ====== 六 ====== -->
+<h2 id="a4">六、A4 LanguageStyle — 语言审稿</h2>
+
+<div class="card card-success">
+  <h4>审稿结果：无语法错误，无需修改</h4>
+  <p>A4 逐句检查了全文的语法、拼写、标点，<strong>判定所有句子均正确</strong>——所有 rewrite 条目的 original 与 corrected 字段完全一致。此结果符合 Iron Law 原则：仅修正表层错误，不动句式/语态/用词。</p>
+  <p><strong>结论：</strong>论文语法质量优秀，无中式英语残留。A4 未给出 language_score（当前实现中 A4 只出反馈不出分）——这可能是需要改进的点。</p>
+</div>
+
+<!-- ====== 七 ====== -->
+<h2 id="a5">七、A5 AcademicIntegrity — 学术诚信审稿 <span class="score-badge score-low">6.0</span></h2>
+
+<h4>引用检查</h4>
+
+<div class="card card-danger">
+  <table>
+    <tr><th>正文引用数</th><td><strong>0</strong></td></tr>
+    <tr><th>匹配数</th><td><strong>0</strong></td></tr>
+    <tr><th>匹配率</th><td><strong>0%</strong></td></tr>
+    <tr><th>格式问题</th><td>正文中未使用任何引文标记（如作者-年份或编号），导致所有参考文献条目均无法与正文匹配</td></tr>
+  </table>
+
+  <h4>可疑引用（4 条，全部模糊）</h4>
+  <table>
+    <tr><th>来源</th><th>问题</th></tr>
+    <tr><td>Aristotle《尼各马可伦理学》</td><td>引用观点但未提供具体页码或章节</td></tr>
+    <tr><td>HLA Hart</td><td>引用观点但未提供具体页码</td></tr>
+    <tr><td>Daniel Dennett</td><td>引用意向立场理论但未提供具体页码</td></tr>
+    <tr><td>《侵权法重述(第三版)》</td><td>未提供具体条款编号</td></tr>
+  </table>
+</div>
+
+<h4>原创性检查</h4>
+
+<div class="card card-info">
+  <table>
+    <tr><th>原创性评分</th><td><span class="score-badge score-high">8.5 / 10</span></td></tr>
+    <tr><th>相似度标记</th><td>无（ChromaDB 无相似文本）</td></tr>
+    <tr><th>AI 生成痕迹</th><td>句式结构较为均匀，逻辑推进方式高度一致；术语使用密集但缺乏个人化口语表达</td></tr>
+    <tr><th>声音评估</th><td>整体保留学术写作风格，但个人声音不够突出——更像标准化议论文而非带有强烈个人见解的习作</td></tr>
+    <tr><th>关键担忧</th><td>大量引用哲学/法律概念但缺乏对原文的直接引用或具体出处标注，疑似对经典理论的概括性转述</td></tr>
+  </table>
+</div>
+
+<h4>综合评估</h4>
+<blockquote style="padding:12px 20px;background:#f8fafc;border-left:4px solid var(--warning);margin:12px 0;color:#334155">
+  "引文完整性存在严重问题：正文中没有任何引文标记，导致所有参考文献条目均无法与正文匹配，且引用方式模糊（缺少页码/章节）。原创性较高，无相似度问题，但存在一定的AI生成痕迹。整体学术诚信风险中等，主要问题在于引用格式不规范。"
+</blockquote>
+
+<!-- ====== 八 ====== -->
+<h2 id="a1">八、A1 RubricParser — 评分标准解析</h2>
+
+<div class="card card-success">
+  <p>✅ 正确加载 <strong>John Locke 7 维假设性 Rubric</strong>（基于官网获奖范文反推）：</p>
+  <ol>
+    <li>知识理解与深度 (20%)</li>
+    <li>论证质量 (25%)</li>
+    <li>原创性与独立思辨 (20%)</li>
+    <li>证据使用能力 (15%)</li>
+    <li>写作风格与说服力 (10%)</li>
+    <li>结构与清晰度 (5%)</li>
+    <li>格式规范与学术诚信 (5%)</li>
+  </ol>
+  <p>每个维度均包含 4 条子 criteria、关键词列表、三级评分描述（excellent/good/needs_improvement）、权重和满分值。A1 目前只做结构解析不出分。</p>
+</div>
+
+<!-- ====== 九 ====== -->
+<h2 id="summary">九、改进建议汇总（按严重度排序）</h2>
+
+<table>
+  <tr><th>严重度</th><th>Agent</th><th>问题</th><th>建议</th></tr>
+  <tr>
+    <td><span class="sev sev-h">HIGH</span></td>
+    <td>A2</td>
+    <td>缺少第二个主论点 (Argument Body 2)</td>
+    <td>增加第二个独立论点，如从 epistemic responsibility 或 social contract 角度展开</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-h">HIGH</span></td>
+    <td>A5</td>
+    <td>正文 0 条引文标记，4 条参考文献全不匹配</td>
+    <td>在正文中添加 MLA 风格的引文标记（如 "Aristotle 45"、"Hart 203"），确保与参考文献对应</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-m">MEDIUM</span></td>
+    <td>A3</td>
+    <td>对 Dennett 的回应可能稻草人化</td>
+    <td>更精确地表述 Dennett 的 intentional stance（其为预测策略，非形而上学承诺），然后进行反驳</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-m">MEDIUM</span></td>
+    <td>A2</td>
+    <td>Argument Body 1 → Counterargument 转换缺少过渡</td>
+    <td>添加过渡句总结论点一后再引出反方</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-m">MEDIUM</span></td>
+    <td>A3</td>
+    <td>缺乏当代 AI 伦理文献引用</td>
+    <td>补充 Floridi / Bostrom / Coeckelbergh 等当代学者</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-m">MEDIUM</span></td>
+    <td>A5</td>
+    <td>检测到 AI 生成痕迹</td>
+    <td>增加个人化的表达和独特视角，打破句式均匀模式</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-l">LOW</span></td>
+    <td>A3</td>
+    <td>地震-AI 类比（弱类比）</td>
+    <td>将类比替换为更恰当的对比（如 "算法与人类决策者"）</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-l">LOW</span></td>
+    <td>A2</td>
+    <td>Synthesis 未使用标题标记</td>
+    <td>添加 "Synthesis: A Distributed Responsibility Model" 标题</td>
+  </tr>
+  <tr>
+    <td><span class="sev sev-l">LOW</span></td>
+    <td>A3</td>
+    <td>Cruise 案例缺少具体来源</td>
+    <td>补充新闻报道或监管文件引用</td>
+  </tr>
+</table>
+
+<div class="card card-info" style="margin-top:20px">
+  <h4>系统发现</h4>
+  <ul>
+    <li><strong>A4 parse_error：</strong>当前 A4 的输出 JSON 过大导致 parse_error，rewrites/suggestions 数量无法准确获取。应修复 LLM 响应的 JSON 解析容错。</li>
+    <li><strong>A1 不出分：</strong>RubricParser 目前只解析 rubric 结构不作评分——建议让 A1 也根据各维度产出分项评分。</li>
+    <li><strong>A5 引用检测对 MLA 风格仍然敏感：</strong>虽然上次修复了 MLA "作者 页码" 格式，但本稿正文中没有任何引文标记（作者名出现在叙述性引用中如 "Daniel Dennett's intentional stance theory offers..."），系统无法识别这类非括号引用。</li>
+  </ul>
+</div>
+
+<!-- ====== 十 ====== -->
+<h2 id="files">十、输出文件列表</h2>
+
+<table>
+  <tr><th>文件</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>tests/fixtures/john_locke_sample_2.txt</code></td><td>测试论文</td><td>AI 道德责任主题 · 1223 词 · MLA 格式</td></tr>
+  <tr><td><code>data/jl_review_full.json</code></td><td>评审结果</td><td>5 个 Agent 的完整 JSON 反馈（28,000+ 字符）</td></tr>
+  <tr><td><code>docs/5Agent_审稿测试报告.html</code></td><td>本报告</td><td>完整测试过程和反馈原文</td></tr>
+</table>
+
+<div class="card card-info" style="margin-top:20px">
+  <strong> 结论：</strong>5-Agent 系统在 42 秒内完成了对一篇 1223 词议论文的全面审稿。A2（结构）和 A3（论证）给出了高质量的针对性反馈，A5（学术诚信）准确识别了引文缺失问题，A4 正确判定语法无误。系统对"缺少 Argument Body 2"和"稻草人论证"的检测显示了框架化的审稿能力。主要待改进：A4 JSON 解析容错、A5 对叙述性引用的识别、A1 增加评分功能。
+</div>
+
+</div>
+</body>
+</html>
