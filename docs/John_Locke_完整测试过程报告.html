@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>John Locke 完整测试过程报告 — AcademicReviewer</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding-bottom:80px}
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:#0f172a;color:#e2e8f0;overflow-y:auto;z-index:100;padding:24px 0}
+.sidebar h2{font-size:14px;padding:0 20px 16px;color:#fff;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar nav a{display:block;padding:6px 20px;color:#94a3b8;text-decoration:none;font-size:13px;border-left:3px solid transparent}
+.sidebar nav a:hover{color:#fff;background:#1e293b;border-left-color:var(--primary)}
+.main{margin-left:260px;max-width:960px;padding:40px 48px}
+h1{font-size:28px;margin-bottom:4px;color:#0f172a}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:32px}
+h2{font-size:21px;margin:40px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--border);color:#0f172a}
+h3{font-size:16px;margin:24px 0 10px;color:#334155}
+p{margin:8px 0;color:#334155}
+code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12px;color:#1e293b}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 18px;border-radius:8px;overflow-x:auto;margin:10px 0;font-size:12px;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f8fafc;font-weight:600;color:#475569;font-size:11px;text-transform:uppercase}
+tr:hover{background:#f8fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin:14px 0}
+.card-info{border-left:4px solid var(--primary)}
+.card-success{border-left:4px solid var(--success)}
+.card-warn{border-left:4px solid var(--warn)}
+.card-danger{border-left:4px solid var(--danger)}
+.score-badge{display:inline-block;padding:3px 12px;border-radius:16px;font-weight:700;font-size:15px}
+.s-hi{background:#dcfce7;color:#166534}
+.s-mi{background:#fef9c3;color:#854d0e}
+.s-lo{background:#fee2e2;color:#991b1b}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.b-fix{background:#dbeafe;color:#1e40af}
+.b-new{background:#dcfce7;color:#166534}
+.b-warn{background:#fef3c7;color:#92400e}
+.issue-card{margin:10px 0;padding:12px 16px;border-radius:8px;border:1px solid var(--border)}
+.i-h{border-left:4px solid var(--danger);background:#fef2f2}
+.i-m{border-left:4px solid var(--warn);background:#fffbeb}
+.i-l{border-left:4px solid var(--primary);background:#eff6ff}
+.sev{display:inline-block;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700}
+.s-h{background:#fee2e2;color:#991b1b}
+.s-m{background:#ffedd5;color:#9a3412}
+.s-l{background:#dbeafe;color:#1d4ed8}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 22px;margin:18px 0}
+.toc h3{margin-top:0}
+.toc ul{list-style:none;margin-left:0}
+.toc li{margin:4px 0}
+.toc a{color:var(--primary);text-decoration:none}
+.footnote{font-size:12px;color:var(--muted);font-style:italic}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>JL 正确测试流程</h2>
+  <nav>
+    <a href="#preface">前言：方法纠偏</a>
+    <a href="#phase1">Phase 1：官网调研</a>
+    <a href="#phase2">Phase 2：收集真实范文</a>
+    <a href="#phase3">Phase 3：特征提取</a>
+    <a href="#phase4">Phase 4：反推 Rubric</a>
+    <a href="#phase5">Phase 5：5-Agent 审稿</a>
+    <a href="#phase6">Phase 6：全链路验证</a>
+    <a href="#next">后续工作</a>
+    <a href="#files">文件清单</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>John Locke 竞赛测试过程报告</h1>
+<p class="subtitle">正确方法论：官网调研 → 真实范文特征提取 → 假设性 Rubric → 5-Agent 审稿验证 · 2026-05-26</p>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#preface">前言：为什么重新做 + 方法纠偏</a></li>
+    <li><a href="#phase1">Phase 1：官网调研 — 有无官方 Rubric？</a></li>
+    <li><a href="#phase2">Phase 2：收集 3 篇官网真实获奖范文</a></li>
+    <li><a href="#phase3">Phase 3：21 维特征提取 + 获奖范文共性分析</a></li>
+    <li><a href="#phase4">Phase 4：反推假设性 Rubric（带置信度标注）</a></li>
+    <li><a href="#phase5">Phase 5：5-Agent 审稿实战（含全部反馈原文）</a></li>
+    <li><a href="#phase6">Phase 6：全链路验证结论 + 发现的系统 Bug</a></li>
+    <li><a href="#next">后续校准计划</a></li>
+    <li><a href="#files">代码与文件变更清单</a></li>
+  </ul>
+</div>
+
+<!-- ====== 前言 ====== -->
+<h2 id="preface">前言：方法论纠偏</h2>
+
+<div class="card card-danger">
+  <h3>❌ 第一版（已废弃）的错误</h3>
+  <ol>
+    <li>把 <strong>Aralia / johnlocke.org.cn 等非官方网站</strong> 的总结直接当成官方 Rubric</li>
+    <li>用 <strong>AI 自己生成的范文</strong> 代替官网获奖文章做校准</li>
+    <li>没有去官网 <code>www.johnlockeinstitute.com</code> 做任何验证</li>
+  </ol>
+  <p>结论：<strong>自己出题、自己答卷、自己打分——毫无意义。</strong></p>
+</div>
+
+<div class="card card-success">
+  <h3>✅ 第二版（当前）的正确方法</h3>
+  <p><strong>原则：</strong>先找官方 Rubric → 没有则从官网获奖范文推断 → 用真题验证 → 后续用晋级/非晋级论文校准逼近真相。</p>
+  <table>
+    <tr><th>Step</th><th>操作</th><th>数据来源</th></tr>
+    <tr><td>1</td><td>官网调研是否有公开 Rubric</td><td>johnlockeinstitute.com 官网 FAQ</td></tr>
+    <tr><td>2</td><td>找到并下载官网真实获奖范文</td><td>官网公开的 PDF 文件（3 篇）</td></tr>
+    <tr><td>3</td><td>对范文做 21 维特征提取</td><td>项目自带校准引擎</td></tr>
+    <tr><td>4</td><td>从特征 + 官网描述反推 Rubric</td><td>标注为 <strong>假设性 / MEDIUM 置信度</strong></td></tr>
+    <tr><td>5</td><td>用假设性 Rubric 做 5-Agent 审稿</td><td>新生成一篇测试论文</td></tr>
+    <tr><td>6</td><td>后续用同事的真实晋级/非晋级数据验证</td><td>待采集</td></tr>
+  </table>
+</div>
+
+<!-- ====== Phase 1 ====== -->
+<h2 id="phase1">Phase 1：官网调研 — 寻找官方 Rubric</h2>
+
+<h3>1.1 调研目标</h3>
+<p>访问 <code>www.johnlockeinstitute.com/essay-competition</code>，查找官方公开的评审标准文档。</p>
+
+<h3>1.2 关键发现</h3>
+
+<table>
+  <tr><th>发现</th><th>原文/来源</th><th>结论</th></tr>
+  <tr>
+    <td><strong>没有公开 Rubric</strong></td>
+    <td><em>"Our grading system is proprietary."</em></td>
+    <td>无法从官网获取详细评分表，需从范文反推</td>
+  </tr>
+  <tr>
+    <td>有 7 项评判描述</td>
+    <td>"Essays will be judged on <strong>knowledge and understanding</strong> of the relevant material, the <strong>competent use of evidence</strong>, <strong>quality of argumentation</strong>, <strong>originality</strong>, <strong>structure</strong>, <strong>writing style</strong> and <strong>persuasive force</strong>."</td>
+    <td>这 7 项可以作为 Rubric 的 <strong>一级维度框架</strong>（但各维度权重未知）</td>
+  </tr>
+  <tr>
+    <td>格式规定详细</td>
+    <td>2000 词限制、不接受脚注、接受文内引用和尾注、MLA/APA/Chicago 均可、允许 AI 辅助但过度依赖会降低评分</td>
+    <td>这些是<strong>确定信息</strong>，可直接写入 Rubric</td>
+  </tr>
+  <tr>
+    <td>官网公开获奖范文</td>
+    <td>官网的 <code>/_files/ugd/</code> 目录下直接托管历年获奖 PDF</td>
+    <td>这是推断 Rubric 的 <strong>最佳数据来源</strong></td>
+  </tr>
+</table>
+
+<!-- ====== Phase 2 ====== -->
+<h2 id="phase2">Phase 2：收集官网真实获奖范文</h2>
+
+<h3>2.1 采集方法</h3>
+<p>通过搜索引擎定位官网 PDF 文件路径（<code>site:johnlockeinstitute.com/_files/ugd/</code>），下载 3 篇不同学科和奖项的真实获奖论文。</p>
+
+<h3>2.2 范文清单</h3>
+
+<table>
+  <tr><th>#</th><th>作者</th><th>年份</th><th>学科</th><th>奖项</th><th>题目</th><th>字数</th></tr>
+  <tr>
+    <td>1</td><td>Huaming Li</td><td>2021</td><td>Law</td><td>2nd Place</td>
+    <td>Should "innocent until proven guilty" apply to public censure?</td>
+    <td>2,052</td>
+  </tr>
+  <tr>
+    <td>2</td><td>Major Shokar</td><td>2021</td><td>History</td><td>1st Prize</td>
+    <td>Should we judge those from the past by the standards of today?</td>
+    <td>1,917</td>
+  </tr>
+  <tr>
+    <td>3</td><td>Shivrav Sharma</td><td>2023</td><td>Theology</td><td>2nd Place</td>
+    <td>If you cannot persuade your friends to embrace your religious belief…</td>
+    <td>904</td>
+  </tr>
+</table>
+
+<div class="card card-info">
+  <strong>📄 来源：</strong>所有范文均来自<strong>官网公开链接</strong>，可直接访问。文件保存在项目 <code>data/real_winners/</code> 目录。
+</div>
+
+<!-- ====== Phase 3 ====== -->
+<h2 id="phase3">Phase 3：21 维特征提取 + 获奖范文共性分析</h2>
+
+<h3>3.1 特征提取结果</h3>
+
+<table>
+  <tr><th>特征</th><th>History (1st)</th><th>Law (2nd)</th><th>Theology (2nd)</th><th>获奖范文范围</th></tr>
+  <tr><td>字数</td><td>1,917</td><td>2,052</td><td>904</td><td>904–2,052</td></tr>
+  <tr><td>平均句长</td><td>19.7</td><td>21.8</td><td>21.5</td><td><strong>19.7–21.8</strong></td></tr>
+  <tr><td>句长标准差</td><td>12.0</td><td>14.0</td><td>12.2</td><td><strong>12.0–14.0</strong></td></tr>
+  <tr><td>被动语态比例</td><td>11.8%</td><td>14.9%</td><td>4.1%</td><td><strong>4%–15%</strong>（主动语态主导）</td></tr>
+  <tr><td>词汇多样性 (TTR)</td><td>0.352</td><td>0.380</td><td>0.403</td><td><strong>0.35–0.40</strong></td></tr>
+  <tr><td>逻辑连接词密度</td><td>29.7/千词</td><td>21.4/千词</td><td>22.1/千词</td><td><strong>21–30/千词</strong></td></tr>
+  <tr><td>过渡词频率</td><td>16.2/千词</td><td>5.4/千词</td><td>2.2/千词</td><td>2.2–16.2</td></tr>
+  <tr><td>平均段落长度</td><td>127.8</td><td>120.7</td><td>113.0</td><td><strong>113–128</strong>（长段落=论证充分展开）</td></tr>
+  <tr><td>独立论点数</td><td>5</td><td>5</td><td>11</td><td><strong>5–11</strong></td></tr>
+  <tr><td>引用密度 (Law)</td><td>0</td><td>3.9/千词</td><td>0</td><td>仅 Law 论文有明显引用标记</td></tr>
+</table>
+
+<h3>3.2 结构性共性（3 篇 100% 一致的模式）</h3>
+
+<ol>
+  <li><strong>开篇 Hook：</strong>均以一个生动的具体案例/叙事开头（Chateaubriand/Blackstone/Mahabharata Arjuna）</li>
+  <li><strong>定义段：</strong>专门定义核心概念（epistemic peer / public censure / presentism）</li>
+  <li><strong>Thesis 前置：</strong>引言末句明确陈述论点（"This essay argues that..."）</li>
+  <li><strong>反方论点独立段落：</strong>不回避最强反对论，正面呈现后再 rebuttal</li>
+  <li><strong>跨学科引用：</strong>均混合使用哲学经典 + 法律判例 + 学术期刊 + 当代学者</li>
+</ol>
+
+<div class="footnote">⚠ 注意：特征提取工具的 citation_density 对 MLA 风格的部分范文未检测到正文引用标记，这是因为获奖范文使用了叙述性引用（如 "Aristotle identifies..."）而非括号引用，系统暂时不支持此种格式。</div>
+
+<!-- ====== Phase 4 ====== -->
+<h2 id="phase4">Phase 4：反推假设性 Rubric（带置信度标注）</h2>
+
+<h3>4.1 Rubric 设计逻辑</h3>
+
+<div class="card card-info">
+  <p>因为官网没有公开 Rubric，我们使用<strong>"官网描述 + 获奖范文特征"</strong>两种信息来源反推。每个维度标注<strong>信息来源和置信度</strong>，明确区分"确信的"和"需要验证的"。</p>
+</div>
+
+<table>
+  <tr><th>#</th><th>维度</th><th>权重</th><th>置信度</th><th>信息来源</th></tr>
+  <tr><td>1</td><td>知识理解与深度</td><td>20%</td><td><span class="badge b-fix">HIGH</span></td><td>官网明确提及 + 范文术语使用密度高</td></tr>
+  <tr><td>2</td><td>论证质量</td><td>25%</td><td><span class="badge b-fix">HIGH</span></td><td>官网明确提及 + 范文 claim 密度 5–11 个</td></tr>
+  <tr><td>3</td><td>原创性与独立思辨</td><td>20%</td><td><span class="badge b-warn">MEDIUM</span></td><td>官网提及但难以量化，需更多样本</td></tr>
+  <tr><td>4</td><td>证据使用能力</td><td>15%</td><td><span class="badge b-fix">HIGH</span></td><td>官网明确提及 + Law范文引用14条权威来源</td></tr>
+  <tr><td>5</td><td>写作风格与说服力</td><td>10%</td><td><span class="badge b-warn">MEDIUM</span></td><td>官网提及 persuasive force，但主观性强</td></tr>
+  <tr><td>6</td><td>结构与清晰度</td><td>5%</td><td><span class="badge b-fix">HIGH</span></td><td>官网提及 + 范文结构一致性 100%</td></tr>
+  <tr><td>7</td><td>格式规范与学术诚信</td><td>5%</td><td><span class="badge b-fix">HIGH</span></td><td>官网 FAQ 明确规定了多项格式要求</td></tr>
+</table>
+
+<h3>4.2 关键判定：权重如何决定？</h3>
+<p>各维度权重无法从官网或范文直接读出，目前的方案为<strong>合理假设</strong>——将"论证质量"和"原创性"作为 John Locke 的核心区分项赋以较高权重（各 20%–25%），结构与格式作为基本门槛赋以较低权重（各 5%）。<strong>权重将在后续校准阶段通过 Cohen's d 修正。</strong></p>
+
+<div class="card card-info">
+  <strong>📄 配置文件：</strong>Rubric 写入 <code>configs/rubrics/john_locke_2026.json</code>，文件头包含完整的 <code>_meta</code> 对象（数据来源、方法说明、范文 URL、置信度和验证步骤）。
+</div>
+
+<!-- ====== Phase 5 ====== -->
+<h2 id="phase5">Phase 5：5-Agent 审稿实战</h2>
+
+<p>使用 Phase 4 产出的假设性 Rubric，提交一篇新生成的 John Locke 风格议论文，观察 5 个 Agent 的完整反馈。</p>
+
+<h3>5.1 测试论文概要</h3>
+<table>
+  <tr><th>属性</th><th>内容</th></tr>
+  <tr><td>题目</td><td><em>"Should Machines Be Held Morally Responsible for Their Decisions?"</em></td></tr>
+  <tr><td>领域</td><td>AI 伦理 / 法哲学</td></tr>
+  <tr><td>字数</td><td>1,223 words</td></tr>
+  <tr><td>核心论点</td><td>机器不具备道德责任的哲学条件（Aristotle 的 voluntary + knowledge）；将责任归于机器是对人类问责的逃避；vicarious liability 提供了更好的法律框架</td></tr>
+  <tr><td>参考文献</td><td>Aristotle · HLA Hart · Dennett · Restatement of Torts（4 条，MLA 格式）</td></tr>
+</table>
+
+<h3>5.2 综合得分 <span class="score-badge s-mi">7.7 / 10</span></h3>
+
+<table>
+  <tr><th>Agent</th><th>分数</th><th>核心发现</th></tr>
+  <tr><td>A1 RubricParser</td><td>—</td><td>✅ 正确加载 7 维假设性 Rubric</td></tr>
+  <tr><td>A2 StructureLogic</td><td><span class="score-badge s-hi">8.5</span></td><td>7/8 结构段落齐全（缺 Argument Body 2）；2 个逻辑衔接问题</td></tr>
+  <tr><td>A3 ArgumentEvidence</td><td><span class="score-badge s-hi">8.0</span></td><td>4 条独立论点（3 good + 1 fair）；稻草人论证 + 弱类比</td></tr>
+  <tr><td>A4 LanguageStyle</td><td>—</td><td>全文语法正确，Iron Law 判定无需修改</td></tr>
+  <tr><td>A5 AcademicIntegrity</td><td><span class="score-badge s-lo">6.0</span></td><td>正文无引文标记 → 0/4 匹配；原创性 8.5；检测到 AI 痕迹</td></tr>
+</table>
+
+<h3>5.3 A2 StructureLogic 反馈详录</h3>
+<div class="card">
+  <p><strong>发现的段落（7/8）：</strong>Introduction · Definition · Argument Body 1 · Counterargument & Rebuttal · Synthesis · Conclusion · References</p>
+  <p><span class="sev s-h">HIGH</span> 缺少 <strong>Argument Body 2</strong></p>
+
+  <div class="issue-card i-m"><strong><span class="sev s-m">MEDIUM</span> Argument Body 1 → Counterargument 转换生硬</strong><br>"从 Aristotle 的道德责任条件直接跳转到 Dennett 的反驳，缺少过渡段落。建议添加 'Despite this philosophical foundation, some argue that…'"</div>
+
+  <div class="issue-card i-l"><strong><span class="sev s-l">LOW</span> Counterargument → Synthesis 衔接可更平滑</strong><br>"反驳结尾与综合开头之间可添加过渡句如 'Yet this binary view may be too simplistic…'"</div>
+
+  <p><strong>✅ 正面：</strong>Thesis 贯穿全文一致 · 定义段精准 · 反方回应得当 · Synthesis 有原创性</p>
+</div>
+
+<h3>5.4 A3 ArgumentEvidence 反馈详录</h3>
+<div class="card">
+  <table>
+    <tr><th>论点</th><th>证据</th><th>质量</th></tr>
+    <tr><td>机器缺乏 Aristotle 的道德责任条件</td><td>Aristotle + HLA Hart</td><td>good</td></tr>
+    <tr><td>Dennett intentional stance 效用≠形而上真</td><td>Dennett (1971)</td><td>good</td></tr>
+    <tr><td>vicarious liability 提供更好框架</td><td>Restatement of Torts + Cruise 案例</td><td>good</td></tr>
+    <tr><td>归责于机器是对人类问责的逃避</td><td>逻辑综合（无独立经验证据）</td><td>fair</td></tr>
+  </table>
+
+  <div class="issue-card i-m"><strong><span class="sev s-m">MEDIUM</span> 稻草人论证</strong><br>"对 Dennett intentional stance 的回应可能过于简化——Dennett 的立场更微妙（intentional stance 是预测策略，不必然承诺形而上学）"</div>
+
+  <div class="issue-card i-l"><strong><span class="sev s-l">LOW</span> 弱类比</strong><br>"将地震与自动驾驶汽车类比——地震是自然现象，机器是人类设计的产物"</div>
+
+  <p><strong>⚠ 问题：</strong>缺乏当代 AI 伦理文献（Floridi / Bostrom / Coeckelbergh）· 核心主张缺乏经验证据</p>
+</div>
+
+<h3>5.5 A5 AcademicIntegrity 反馈详录</h3>
+<div class="card card-danger">
+  <table>
+    <tr><th>引用检查项</th><th>结果</th></tr>
+    <tr><td>正文引文标记数</td><td><strong>0</strong></td></tr>
+    <tr><td>参考文献匹配率</td><td><strong>0/4 = 0%</strong></td></tr>
+    <tr><td>问题</td><td>正文中未使用任何引文标记（如作者-页码或编号），导致所有参考文献条目均无法与正文匹配</td></tr>
+    <tr><td>原创性评分</td><td>8.5 ✅（ChromaDB 无相似文本）</td></tr>
+    <tr><td>AI 生成痕迹</td><td>句式结构均匀、逻辑推进高度一致、个人声音不够突出</td></tr>
+  </table>
+
+  <blockquote style="padding:10px 18px;background:#fef2f2;border-left:4px solid var(--danger);margin:12px 0;color:#7f1d1d">
+    "引文完整性存在严重问题：正文中没有任何引文标记，导致所有参考文献条目均无法与正文匹配，且引用方式模糊（缺少页码/章节）。原创性较高，无相似度问题，但存在一定的AI生成痕迹。"
+  </blockquote>
+</div>
+
+<!-- ====== Phase 6 ====== -->
+<h2 id="phase6">Phase 6：全链路验证 + Bug 发现</h2>
+
+<h3>6.1 正常工作的部分 ✅</h3>
+<table>
+  <tr><td>竞赛匹配</td><td>"John Locke" → discursive 类型正确</td></tr>
+  <tr><td>Rubric 加载</td><td>正确加载 7 维假设性 rubric（空格→下划线转换已修复）</td></tr>
+  <tr><td>文档解析</td><td>1,223 words 正确识别</td></tr>
+  <tr><td>两轮并行调度</td><td>Round 1 (A1+A2+A3) → Round 2 (A4+A5)，正常</td></tr>
+  <tr><td>A2 结构检测</td><td>正确识别 7/8 段落 + 缺失段落 + 逻辑衔接问题</td></tr>
+  <tr><td>A3 论证分析</td><td>4 条论点逐一匹配证据并评质量，检测 1 稻草人 + 1 弱类比</td></tr>
+  <tr><td>A4 语言审查</td><td>Iron Law 正确判定无表层错误</td></tr>
+  <tr><td>A5 引用匹配</td><td>正确检出 0 条引文标记（但因正文无标记而全 unmatched）</td></tr>
+</table>
+
+<h3>6.2 测试中发现的系统 Bug <span class="badge b-fix">已修复</span></h3>
+<table>
+  <tr><th>Bug</th><th>修复</th></tr>
+  <tr><td>竞赛名含空格导致 Rubric 不匹配（"John Locke" vs "john_locke"）</td><td><code>competition.lower().replace(" ", "_")</code></td></tr>
+  <tr><td>MLA "作者 页码" 格式无法匹配（"Mill 68"）</td><td>新增 2 条 MLA 正则 + 姓氏模糊匹配</td></tr>
+  <tr><td>Python 3.14 对 <code>(?i)</code> 内联标志报错</td><td>改用 <code>re.IGNORECASE</code> 标志</td></tr>
+</table>
+
+<h3>6.3 仍存在的系统局限</h3>
+<table>
+  <tr><th>局限</th><th>影响</th></tr>
+  <tr><td>A5 不识别<strong>叙述性引用</strong>（如 "Aristotle identifies…"）</td><td>MLA 格式的写作者名嵌入句内的引用方式无法被当前正则捕获——但这正是 John Locke 获奖范文的主流引用方式</td></tr>
+  <tr><td>A4 JSON 解析容错不足</td><td>输出过大时 parse_error，rewrites/suggestions 无法准确计数</td></tr>
+  <tr><td>A1 不出分</td><td>RubricParser 只解析不评分，总评仅依赖 A2+A3+A5</td></tr>
+  <tr><td>校准样本 n=3 太少</td><td>Rubric 权重和阈值的置信度无法达到 HIGH</td></tr>
+</table>
+
+<!-- ====== 后续计划 ====== -->
+<h2 id="next">后续校准计划</h2>
+
+<div class="card card-info">
+  <ol>
+    <li><strong>扩大范文库：</strong>从官网下载更多获奖范文（目标 n≥10），覆盖 Philosophy / Politics / Economics 等多学科</li>
+    <li><strong>收集非晋级数据：</strong>从同事/学生获取真实投稿论文（未晋级或未获奖的），作为对照组</li>
+    <li><strong>运行完整校准：</strong>对获奖 vs 非获奖做 Cohen's d 分析，自动修正 Rubric 各维度的权重和阈值</li>
+    <li><strong>修复叙述性引用检测：</strong>A5 增加对 "AuthorName argues/identifies/suggests…" 模式的识别</li>
+    <li><strong>A1 增加评分功能：</strong>让 RubricParser 基于各维度产出一个分项评分</li>
+    <li><strong>确认后更新 Rubric 置信度 → HIGH：</strong>当校准结果与假设一致时，将 <code>_meta.confidence</code> 更新</li>
+  </ol>
+</div>
+
+<!-- ====== 文件清单 ====== -->
+<h2 id="files">代码与文件变更清单</h2>
+
+<h3>新增文件</h3>
+<table>
+  <tr><th>文件</th><th>说明</th></tr>
+  <tr><td><code>configs/rubrics/john_locke_2026.json</code></td><td>假设性 Rubric（含来源说明和置信度标注）</td></tr>
+  <tr><td><code>data/real_winners/*.txt</code></td><td>3 篇官网真实获奖范文全文</td></tr>
+  <tr><td><code>tests/fixtures/john_locke_sample.txt</code></td><td>测试论文 1（言论自由主题）</td></tr>
+  <tr><td><code>tests/fixtures/john_locke_sample_2.txt</code></td><td>测试论文 2（AI 道德责任主题）</td></tr>
+  <tr><td><code>docs/5Agent_审稿测试报告.html</code></td><td>5-Agent 审稿详细反馈</td></tr>
+  <tr><td><code>docs/John_Locke_完整测试过程报告.html</code></td><td><strong>本报告</strong> — 正确全链路流程</td></tr>
+</table>
+
+<h3>修复文件</h3>
+<table>
+  <tr><th>文件</th><th>行</th><th>说明</th></tr>
+  <tr><td><code>app/orchestrator.py</code></td><td>L210–214</td><td>竞赛名空格→下划线</td></tr>
+  <tr><td><code>app/orchestrator.py</code></td><td>L25–29, L219</td><td>(?i)→re.IGNORECASE</td></tr>
+  <tr><td><code>app/utils/citation_checker.py</code></td><td>L37–41, L67–69</td><td>MLA 正则 + 姓氏匹配</td></tr>
+  <tr><td><code>.gitignore</code></td><td>L8–14</td><td>允许 real_winners 目录入 Git</td></tr>
+</table>
+
+</div>
+</body>
+</html>
