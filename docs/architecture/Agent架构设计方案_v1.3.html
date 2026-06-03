@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent架构设计方案 v1.3 — 完整设计方案</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding-bottom:80px}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#0f172a;color:#e2e8f0;overflow-y:auto;z-index:100;padding:24px 0}
+.sidebar h2{font-size:13px;padding:0 20px 16px;color:#fff;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar nav a{display:block;padding:5px 20px;color:#94a3b8;text-decoration:none;font-size:12px;border-left:3px solid transparent}
+.sidebar nav a:hover{color:#fff;background:#1e293b;border-left-color:var(--primary)}
+.main{margin-left:240px;max-width:960px;padding:40px 48px}
+h1{font-size:26px;margin-bottom:4px;color:#0f172a}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:32px}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);color:#0f172a}
+h3{font-size:16px;margin:22px 0 8px;color:#334155}
+h4{font-size:14px;margin:16px 0 6px;color:#475569}
+p{margin:6px 0;color:#334155}
+ul,ol{margin:4px 0 12px 22px;color:#334155}
+li{margin:2px 0}
+code{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:"JetBrains Mono",monospace;font-size:12px;color:#1e293b}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 18px;border-radius:8px;overflow-x:auto;margin:10px 0;font-size:12px;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f8fafc;font-weight:600;color:#475569;font-size:11px;text-transform:uppercase}
+tr:hover{background:#f8fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.cta{font-size:12px;color:var(--muted);font-style:italic}
+.hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>v1.3 完整设计</h2>
+  <nav>
+    <a href="#s1">一、核心定位与设计原则</a>
+    <a href="#s21">2.1 审查管线：7 Agent</a>
+    <a href="#s22">2.2 配置层</a>
+    <a href="#s23">2.3 校准管线</a>
+    <a href="#s24">2.4 各 Agent 校准需求</a>
+    <a href="#s25">2.5 竞赛类型五分类</a>
+    <a href="#s26">2.6 精简方案</a>
+    <a href="#s31">三、审查工作流</a>
+    <a href="#s32">3.2-3.3 校准工作流</a>
+    <a href="#s4">四、技术实现建议</a>
+    <a href="#s5">五、风险与边界</a>
+    <a href="#s6">六、实施路线图</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>Agent 架构设计方案 v1.3</h1>
+<p class="subtitle">学术竞赛文稿审查智能体 · 完整设计方案 · 最后更新 2026-05-12</p>
+
+<!-- ====== 一 ====== -->
+<h2 id="s1">一、核心定位与设计原则</h2>
+
+<div class="card">
+<p><strong>核心定位：</strong>「AI 学术导师 + 质量门禁」。<em>在不替代学生思考的前提下，系统性地发现文稿中的问题，并以可操作的反馈指导学生自主改进。</em></p>
+</div>
+
+<h3>六项设计铁律</h3>
+<table>
+  <tr><th>原则</th><th>说明</th></tr>
+  <tr><td>学生主权</td><td>AI 只做批注和建议，绝不直接改写正文</td></tr>
+  <tr><td>分层审查</td><td>从宏观（论点结构）到微观（语法拼写），逐层把关</td></tr>
+  <tr><td>竞赛对齐</td><td>每次审查与具体竞赛的评分标准严格对标</td></tr>
+  <tr><td>可解释性</td><td>每个建议必须附带理由和评分维度</td></tr>
+  <tr><td>迭代闭环</td><td>支持多轮提交→审查→修改→再审</td></tr>
+  <tr><td>数据驱动校准</td><td>用获奖/失败样本持续反推评委隐性偏好（v1.3 新增）</td></tr>
+</table>
+
+<!-- ====== 二 ====== -->
+<h2 id="s21">二、系统架构：双管线协作体系</h2>
+
+<h3>2.1 审查管线：七个专业 Agent（v1.3 为 7 Agent 设计）</h3>
+
+<table>
+  <tr><th>Agent</th><th>职责</th><th>配置来源</th></tr>
+  <tr><td>A1 Rubric Parser</td><td>评分标准解析 → 结构化维度树</td><td><code>rubric_calibrated.json</code></td></tr>
+  <tr><td>A2 Structure &amp; Logic</td><td>论文骨架完整性、段落衔接</td><td><code>structure_schema_calibrated.json</code></td></tr>
+  <tr><td>A3 Argument &amp; Evidence</td><td>Claim-Evidence 匹配、逻辑谬误、fatal_defects</td><td><code>evidence_patterns.json</code></td></tr>
+  <tr><td>A4 Writing Style &amp; Voice</td><td>风格规范性、语态分布、竞赛预期风格对齐</td><td><code>style_guide.json</code></td></tr>
+  <tr><td>A5 Citation &amp; Format</td><td>引用完整性、格式一致性、虚假引用检测</td><td><code>citation_rules.json</code></td></tr>
+  <tr><td>A6 Originality Guardian</td><td>抄袭检测、AI 生成痕迹、学生 voice 保留度</td><td>L0 通用引擎</td></tr>
+  <tr><td>A7 Language Polishing</td><td>语法/拼写/标点修正、中式英语优化（严格批注不改写）</td><td>L1 风格开关</td></tr>
+</table>
+
+<h3 id="s22">2.2 配置层：双管线的数据契约</h3>
+<p>配置文件是审查管线和校准管线的唯一数据契约。v1.3 中从「静态模板」升级为「持续校准的活文档」。</p>
+
+<table>
+  <tr><th>配置文件</th><th>消费方</th><th>生成/更新方</th><th>校准频率</th></tr>
+  <tr><td><code>rubric_calibrated.json</code></td><td>A1</td><td>Calibration Engine</td><td>每赛季</td></tr>
+  <tr><td><code>structure_schema_calibrated.json</code></td><td>A2</td><td>Calibration Engine</td><td>每赛季</td></tr>
+  <tr><td><code>evidence_patterns.json</code></td><td>A3</td><td>Calibration Engine</td><td>有新样本即触发</td></tr>
+  <tr><td><code>style_guide.json</code></td><td>A4</td><td>Calibration Engine</td><td>每赛季/按需</td></tr>
+  <tr><td><code>citation_rules.json</code></td><td>A5</td><td>手动定义</td><td>无需校准</td></tr>
+</table>
+
+<h3 id="s23">2.3 校准管线：Calibration Engine</h3>
+
+<p><strong>纯统计管线，不调用 LLM。</strong>季后批量离线运行，从获奖/失败文章的差异中提取量化校准信号。</p>
+
+<h4>核心方法论：Cohen's d 效应量</h4>
+<pre><code>d = (M_winners - M_losers) / SD_pooled
+
+d &gt; 0.8  → 大效应 — 决定性差异 → critical 项
+d &gt; 0.5  → 中效应 — 重要差异 → major 项
+d &gt; 0.2  → 小效应 — 轻微差异 → minor 项
+d &lt; 0.2  → 无差异 — 评委可能不关心 → 不写入</code></pre>
+
+<h4>四阶段处理流程</h4>
+<pre><code>Step 1: 特征提取 — 21 维文本特征扫描 → 特征矩阵（篇×特征）
+Step 2: 分组差异分析 — Cohen's d + 交叉验证（W vs L, W vs Ext）
+Step 3: 规则生成 — d&gt;0.8→critical, d&gt;0.5→major, 失败独有→fatal_defects
+Step 4: Diff 生成 — 与上赛季配置对比，人工友好变更建议</code></pre>
+
+<h3 id="s24">2.4 各 Agent 校准需求矩阵</h3>
+
+<table>
+  <tr><th>Agent</th><th>需校准？</th><th>深度</th><th>方式</th></tr>
+  <tr><td>A1 Rubric</td><td>✅</td><td>深</td><td>维度权重反推、子维度发现</td></tr>
+  <tr><td>A2 Structure</td><td>✅</td><td>中浅</td><td>二元检查升级为「有+质量预期」</td></tr>
+  <tr><td>A3 Argument</td><td>✅✅ 强需</td><td>最深</td><td>论证模式反推、fatal_defects 挖掘</td></tr>
+  <tr><td>A4 Style</td><td>✅</td><td>中</td><td>风格特征区间统计</td></tr>
+  <tr><td>A5 Citation</td><td>❌</td><td>—</td><td>规则驱动，无隐性偏好</td></tr>
+  <tr><td>A6-A7</td><td>❌</td><td>—</td><td>L0 通用引擎</td></tr>
+</table>
+
+<p><strong>解读：</strong>A3 是校准的重中之重。A1 校准的是「评分标准」（评委声称看重什么），A3 校准的是「评分实质」（评委实际看重什么），两者缺一不可。</p>
+
+<h3 id="s25">2.5 竞赛类型五分类（v1.3）</h3>
+<table>
+  <tr><th>类型</th><th>A3 审查重点</th><th>A4 风格标准</th><th>典型竞赛</th></tr>
+  <tr><td>科研型</td><td>实验设计、显著性、可复现性</td><td>学术-技术</td><td>ISEF, STS</td></tr>
+  <tr><td>思辨型</td><td>逻辑链、哲学引用、反驳力</td><td>学术-思辨</td><td>John Locke, Marshall</td></tr>
+  <tr><td>社科型</td><td>调研方法、案例深度</td><td>学术-社科</td><td>CTB, YOC</td></tr>
+  <tr><td>历史型</td><td>一手史料、史学视角</td><td>学术-史学</td><td>NHD</td></tr>
+  <tr><td>金融型</td><td>估值模型、数据溯源</td><td>商务-金融</td><td>SIC, WGHS</td></tr>
+</table>
+
+<h3 id="s26">2.6 精简方案与取舍分析</h3>
+
+<h4>Token 成本测算（5000 词论文）</h4>
+<table>
+  <tr><th>指标</th><th>数值</th></tr>
+  <tr><td>总输入 Token</td><td>≈ 53K</td></tr>
+  <tr><td>总输出 Token</td><td>≈ 13K</td></tr>
+  <tr><td>单次审查总消耗</td><td>≈ 66K tokens（约 ¥1.90/篇）</td></tr>
+</table>
+
+<h4>Agent 合并建议</h4>
+<table>
+  <tr><th>合并点</th><th>来源</th><th>判定</th></tr>
+  <tr><td>合并点①</td><td>A4 (Style) + A7 (Language) → "语言表达层"</td><td>✅ 可行</td></tr>
+  <tr><td>合并点②</td><td>A5 (Citation) + A6 (Originality) → "学术诚信层"</td><td>✅ 可行</td></tr>
+</table>
+
+<h4>方案对比</h4>
+<table>
+  <tr><th></th><th>7 Agent</th><th><strong>5 Agent ⭐（推荐）</strong></th><th>4 Agent</th></tr>
+  <tr><td>调用次数</td><td>7</td><td>5</td><td>4</td></tr>
+  <tr><td>延迟</td><td>≈17s</td><td>≈13s</td><td>≈10s</td></tr>
+  <tr><td>质量</td><td>基准</td><td><strong>基本无损失</strong></td><td>有轻微损失</td></tr>
+  <tr><td>成本/篇</td><td>$0.26</td><td>$0.22</td><td>$0.20</td></tr>
+</table>
+
+<p><strong>结论：5 Agent 为最佳平衡点。v1.3 推荐开发阶段按 7 Agent 构建充分验证后，优化阶段合并为 5 Agent。</strong></p>
+
+<!-- ====== 三 ====== -->
+<h2 id="s31">三、工作流设计</h2>
+
+<h3>3.1 审查工作流（在线）</h3>
+<pre><code>Stage 1: 材料摄入 → Stage 2: Multi-Agent 审查（3轮并行）→ Stage 3: 反馈报告 → Stage 4: 学生修改辅助 → Stage 5: 终审导出</code></pre>
+
+<h3 id="s32">3.2-3.3 赛季校准工作流（离线）</h3>
+
+<table>
+  <tr><th>时期</th><th>人的操作</th><th>系统动作</th></tr>
+  <tr><td>赛季前（赛前 2-3 月）</td><td>上传官方 rubric → 标记样本集 → 触发校准 → 审核建议 → 锁定配置</td><td>特征提取、Cohen's d、交叉验证、校准建议、版本快照</td></tr>
+  <tr><td>赛季中</td><td>零操作</td><td>按锁定配置运行审查管线</td></tr>
+  <tr><td>赛季后（结果公布后）</td><td>标注获奖/失败名单 → 审核新校准建议</td><td>增量校准、生成新草案</td></tr>
+</table>
+
+<p><strong>质量指标：</strong>系统预测分数与实际获奖排名的 Spearman ρ。ρ &gt; 0.8 → 锁定；ρ 0.6-0.8 → 微调；ρ &lt; 0.6 → 大修。</p>
+
+<!-- ====== 四 ====== -->
+<h2 id="s4">四、技术实现建议</h2>
+
+<ul>
+  <li><strong>结构化 Prompt 模板：</strong>每 Agent 至少含 [Role] / [Context] / [Task] / [Output Format] / [Constraints]</li>
+  <li><strong>模型层抽象：</strong>同时支持 OpenAI / Claude / DeepSeek / Qwen 等，通过适配层切换</li>
+  <li><strong>长文本处理：</strong>分段处理 + 跨段上下文窗口</li>
+</ul>
+
+<h3>关键模块优先级</h3>
+<table>
+  <tr><th>模块</th><th>功能</th><th>优先级</th></tr>
+  <tr><td>Rubric 模板库</td><td>预置 20+ 竞赛评分标准</td><td>🔴 高</td></tr>
+  <tr><td>版本对比</td><td>多轮修改 diff 视图</td><td>🔴 高</td></tr>
+  <tr><td>Calibration Engine</td><td>批量特征提取 + 差异分析 + 校准建议</td><td>🔴 高 (Phase 2)</td></tr>
+  <tr><td>导师面板</td><td>人工覆盖/调整 AI 建议</td><td>🟡 中</td></tr>
+  <tr><td>校准日志看板</td><td>配置历史演化和效应量趋势</td><td>🟡 中</td></tr>
+</table>
+
+<!-- ====== 五 ====== -->
+<h2 id="s5">五、风险与边界</h2>
+
+<table>
+  <tr><th>风险</th><th>应对策略</th></tr>
+  <tr><td>学生过度依赖 AI</td><td>只做批注不改写；导师最终确认；完整审查日志</td></tr>
+  <tr><td>AI 产生幻觉引用</td><td>引用建议须经 API 校验；虚假引用标为 Critical</td></tr>
+  <tr><td>不同竞赛要求冲突</td><td>每个竞赛维护独立 rubric 模板</td></tr>
+  <tr><td>学生 voice 丧失</td><td>A6 专门守护原创性；风格建议标注为可选</td></tr>
+  <tr><td>小样本校准偏差</td><td>n&lt;10 降低 confidence；n&lt;5 不做校准</td></tr>
+  <tr><td>评委偏好年度漂移</td><td>追踪 Spearman ρ 趋势；连续两季 &lt;0.6 触发重校准</td></tr>
+  <tr><td>配置过拟合</td><td>外部获奖文章作独立验证集；保留人工审核环节</td></tr>
+</table>
+
+<!-- ====== 六 ====== -->
+<h2 id="s6">六、实施路线图</h2>
+
+<pre><code>Phase 1（MVP，2-4 周）
+  ├── 单 Agent 审查 (Language + Structure)
+  ├── 手动维护 Rubric（静态模板）
+  └── 目标：跑通核心审查流程
+
+Phase 2（增强，1-2 个月）
+  ├── 完整 7-Agent 体系
+  ├── Rubric 模板库（静态版本）
+  ├── Calibration Engine v0.5（手工触发）
+  └── 目标：覆盖 5+ 竞赛类型
+
+Phase 3（产品化，2-3 个月）
+  ├── 导师管理面板 + 批量处理
+  ├── Calibration Engine v1.0（全自动 + 人工审核）
+  └── 目标：辅导机构内部量产使用
+
+Phase 4（持续优化，长期）
+  ├── 校准指标可视化
+  ├── 外部获奖文章自动爬取
+  ├── 跨竞赛类型的校准知识迁移
+  └── 目标：校准闭环完全自动化</code></pre>
+
+<div class="hr"></div>
+<p class="cta">文档版本：v1.3 · 最后更新：2026-05-12<br>
+变更摘要：系统架构升级为「双管线协作」：新增 Calibration Engine（纯统计管线）、配置文件层（数据契约）；新增 2.3 校准管线、2.4 各 Agent 校准需求矩阵、3.2 校准工作流、3.3 赛季校准操作手册；设计原则升级为六项铁律；实施路线图扩展至 Phase 4。</p>
+
+</div>
+</body>
+</html>

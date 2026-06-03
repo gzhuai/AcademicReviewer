@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent架构设计方案 v1.5 — 5 Agent 专用开发版</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding-bottom:80px}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#0f172a;color:#e2e8f0;overflow-y:auto;z-index:100;padding:24px 0}
+.sidebar h2{font-size:13px;padding:0 20px 16px;color:#fff;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar nav a{display:block;padding:5px 20px;color:#94a3b8;text-decoration:none;font-size:12px;border-left:3px solid transparent}
+.sidebar nav a:hover{color:#fff;background:#1e293b;border-left-color:var(--primary)}
+.main{margin-left:240px;max-width:960px;padding:40px 48px}
+h1{font-size:26px;margin-bottom:4px;color:#0f172a}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:32px}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);color:#0f172a}
+h3{font-size:16px;margin:22px 0 8px;color:#334155}
+h4{font-size:14px;margin:16px 0 6px;color:#475569}
+p{margin:6px 0;color:#334155}
+ul,ol{margin:4px 0 12px 22px;color:#334155}
+li{margin:2px 0}
+code{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:"JetBrains Mono",monospace;font-size:12px;color:#1e293b}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 18px;border-radius:8px;overflow-x:auto;margin:10px 0;font-size:12px;line-height:1.6}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f8fafc;font-weight:600;color:#475569;font-size:11px;text-transform:uppercase}
+tr:hover{background:#f8fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.card-info{border-left:4px solid var(--primary)}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 22px;margin:18px 0}
+.toc h3{margin-top:0}
+.toc ul{list-style:none;margin-left:0}
+.toc li{margin:3px 0}
+.toc a{color:var(--primary);text-decoration:none}
+.cta{font-size:12px;color:var(--muted);font-style:italic}
+.hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>v1.5 5Agent 开发版</h2>
+  <nav>
+    <a href="#s1">一、5 Agent 架构总览</a>
+    <a href="#s2">二、五个 Agent 详细规格</a>
+    <a href="#s3">三、Orchestrator 调度</a>
+    <a href="#s4">四、配置文件映射</a>
+    <a href="#s5">五、反馈报告结构</a>
+    <a href="#s6">六、竞赛类型七分类</a>
+    <a href="#s7">七、输入材料清单</a>
+    <a href="#s8">八、校准引擎与教师经验注入</a>
+    <a href="#s9">九、实施顺序建议</a>
+    <a href="#s10">十、开发注意事项</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>Agent 架构设计方案 v1.5</h1>
+<p class="subtitle">5 Agent 专用开发版 · 最后更新 2026-05-14</p>
+<p class="cta">架构推演过程见 v1.4 决策备忘；双管线设计见 v1.3。</p>
+
+<!-- ====== 一 ====== -->
+<h2 id="s1">一、5 Agent 架构总览</h2>
+
+<pre><code>                       ┌── Orchestrator ──┐
+                       │  (调度/聚合/报告)   │
+                       └┬───┬───┬───┬───┬──┘
+                        ▼   ▼   ▼   ▼   ▼
+                       A1  A2  A3  A4  A5
+                     Rubric Str  Arg Lang Acad
+                     Parser &amp;Log &amp;Evid &amp;Sty Integ</code></pre>
+
+<table>
+  <tr><th>对 7 Agent 的合并</th><th>说明</th></tr>
+  <tr><td>A4 = 原 A4 + A7</td><td>Language &amp; Style（语言修正 + 风格审查）</td></tr>
+  <tr><td>A5 = 原 A5 + A6</td><td>Academic Integrity（引用检查 + 原创性检测）</td></tr>
+</table>
+
+<p><strong>Calibration Engine</strong> 位于架构底层，通过分析获奖/失败文章的统计差异（Cohen's d），自动生成配置文件更新建议。教师可将多年辅导经验以文档形式注入校准管道。</p>
+
+<!-- ====== 二 ====== -->
+<h2 id="s2">二、五个 Agent 详细规格</h2>
+
+<h3>Agent 1: Rubric Parser（评分标准解析器）</h3>
+<table>
+  <tr><td>配置层级</td><td>L1</td></tr>
+  <tr><td>输入</td><td>竞赛官方 rubric（PDF/图片/文本）</td></tr>
+  <tr><td>输出</td><td>结构化评分维度树 + 权重 + 关键词</td></tr>
+  <tr><td>配置文件</td><td><code>rubric_calibrated.json</code></td></tr>
+  <tr><td>校准需求</td><td>✅ 深 — 维度权重反推、子维度发现</td></tr>
+  <tr><td>调度轮次</td><td>Round 1（与 A2/A3 并行）</td></tr>
+</table>
+
+<h3>Agent 2: Structure &amp; Logic（结构与逻辑审查）</h3>
+<table>
+  <tr><td>配置层级</td><td>L1</td></tr>
+  <tr><td>输入</td><td>全文 + 结构 schema</td></tr>
+  <tr><td>输出</td><td>结构完整性报告、段落衔接评估、thesis 一致性评分</td></tr>
+  <tr><td>配置文件</td><td><code>structure_schema_calibrated.json</code></td></tr>
+  <tr><td>调度轮次</td><td>Round 1（与 A1/A3 并行）</td></tr>
+</table>
+
+<h3>Agent 3: Argument &amp; Evidence（论点与证据审查）</h3>
+<table>
+  <tr><td>配置层级</td><td>L2 — 赛事类型专属</td></tr>
+  <tr><td>输入</td><td>全文 + rubric 维度</td></tr>
+  <tr><td>输出</td><td>论证力评估、逻辑谬误清单、fatal_defects 标记</td></tr>
+  <tr><td>配置文件</td><td><code>evidence_patterns.json</code>（按赛事类型）</td></tr>
+  <tr><td>校准需求</td><td>✅✅ 最深 — 论证模式反推、每次有新样本即触发</td></tr>
+</table>
+
+<h3>Agent 4: Language &amp; Style（语言与风格审查）— 合并 Agent</h3>
+<table>
+  <tr><td>合并来源</td><td>原 A4 (Writing Style) + 原 A7 (Language Polishing)</td></tr>
+  <tr><td>配置层级</td><td>L0（语法/拼写） + L1（风格开关）</td></tr>
+  <tr><td>输出</td><td>语言修正建议 + 风格批注 + 综合诊断报告</td></tr>
+  <tr><td>调度轮次</td><td>Round 2（与 A5 并行）</td></tr>
+</table>
+
+<h4>铁律 — 改写权限边界</h4>
+<table>
+  <tr><th>操作类型</th><th>权限</th><th>示例</th></tr>
+  <tr><td>拼写/语法/标点</td><td>✅ 可改写</td><td>recieve → receive</td></tr>
+  <tr><td>中式英语（仅语法层面）</td><td>✅ 可改写</td><td>不改变作者原意</td></tr>
+  <tr><td>句式选择/语态分布/用词偏好</td><td>❌ 仅批注</td><td>"此句可考虑拆分"</td></tr>
+  <tr><td>段落节奏/风格判断</td><td>❌ 仅批注</td><td>"被动语态占比 65%，建议 40-50%"</td></tr>
+</table>
+
+<h3>Agent 5: Academic Integrity（学术诚信审查）— 合并 Agent</h3>
+<table>
+  <tr><td>合并来源</td><td>原 A5 (Citation) + 原 A6 (Originality Guardian)</td></tr>
+  <tr><td>配置层级</td><td>L0 + L1</td></tr>
+  <tr><td>输入</td><td>全文 + 参考文献列表 + 内部历史稿件库（向量比对）</td></tr>
+  <tr><td>输出</td><td>引用完整性报告 + 原创性评分 + 疑似问题标记</td></tr>
+  <tr><td>调度轮次</td><td>Round 2（与 A4 并行）</td></tr>
+</table>
+
+<h4>内部子任务 — 两条独立执行路径</h4>
+<pre><code>子任务 5a：Citation Check（规则引擎优先）
+  ├── cite ↔ ref 配对检查
+  ├── 引用格式一致性
+  └── 输出：结构化配对表
+
+子任务 5b：Originality Check（语义比对）
+  ├── 与历史稿件库相似度比对
+  ├── AI 生成痕迹检测
+  └── 输出：相似度评分 + 可疑段落标记</code></pre>
+
+<!-- ====== 三 ====== -->
+<h2 id="s3">三、Orchestrator 调度（2 轮制）</h2>
+
+<pre><code>══════════════════════════════════════════════════
+Round 1（宏观层）— 3 个 Agent 并行:
+  A1 Rubric Parser      ← rubric_calibrated.json
+  A2 Structure &amp; Logic  ← structure_schema_calibrated.json
+  A3 Argument &amp; Evid    ← evidence_patterns.json
+  ⚡ 最长耗时 ≈ 6s
+──────────────────────────────────────────────────
+Round 2（微观+诚信）— 2 个 Agent 并行:
+  A4 Language &amp; Style   ← style_guide.json + R1 关注段落
+  A5 Academic Integrity ← citation_rules.json
+  ⚡ 最长耗时 ≈ 7s
+══════════════════════════════════════════════════
+总延迟 ≈ 13s</code></pre>
+
+<!-- ====== 四 ====== -->
+<h2 id="s4">四、配置文件映射</h2>
+
+<table>
+  <tr><th>配置文件</th><th>消费 Agent</th><th>更新方</th><th>校准频率</th></tr>
+  <tr><td><code>rubric_calibrated.json</code></td><td>A1</td><td>Calibration Engine</td><td>每赛季</td></tr>
+  <tr><td><code>structure_schema_calibrated.json</code></td><td>A2</td><td>Calibration Engine</td><td>每赛季</td></tr>
+  <tr><td><code>evidence_patterns.json</code></td><td>A3</td><td>Calibration Engine</td><td>有新样本即触发</td></tr>
+  <tr><td><code>style_guide.json</code></td><td>A4</td><td>Calibration Engine</td><td>每赛季/按需</td></tr>
+  <tr><td><code>citation_rules.json</code></td><td>A5</td><td>手动定义</td><td>无需校准</td></tr>
+  <tr><td><code>expert_insights/*.md</code></td><td>Calibration</td><td>教师手动编写</td><td>按需</td></tr>
+</table>
+
+<!-- ====== 五 ====== -->
+<h2 id="s5">五、反馈报告结构（5 维度）</h2>
+<pre><code># 学术竞赛文稿审查报告
+## 总体评分
+| 维度 | 评分 | 权重 | 加权 |
+| 论点与论证 (A3) | 6.5 | 30% | 1.95 |
+| 结构与逻辑 (A2) | 7.0 | 25% | 1.75 |
+| 语言与表达 (A4) | 7.5 | 20% | 1.50 |
+| 学术规范 (A5)  | 8.0 | 15% | 1.20 |
+| 评分对齐 (A1)  | 8.0 | 10% | 0.80 |
+| 加权总分       |      |      | 7.20 |
+
+## 语言与表达 (A4)
+### [REWRITE] 直接改写 (仅语法/拼写/标点)
+### [SUGGEST] 风格建议 (句式/语态/用词/节奏)</code></pre>
+
+<!-- ====== 六 ====== -->
+<h2 id="s6">六、竞赛类型七分类支持</h2>
+
+<p>系统根据竞赛类型加载不同配置组合。新增竞赛类型主要影响 A3 和 A4 的配置文件，A1/A2/A5 基本不受影响。</p>
+
+<table>
+  <tr><th>类型</th><th>A3 论证标准</th><th>A4 风格模板</th><th>典型竞赛</th></tr>
+  <tr><td>科研型</td><td>实验设计、显著性、可复现性</td><td>学术-技术</td><td>ISEF, STS</td></tr>
+  <tr><td>科研-进阶型</td><td>理论贡献度、文献 gap 深度</td><td>学术-技术</td><td>丘成桐</td></tr>
+  <tr><td>数模型</td><td>模型假设、求解可追溯、灵敏度</td><td>学术-技术（公式友好）</td><td>HiMCM</td></tr>
+  <tr><td>思辨型</td><td>逻辑链、哲学引用、反驳力</td><td>学术-思辨</td><td>John Locke, Marshall</td></tr>
+  <tr><td>社科型</td><td>调研方法、案例深度</td><td>学术-社科</td><td>CTB, YOC</td></tr>
+  <tr><td>历史型</td><td>一手史料、史学视角</td><td>学术-史学</td><td>NHD</td></tr>
+  <tr><td>金融型</td><td>估值模型、数据溯源</td><td>商务-金融</td><td>SIC, WGHS</td></tr>
+  <tr><td>商科型</td><td>框架应用、方案可行性</td><td>商务-提案</td><td>FBLA, DECA</td></tr>
+</table>
+
+<!-- ====== 七 ====== -->
+<h2 id="s7">七、输入材料清单</h2>
+<table>
+  <tr><th>类别</th><th>材料</th><th>必须/可选</th></tr>
+  <tr><td>学生文稿</td><td>完整英文稿件（.docx/.tex/.md）</td><td>✅ 必须</td></tr>
+  <tr><td>竞赛信息</td><td>竞赛名称、类别、截止日期</td><td>✅ 必须</td></tr>
+  <tr><td>评分标准</td><td>官方 rubric（PDF/文本）</td><td>✅ 必须</td></tr>
+  <tr><td>字数要求</td><td>最低/最高字数</td><td>🟡 建议</td></tr>
+  <tr><td>往年范文</td><td>往届获奖作品</td><td>🔵 可选</td></tr>
+  <tr><td>教师经验</td><td>教师辅导心得/经验总结（.md）</td><td>🔵 可选</td></tr>
+</table>
+
+<!-- ====== 八 ====== -->
+<h2 id="s8">八、校准引擎与教师经验注入</h2>
+
+<h3>8.1 校准引擎流程</h3>
+<pre><code>Feature Extractor (21维特征) → Cohen's d 效应量 → 统计差异 + 教师经验注入 → Diff Generator → 校准报告 → 配置文件更新</code></pre>
+
+<h3>8.2 三模式自适应解析</h3>
+<table>
+  <tr><th>模式</th><th>格式要求</th><th>解析方式</th><th>LLM 成本</th></tr>
+  <tr><td>Mode 3 完全结构化</td><td><code>### [pattern] feature_name</code></td><td>正则精确解析</td><td>零 LLM</td></tr>
+  <tr><td>Mode 2 半结构化</td><td>章节标题分节（如 <code>## 获奖经验</code>）</td><td>章节路由 + LLM 逐节抽取</td><td>1 次 LLM</td></tr>
+  <tr><td>Mode 1 纯自由格式</td><td>无格式要求，纯随笔</td><td>LLM 全文语义解析</td><td>1 次 LLM</td></tr>
+</table>
+
+<h3>8.3 安全设计</h3>
+<p><strong>LLM 只负责文本拆分，不负责特征映射</strong>——特征映射始终走本地关键词匹配，零幻觉风险。</p>
+
+<h3>8.4 Mode 2 章节标题体系</h3>
+<table>
+  <tr><th>类别</th><th>标注类型</th><th>支持的标题（任选其一）</th></tr>
+  <tr><td>获奖经验</td><td><code>pattern</code></td><td>获奖经验、获奖规律、成功案例总结、高分特征等</td></tr>
+  <tr><td>常见问题</td><td><code>pitfall</code></td><td>常见问题、常见错误、失分原因、扣分点等</td></tr>
+  <tr><td>高分信号</td><td><code>signal</code></td><td>高分信号、加分项、评委偏好等</td></tr>
+  <tr><td>教学方法</td><td><code>strategy</code></td><td>教学方法、辅导策略、训练方法等</td></tr>
+  <tr><td>评分标准解读</td><td><code>rubric</code></td><td>评分标准解读、得分要点分析等</td></tr>
+</table>
+
+<h3>8.5 与 5 Agent 管道的集成</h3>
+<pre><code>教师经验文档 → 三模式解析 → 校准引擎 → 校准报告 → 配置文件 → 下一轮评审自动使用</code></pre>
+
+<!-- ====== 九 ====== -->
+<h2 id="s9">九、实施顺序建议</h2>
+<pre><code>Phase 1 (MVP)        A1 Rubric Parser + A4 Language & Style
+Phase 2 (扩展)       A2 + A3 + A5 完整 5 Agent
+Phase 3 (校准闭环)    Calibration Engine + 教师经验注入 + 配置自动更新
+Phase 4 (产品化)     管理面板 + 批量处理 + 多赛事扩展</code></pre>
+
+<!-- ====== 十 ====== -->
+<h2 id="s10">十、开发注意事项</h2>
+<ol>
+  <li><strong>A4 的铁律是学生主权的最后防线</strong>：prompt 必须写死改写权限边界</li>
+  <li><strong>A5 尽量多走规则引擎少走 LLM</strong>：引用配对用正则比 LLM 更快更准</li>
+  <li><strong>A1 的 rubric 解析只做一次</strong>：结果缓存，不重复解析</li>
+  <li><strong>A3 和 A4 是 L2 扩展载体</strong>：新增赛事类型时主要开发 A3 审查逻辑 + A4 风格模板</li>
+  <li><strong>配置文件是唯一数据契约</strong>：审查管线不关心配置来源，校准引擎不关心配置消费者</li>
+</ol>
+
+<div class="hr"></div>
+<p class="cta">文档版本：v1.6 · 最后更新：2026-05-14 · 变更摘要：5 Agent 精简架构专用开发文档。基于 v1.3 双管线设计和 v1.4 决策备忘，将 7 Agent 精简为 5 Agent。详细定义了 A4/A5 的内部子任务边界、prompt 铁律、2 轮调度结构、5 维度反馈报告格式。六章竞赛类型从五分类扩展为七分类。v1.6 新增第八章校准引擎与教师经验注入。</p>
+
+</div>
+</body>
+</html>
