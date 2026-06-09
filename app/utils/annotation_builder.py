@@ -1,0 +1,181 @@
+"""
+原文标注生成器 — 将 5-Agent 反馈映射回原始文档，生成带标注的 Markdown
+
+输出格式如 Word 修订模式：原文段落 + 各 Agent 的批注和改写建议。
+"""
+
+from __future__ import annotations
+import re
+
+
+def build_annotated_markdown(
+    original_text: str,
+    structure: dict | None = None,
+    argument: dict | None = None,
+    language: dict | None = None,
+    integrity: dict | None = None,
+    rubric: dict | None = None,
+) -> str:
+    """生成带标注的 Markdown 文档。"""
+    paragraphs = _split_paragraphs(original_text)
+    if not paragraphs:
+        return original_text or "*（空文档）*"
+
+    lines = []
+    lines.append("# 审稿标注报告\n")
+    lines.append("> 标注格式：每个段落后方显示该段落涉及的审稿意见。")
+    lines.append("> A2 = 结构逻辑  |  A3 = 论点证据  |  A4 = 语言风格  |  A5 = 学术诚信\n")
+
+    # Collect language rewrite suggestions by paragraph index
+    rewrites_by_para = {}
+    if language:
+        for rw in language.get("rewrites", []):
+            loc = _parse_location(rw.get("location", ""))
+            rewrites_by_para.setdefault(loc, []).append(rw)
+
+    # Suggest paragraphs with weak spots
+    structure_issues_by_para = {}
+    if structure:
+        for si in structure.get("section_issues", []):
+            section = si.get("section", "")
+            for i, para in enumerate(paragraphs):
+                if section.lower() in para.lower()[:80]:
+                    structure_issues_by_para.setdefault(i, []).append(si)
+
+    logic_gaps = {}
+    if structure:
+        for li in structure.get("logic_issues", []):
+            loc = li.get("location", "")
+            # try to find paragraph index containing transition point
+            for i, para in enumerate(paragraphs):
+                if any(w in para.lower()[:80] for w in loc.lower().split("→")):
+                    logic_gaps.setdefault(i, []).append(li)
+                    break
+
+    # Paragraph-by-paragraph rendering
+    for i, para in enumerate(paragraphs):
+        lines.append(f"\n### 段落 {i+1}\n")
+        lines.append(para)
+        lines.append("")
+
+        annotations = []
+
+        # A4 rewrites for this paragraph
+        rw_list = rewrites_by_para.get(i, [])
+        for rw in rw_list:
+            orig = rw.get("original", "")
+            corr = rw.get("corrected", "")
+            issue = rw.get("issue", "")
+            if orig and corr and orig != corr:
+                annotations.append(f"> **[A4-{issue}]** `{orig}` → `{corr}`")
+            elif orig and not corr:
+                annotations.append(f"> **[A4-{issue}]** 此项无需修改")
+
+        # A2 structure issues for this paragraph
+        si_list = structure_issues_by_para.get(i, [])
+        for si in si_list:
+            issue_text = si.get("issue", "")
+            hint = si.get("hint", "")
+            sev = si.get("severity", "?")
+            label = {"high": "!!", "medium": "!", "low": "i"}.get(sev, "?")
+            annotations.append(f"> **[A2{label}—{sev}]** {issue_text}")
+            if hint:
+                annotations.append(f">   *{hint}*")
+
+        # A3 fallacies in this paragraph
+        if argument:
+            for fl in argument.get("logical_fallacies", []):
+                fl_loc = fl.get("location", "")
+                if _match_location(fl_loc, para, i):
+                    annotations.append(
+                        f"> **[A3!!—逻辑谬误]** {fl.get('fallacy_type')}: {fl.get('description', '')}"
+                    )
+                    correct = fl.get("correct_form", "")
+                    if correct:
+                        annotations.append(f">   正确推理: {correct}")
+
+        # A2 duplication
+        if structure:
+            for dr in structure.get("duplication_report", []):
+                para_names = dr.get("paragraphs", [])
+                if f"第{i+1}段" in para_names or f"段落{i+1}" in str(para_names):
+                    annotations.append(f"> **[A2—重复]** {dr.get('repeated_content', '')}")
+                    annotations.append(f">   *修复: {dr.get('fix', '')}*")
+
+        # A5 citation issues
+        if integrity:
+            cr = integrity.get("citation_report", {})
+            for sc in cr.get("suspicious_citations", []):
+                if _match_location(sc, para, i):
+                    annotations.append(f"> **[A5!—引用]** {sc}")
+
+        if annotations:
+            lines.extend(annotations)
+
+    # --- Overview section ---
+    lines.append("\n---\n")
+    lines.append("## 总结\n")
+
+    if structure:
+        lines.append(f"\n### 结构 (A2) — {structure.get('structure_score', '?')}/10\n")
+        tc = structure.get("thesis_coaching", {})
+        if tc.get("current_thesis"):
+            lines.append(f"**当前 thesis:** {tc['current_thesis']}")
+        if tc.get("stronger_version"):
+            lines.append(f"**更强版本:** {tc['stronger_version']}")
+        for p in structure.get("positive_points", []):
+            lines.append(f"- ✅ {p}")
+        for ki in structure.get("key_issues", []):
+            lines.append(f"- ⚠️ {ki}")
+
+    if argument:
+        lines.append(f"\n### 论证 (A3) — {argument.get('overall_score', '?')}/10\n")
+        ca = argument.get("counterargument_analysis", {})
+        if ca.get("strongest_objection_not_addressed"):
+            lines.append(f"**未回应的最强反方:** {ca['strongest_objection_not_addressed']}")
+        if ca.get("rebuttal_guidance"):
+            lines.append(f"**Rebuttal 指导:** {ca['rebuttal_guidance']}")
+        for p in argument.get("positive_points", []):
+            lines.append(f"- ✅ {p}")
+        for ki in argument.get("key_issues", []):
+            lines.append(f"- ⚠️ {ki}")
+
+    if integrity:
+        lines.append(f"\n### 学术诚信 (A5) — {integrity.get('integrity_score', '?')}/10\n")
+        for pp in integrity.get("positive_points", []):
+            lines.append(f"- ✅ {pp}")
+        for ki in integrity.get("key_issues", []):
+            lines.append(f"- ⚠️ {ki}")
+
+    if rubric:
+        lines.append("\n### 评分维度 (A1)\n")
+        for dim in rubric.get("dimensions", []):
+            lines.append(f"- **{dim['name']}** (权重 {int(dim['weight']*100)}%): {dim.get('level_descriptions', {}).get('excellent', '')[:80]}...")
+
+    return "\n".join(lines)
+
+
+def _split_paragraphs(text: str) -> list[str]:
+    """按空行分割段落，保留非空段落。"""
+    paras = re.split(r"\n\s*\n", text)
+    return [p.strip() for p in paras if p.strip()]
+
+
+def _parse_location(loc: str) -> int:
+    """解析 '第X段' 样式的定位文字，返回段落索引(0-based)。"""
+    m = re.search(r"第\s*(\d+)\s*段", loc)
+    if m:
+        return int(m.group(1)) - 1
+    return -1
+
+
+def _match_location(loc_text: str, paragraph: str, para_index: int) -> bool:
+    """模糊匹配位置描述与段落。"""
+    idx = _parse_location(loc_text)
+    if idx >= 0 and idx == para_index:
+        return True
+    # fallback: keyword match
+    keywords = loc_text.replace("第", "").replace("段", "").strip()
+    if keywords and len(keywords) > 3 and keywords.lower() in paragraph.lower():
+        return True
+    return False

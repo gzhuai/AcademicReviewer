@@ -168,6 +168,20 @@ class Orchestrator:
         report.meta["model"] = self.llm.model_name()
         report.meta["provider"] = self.llm.provider_name()
 
+        # Generate annotated document
+        try:
+            from app.utils.annotation_builder import build_annotated_markdown
+            report.meta["annotated_md"] = build_annotated_markdown(
+                original_text=doc.text,
+                structure=report.structure,
+                argument=report.argument,
+                language=report.language,
+                integrity=report.integrity,
+                rubric=report.rubric,
+            )
+        except Exception as exc:
+            logger.warning(f"Failed to generate annotated document: {exc}")
+
         logger.info(f"Review completed in {total_elapsed:.1f}s, total_score={report.total_score}")
 
         try:
