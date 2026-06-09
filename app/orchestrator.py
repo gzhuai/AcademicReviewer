@@ -58,12 +58,25 @@ class Orchestrator:
         return self._agent_cache[key]
 
     def lookup_competition(self, competition_name: str) -> dict:
+        from app.config import normalize_competition_name
         registry_path = CONFIGS_DIR / "competition_registry.json"
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
-        comp = registry["competitions"].get(competition_name)
-        if not comp:
-            raise ValueError(f"Unknown competition: {competition_name}")
-        return comp
+
+        canonical = normalize_competition_name(competition_name)
+        comp = registry["competitions"].get(canonical)
+        if comp:
+            return comp
+
+        # Not in registry — warn but don't crash. Use a generic fallback config.
+        logger.warning(f"Competition '{competition_name}' not found in registry. Using generic config.")
+        return {
+            "type": "research",
+            "subtype": None,
+            "structure_schema": "research.json",
+            "evidence_config": "research.json",
+            "style_template": "tech_academic.json",
+            "citation_style": "APA",
+        }
 
     async def review(self, file_path: str, competition: str) -> ReviewReport:
         t0 = time.perf_counter()

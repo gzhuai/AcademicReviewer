@@ -247,10 +247,11 @@ def build_ui():
                         gr.Markdown("### 上传文档")
                         file_input = gr.File(label="上传文件 (txt, pdf, docx)", file_types=[".txt", ".pdf", ".docx"])
                         competition_dropdown = gr.Dropdown(
-                            label="竞赛名称",
+                            label="竞赛名称 (可输入新赛事名称)",
                             choices=fetch_competitions(),
                             value="ISEF",
                             interactive=True,
+                            allow_custom_value=True,
                         )
                         refresh_btn = gr.Button("刷新竞赛列表", size="sm")
                         refresh_btn.click(fn=lambda: gr.Dropdown(choices=fetch_competitions()), outputs=[competition_dropdown])
@@ -334,14 +335,16 @@ def build_ui():
                 gr.Markdown("上传我方获奖文章和失败文章目录（.txt/.md），系统将自动提取特征并生成校准报告。")
 
                 cal_competition = gr.Dropdown(
-                    label="竞赛名称",
+                    label="竞赛名称 (可输入新赛事名称)",
                     choices=[c["name"] for c in get_competition_list()],
                     value="ISEF",
+                    allow_custom_value=True,
                 )
                 cal_type = gr.Dropdown(
-                    label="竞赛类型 (自动匹配)",
+                    label="竞赛类型",
                     choices=sorted(set(c["type"] for c in get_competition_list())),
                     value="research",
+                    allow_custom_value=True,
                 )
 
                 def on_competition_change(selected):
