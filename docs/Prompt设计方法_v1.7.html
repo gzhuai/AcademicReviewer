@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt 设计方法 v1.7 — AcademicReviewer</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding-bottom:80px}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#0f172a;color:#e2e8f0;overflow-y:auto;z-index:100;padding:24px 0}
+.sidebar h2{font-size:13px;padding:0 20px 16px;color:#fff;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar nav a{display:block;padding:5px 20px;color:#94a3b8;text-decoration:none;font-size:12px;border-left:3px solid transparent}
+.sidebar nav a:hover{color:#fff;background:#1e293b;border-left-color:var(--primary)}
+.main{margin-left:240px;max-width:960px;padding:40px 48px}
+h1{font-size:26px;margin-bottom:4px;color:#0f172a}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:32px}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);color:#0f172a}
+h3{font-size:16px;margin:22px 0 8px;color:#334155}
+h4{font-size:14px;margin:16px 0 6px;color:#475569}
+p{margin:6px 0;color:#334155}
+ul,ol{margin:4px 0 12px 22px;color:#334155}
+li{margin:2px 0}
+code{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:"JetBrains Mono",monospace;font-size:12px;color:#1e293b}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 18px;border-radius:8px;overflow-x:auto;margin:10px 0;font-size:12px;line-height:1.6}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f8fafc;font-weight:600;color:#475569;font-size:11px;text-transform:uppercase}
+tr:hover{background:#f8fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.card-info{border-left:4px solid var(--primary)}
+.card-success{border-left:4px solid var(--success)}
+.card-warn{border-left:4px solid var(--warn)}
+.card-danger{border-left:4px solid var(--danger)}
+.cta{font-size:12px;color:var(--muted);font-style:italic}
+.hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.b-fix{background:#dbeafe;color:#1e40af}
+.b-new{background:#dcfce7;color:#166534}
+.b-warn{background:#fef3c7;color:#92400e}
+.b-danger{background:#fee2e2;color:#991b1b}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>Prompt 设计方法 v1.7</h2>
+  <nav>
+    <a href="#s1">一、设计哲学</a>
+    <a href="#s2">二、双层架构</a>
+    <a href="#s3">三、教练型反馈原则</a>
+    <a href="#s4">四、A2 StructureLogic 规范</a>
+    <a href="#s5">五、A3 ArgumentEvidence 规范</a>
+    <a href="#s6">六、A4 LanguageStyle 规范</a>
+    <a href="#s7">七、A5 AcademicIntegrity</a>
+    <a href="#s8">八、validation_point 类型表</a>
+    <a href="#s9">九、字段命名与兼容性</a>
+    <a href="#s10">十、变更历史</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>Prompt 设计方法 v1.7</h1>
+<p class="subtitle">双层架构：通用教练层 + 竞赛专用注入层 &nbsp;|&nbsp; 最后更新 2026-06-10</p>
+
+<!-- ====== 一 ====== -->
+<h2 id="s1">一、设计哲学</h2>
+
+<div class="card card-info">
+  <p><strong>原则：</strong>教练不替代学生判断。教练告诉你缺了什么、为什么是问题、然后该怎么改。教练不会替你写，但会帮你把思考路径走通。</p>
+</div>
+
+<h3>1.1 三项铁律</h3>
+<table>
+  <tr><th style="width:140px">铁律</th><th>说明</th><th>反例</th></tr>
+  <tr><td><strong>缺→问→改</strong></td><td>先说缺了什么，再说为什么是问题，最后说该怎么改</td><td>"结构不完整" → 应该说"缺少 Methods 章节，没有它读者无法复现实验。你应该在第2段和第3段之间插入一个 Methods 段，包含实验设计、材料和统计方法。"</td></tr>
+  <tr><td><strong>不硬编码</strong></td><td>Prompt 中不写死任何竞赛专属的章节名、检查项、JSON 枚举值</td><td>sections_found 硬编码为 ["Introduction / Hook", "Definition & Framework"...] → 应该写"从提供的 structure schema 中读取 sections"</td></tr>
+  <tr><td><strong>类型切换</strong></td><td>竞赛专属检查通过 agent 代码注入 type hint，LLM 根据 hint 决定检查什么</td><td>对 ISEF 论文要求 counterargument → 应该识别 type=research，改查 limitations 讨论</td></tr>
+</table>
+
+<h3>1.2 v1.6 → v1.7 的核心变更</h3>
+<table>
+  <tr><th>变更</th><th>v1.6 及之前</th><th>v1.7</th></tr>
+  <tr><td>sections_found</td><td>硬编码为 discursive 结构</td><td>"从提供的 structure schema 中读取"</td></tr>
+  <tr><td>thesis_coaching</td><td>仅针对 discursive thesis</td><td>改为 <code>main_argument_coaching</code>，科研=hypothesis 验证，思辨=thesis 稳定性</td></tr>
+  <tr><td>counterargument_analysis</td><td>强制所有竞赛检查反方</td><td>改为 <code>validation_point</code>，根据类型切换：counterargument / limitation_review / sensitivity_check / alternative_comparison</td></tr>
+  <tr><td>fallacy 类型</td><td>仅 discursive 常用逻辑谬误</td><td>新增科研/金融专用：correlation_not_causation, survivorship_bias, hindsight_bias</td></tr>
+  <tr><td>quantitative_check</td><td>v2.0 中被误删</td><td>回归，科研/数模需要检查 P值/效应量/灵敏度</td></tr>
+  <tr><td>A3 agent 代码</td><td>不传竞赛类型提示</td><td>注入 type hint 告诉 LLM 该检查什么、不该检查什么</td></tr>
+</table>
+
+<!-- ====== 二 ====== -->
+<h2 id="s2">二、双层架构</h2>
+
+<h3>2.1 架构图</h3>
+<pre><code>┌──────────────────────────────────────────┐
+│            Prompt .txt 文件               │
+│  ┌────────────────────────────────────┐  │
+│  │       通用教练层 (写死)              │  │
+│  │  · 教练口吻：缺→问→改               │  │
+│  │  · 可操作建议而非模糊批注            │  │
+│  │  · 直接给过渡句、改写方案            │  │
+│  │  · JSON 输出 schema                │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│  ┌────────────────────────────────────┐  │
+│  │   竞赛专用层 (Agent 代码注入)        │  │
+│  │  · structure schema 全文           │  │
+│  │  · evidence patterns 配置          │  │
+│  │  · 竞赛类型提示 (type hint)          │  │
+│  │  · 专项检查开关                     │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│  数据来源：                              │
+│    configs/structure_schemas/{type}.json  │
+│    configs/evidence_patterns/{type}.json  │
+│    agent._build_user_message() 注入       │
+└──────────────────────────────────────────┘</code></pre>
+
+<h3>2.2 数据流</h3>
+<pre><code>competition_registry.json → type (如 "research")
+  → A2: 加载 structure_schemas/research.json → 注入 user_message
+  → A3: 加载 evidence_patterns/research.json → 注入 user_message + type hint
+  → LLM: 读 system prompt (通用层) + user message (竞赛专用) → 生成反馈</code></pre>
+
+<h3>2.3 为什么不用变量替换</h3>
+<p>Prompt 文件使用<strong>自然语言指令</strong>而非 <code>{PLACEHOLDER}</code> 模板变量。</p>
+<ul>
+  <li>自然语言指令（如"从提供的 structure schema 中读取"）让 LLM 自己理解上下文并适应</li>
+  <li>变量替换（如 <code>{SECTIONS_LIST}</code>）把 schema 按字符拼接进 prompt，容易超 token 限制，且 LLM 可能不理解列表格式</li>
+  <li>当前方式：schema 以 JSON 形式放在 user message 中，LLM 原生理解 JSON 结构</li>
+</ul>
+
+<!-- ====== 三 ====== -->
+<h2 id="s3">三、教练型反馈原则</h2>
+
+<h3>3.1 "缺→问→改" 三步法</h3>
+<table>
+  <tr><th style="width:100px">步</th><th>含义</th><th>示例</th></tr>
+  <tr><td><strong>缺</strong></td><td>明确说出缺了什么</td><td>"你的 Discussion 章节缺少对 effect size 的报告"</td></tr>
+  <tr><td><strong>问</strong></td><td>解释为什么这是问题</td><td>"P值只能告诉你差异是否显著，但不能告诉你差异有多大。评委需要看到效应量来判断你的发现是否有实际意义"</td></tr>
+  <tr><td><strong>改</strong></td><td>给出可以直接使用的改写方案</td><td>"在 Results 最后加上：Cohen's d = 0.78 (95% CI: 0.52–1.04), indicating a large effect. 你可以把这句话直接放在 p<0.01 后面"</td></tr>
+</table>
+
+<h3>3.2 语言风格约定</h3>
+<table>
+  <tr><th>使用</th><th>避免</th></tr>
+  <tr><td>"你要把 thesis 往更稳的方向收"</td><td>"建议 thesis 不要过于绝对"</td></tr>
+  <tr><td>"这一段只保留一个任务：解释 death anxiety 为什么让遗体处理变得 emotionally charged"</td><td>"这一段内容有点多，可以考虑拆分"</td></tr>
+  <tr><td>"查不清的 source 先删，不要赌"</td><td>"建议核实引用来源的真实性"</td></tr>
+</table>
+
+<h3>3.3 正向反馈先行</h3>
+<p>所有 Agent 输出中，<code>positive_points</code> 必须放在 <code>key_issues</code> 前面。"先肯定做得好的，再说需要改的"——这和人类教练的工作方式一致。</p>
+
+<!-- ====== 四 ====== -->
+<h2 id="s4">四、A2 StructureLogic 规范</h2>
+
+<h3>4.1 通用教练层（写死在 prompt 文件）</h3>
+<pre><code>你是学术竞赛文稿的结构与逻辑审查教练。
+反馈风格：先说缺了什么，再说问题是什么，最后告诉学生该怎么改。
+
+【通用审查原则】
+1. 检查给定的 structure schema 中列出的所有必需章节
+2. 每指出一个结构问题，给出该段落的功能定义
+3. 逻辑衔接问题给一句可以直接用的过渡句
+4. 检查段落间的内容重复</code></pre>
+
+<h3>4.2 竞赛专用层（Agent 代码注入）</h3>
+<table>
+  <tr><th>注入内容</th><th>来源</th><th>说明</th></tr>
+  <tr><td>竞赛类型提示</td><td><code>competition_type</code> 参数</td><td>如 "research", "discursive", "finance"</td></tr>
+  <tr><td>结构 schema 全文</td><td><code>configs/structure_schemas/{type}.json</code></td><td>required_sections, expected_ratio, logic_checks, high_severity_violations</td></tr>
+</table>
+
+<h3>4.3 输出字段</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>structure_score</code></td><td>float</td><td>0-10</td></tr>
+  <tr><td><code>sections_found</code></td><td>list[str]</td><td>从 schema 中匹配到的章节名。必须用 schema 中的名称，不硬编码</td></tr>
+  <tr><td><code>missing_sections</code></td><td>list[str]</td><td>缺失的必需章节</td></tr>
+  <tr><td><code>section_issues</code></td><td>list[dict]</td><td>含 current_problem / should_only_do / what_to_move / severity / hint</td></tr>
+  <tr><td><code>logic_issues</code></td><td>list[dict]</td><td>含 transition_suggestion（可直接使用的过渡句）</td></tr>
+  <tr><td><code>main_argument_coaching</code></td><td>dict</td><td>current_statement, vulnerability, stronger_version。科研型关注 hypothesis 可验证性，思辨型关注 thesis 反驳抗性</td></tr>
+  <tr><td><code>duplication_report</code></td><td>list[dict]</td><td>含 repeated_content 和 fix 方案</td></tr>
+</table>
+
+<h3>4.4 各竞赛类型的结构检查差异</h3>
+<table>
+  <tr><th>类型</th><th>必需章节数</th><th>特有检查项</th><th>不应检查</th></tr>
+  <tr><td>科研型</td><td>7</td><td>Methods→Results→Discussion 顺序，supplementary materials</td><td>Counterargument, Rebuttal</td></tr>
+  <tr><td>思辨型</td><td>8</td><td>Counterargument, Rebuttal, Synthesis</td><td>Methods, Results</td></tr>
+  <tr><td>数模型</td><td>7</td><td>Assumptions, Notation, Model, Validation</td><td>Counterargument</td></tr>
+  <tr><td>金融型</td><td>8</td><td>Executive Summary, Valuation, Risk Analysis</td><td>Counterargument, Rebuttal</td></tr>
+  <tr><td>商科型</td><td>8</td><td>Alternative Analysis, Financial Projections, Implementation</td><td>Counterargument（用 alternative comparison 替代）</td></tr>
+  <tr><td>社科型</td><td>7</td><td>Methodology, Case Studies</td><td>—</td></tr>
+  <tr><td>历史型</td><td>7</td><td>Primary Source Analysis, Historiography</td><td>—</td></tr>
+</table>
+
+<!-- ====== 五 ====== -->
+<h2 id="s5">五、A3 ArgumentEvidence 规范</h2>
+
+<h3>5.1 通用教练层</h3>
+<pre><code>反馈风格：先说缺了什么证据/逻辑，再说问题是什么，最后告诉学生该怎么改。
+
+【通用审查原则】
+1. 每指出一个缺陷，给可操作的具体改写方案或缺失的推理环节
+2. Claim-Evidence 匹配：证据类型取决于竞赛——学术引用/实验数据/财务数字/公式推导/案例分析
+3. 逻辑谬误：给出修正后的推理形态
+
+【竞赛专用检查】
+思辨型：counterargument 质量、rebuttal 强度
+科研型：hypothesis 可验证性、P值/效应量、局限性讨论
+数模型：模型假设合理性、灵敏度分析
+金融型：估值模型假设、数据可溯性
+商科型：框架应用正确性、ROI 计算</code></pre>
+
+<h3>5.2 竞赛专用层（Agent 代码注入）</h3>
+<pre><code># argument_evidence.py _build_user_message()
+type_hints = {
+    "research": "科研型论文。检查 hypothesis 可验证性、p值/效应量、控制组、统计检验、局限性讨论。不要检查 counterargument/rebuttal。",
+    "discursive": "思辨型议论文。检查 counterargument 质量、rebuttal 强度、逻辑链完整性、哲学引用深度。",
+    "math_modeling": "数学建模论文。检查模型假设合理性、求解可追溯、灵敏度分析。不要检查 counterargument/rebuttal。",
+    ...
+}
+hint = type_hints.get(competition_type, "")
+# 注入到 user_message 中: f"竞赛专项提示：{hint}"</code></pre>
+
+<h3>5.3 输出字段</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>claims</code></td><td>list[dict]</td><td>含 missing_chain 和 coach_rewrite</td></tr>
+  <tr><td><code>logical_fallacies</code></td><td>list[dict]</td><td>含 student_original / why_it_fails / correct_form</td></tr>
+  <tr><td><code>validation_point</code></td><td>dict</td><td><strong>v1.7 新增。</strong> type 字段决定语义（见第八章表），含 coach_guidance 和 word_count_suggestion</td></tr>
+  <tr><td><code>quantitative_check</code></td><td>dict</td><td>applicable 开关 + p_value/effect_size/sensitivity 三项检查</td></tr>
+  <tr><td><code>source_quality</code></td><td>dict</td><td>含 coach_note："查不清的 source 先删，不要赌"</td></tr>
+</table>
+
+<!-- ====== 六 ====== -->
+<h2 id="s6">六、A4 LanguageStyle 规范</h2>
+
+<h3>6.1 Iron Law（改写权限边界）</h3>
+<p>A4 是唯一允许改写的 Agent。边界必须绝对清晰：</p>
+<table>
+  <tr><th>可改写 ✅</th><th>不可改写 ❌（仅批注）</th></tr>
+  <tr><td>拼写错误</td><td>句式选择</td></tr>
+  <tr><td>语法错误（主谓一致、时态、冠词、介词、单复数）</td><td>语态分布调整</td></tr>
+  <tr><td>标点修正</td><td>用词偏好替换</td></tr>
+  <tr><td>Chinglish 语法修正（不影响原意）</td><td>段落结构/节奏调整</td></tr>
+  <tr><td>—</td><td>风格判断改写</td></tr>
+</table>
+
+<h3>6.2 教练风格</h3>
+<pre><code>对于拼写错误，不要只说"有拼写错误"——把错误原文和纠正后的文本并列列出。
+反馈口吻：教练型。直接说"这里有问题，改成这样"，不说"建议考虑修改"。
+输出分两个区：[REWRITE] 可改写的，[SUGGEST] 仅批注的。</code></pre>
+
+<!-- ====== 七 ====== -->
+<h2 id="s7">七、A5 AcademicIntegrity 规范</h2>
+
+<h3>7.1 两条独立路径</h3>
+<ul>
+  <li><strong>5a Citation Check：</strong>规则引擎优先（正则匹配），LLM 仅做最终综合判断。检查 cite↔ref 配对、格式一致性、疑似幻觉引用</li>
+  <li><strong>5b Originality Check：</strong>ChromaDB 向量比对 + AI 生成痕迹检测 + 个人 voice 保留度评估</li>
+</ul>
+
+<h3>7.2 教练风格嵌入</h3>
+<p>A5 的 prompt 保持现有格式，但在 <code>citation_report</code> 中增加 <code>coach_note</code> 字段：</p>
+<pre><code>"coach_note": "查不清的 source 先删，不要赌。正文的 in-text citation 必须能找到 reference，每条 reference 的标题/作者/年份/期刊/页码都必须完整。"</code></pre>
+
+<!-- ====== 八 ====== -->
+<h2 id="s8">八、validation_point 类型表</h2>
+
+<p><strong>核心设计：</strong>A3 输出中的 <code>validation_point.type</code> 字段根据竞赛类型动态切换语义，确保 LLM 不会对 ISEF 论文要求 counterargument。</p>
+
+<table>
+  <tr><th>竞赛类型</th><th>validation_point.type</th><th>检查语义</th><th>是否需要 counterargument</th></tr>
+  <tr><td>思辨型 (discursive)</td><td><code>counterargument_analysis</code></td><td>反方是否被推到最强？rebuttal 是否把反方接回来？</td><td>✅ 核心检查项</td></tr>
+  <tr><td>科研型 (research)</td><td><code>limitation_review</code></td><td>是否讨论了局限性？样本量、混杂变量、外部有效性？</td><td>❌ 不适用</td></tr>
+  <tr><td>科研进阶型</td><td><code>limitation_review</code></td><td>同科研型 + 理论贡献度和方法原创性</td><td>❌ 不适用</td></tr>
+  <tr><td>数模型</td><td><code>sensitivity_check</code></td><td>参数变化后模型是否稳定？假设是否被检验？</td><td>❌ 不适用</td></tr>
+  <tr><td>金融型</td><td><code>null</code></td><td>不适用——金融报告的核心是估值模型和数据溯源</td><td>❌ 不适用</td></tr>
+  <tr><td>商科型</td><td><code>alternative_comparison</code></td><td>是否比较了其他可行方案？为什么选方案A不选方案B/C？</td><td>❌ 用 alternative comparison 替代</td></tr>
+  <tr><td>社科型</td><td><code>null</code></td><td>核心是调研方法论和案例深度</td><td>❌ 不适用</td></tr>
+  <tr><td>历史型</td><td><code>null</code></td><td>核心是一手史料和史学视角</td><td>❌ 不适用</td></tr>
+</table>
+
+<h3>8.1 validation_point JSON schema</h3>
+<pre><code>{
+  "type": "counterargument_analysis",  // 从表中选取
+  "current_strength": "weak|moderate|strong",
+  "coach_guidance": "教练指导：缺什么、为什么重要、怎么改",
+  "word_count_suggestion": "如果适用，建议该部分的字数范围"
+}</code></pre>
+
+<!-- ====== 九 ====== -->
+<h2 id="s9">九、字段命名与向后兼容</h2>
+
+<h3>9.1 重命名对照</h3>
+<table>
+  <tr><th>旧名称 (v1.6)</th><th>新名称 (v1.7)</th><th>原因</th></tr>
+  <tr><td><code>thesis_coaching</code></td><td><code>main_argument_coaching</code></td><td>科研型没有 thesis，有 hypothesis；数模型和商科型是核心论证而非 thesis</td></tr>
+  <tr><td><code>counterargument_analysis</code></td><td><code>validation_point</code></td><td>科研型不检查 counterargument，需要类型切换</td></tr>
+  <tr><td><code>thesis_coaching.current_thesis</code></td><td><code>main_argument_coaching.current_statement</code></td><td>语义泛化：可能是 thesis / hypothesis / investment thesis / recommendation</td></tr>
+</table>
+
+<h3>9.2 消费者兼容</h3>
+<p>所有下游消费者（annotation_builder、report 生成器、Gradio UI）必须以兼容方式读取新旧字段：</p>
+<pre><code>tc = structure.get("main_argument_coaching") or structure.get("thesis_coaching", {})
+vp = argument.get("validation_point") or argument.get("counterargument_analysis", {})</code></pre>
+
+<!-- ====== 十 ====== -->
+<h2 id="s10">十、变更历史</h2>
+
+<table>
+  <tr><th>版本</th><th>日期</th><th>变更</th></tr>
+  <tr><td>v1.5</td><td>2026-05-14</td><td>5 Agent 专用开发版。A4 Iron Law 确立。A5 规则引擎 + 语义比对双路径。</td></tr>
+  <tr><td>v1.6</td><td>2026-06-09</td><td>教练型风格上线。"缺→问→改"三步法。thesis_coaching 和 counterargument_analysis 新增。原文标注输出模式。</td></tr>
+  <tr><td><strong>v1.7</strong></td><td>2026-06-10</td><td><strong>竞赛类型感知重构。</strong>通用教练层与竞赛专用层拆分。sections_found 不再硬编码。counterargument_analysis → validation_point（类型切换）。thesis_coaching → main_argument_coaching（语义泛化）。quantitative_check 回归。A3 agent 注入 type hint。fallacy 类型扩充。</td></tr>
+</table>
+
+<div class="hr"></div>
+<p class="cta">关联文档：Agent 架构设计方案 v1.5 · John Locke 完整测试过程报告 · 使用指南</p>
+
+</div>
+</body>
+</html>
