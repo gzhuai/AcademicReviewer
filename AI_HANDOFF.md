@@ -28,7 +28,7 @@ scripts/start_all.bat                      # Windows one-click launcher
 | File | Role |
 |------|------|
 | `run.py` | `ensure_dirs()` → `init_db()` → `uvicorn.run("app.main:app")` |
-| `app/gradio_app.py` | Gradio Web UI. Calls backend via `httpx` to `http://127.0.0.1:8000`. 5 tabs. |
+| `app/gradio_app.py` | Gradio Web UI. Calls backend via `httpx`. 6 tabs (Submit Review, History, System Status, Calibration, Dashboard, Competition Management). |
 | `launcher.py` | (Optional) Single-process launcher that starts backend in thread + frontend. Not in main workflow. |
 
 ### Core App (`app/`)
@@ -36,7 +36,7 @@ scripts/start_all.bat                      # Windows one-click launcher
 |------|------|
 | `app/main.py` | **FastAPI app.** All REST endpoints. File upload handling, DB session management. Defines `app = FastAPI(title="AcademicReviewer", version="0.2.0")`. |
 | `app/orchestrator.py` | **Scheduler.** `Orchestrator.review()` runs Round 1 (A1+A2+A3 in `asyncio.gather`) → Round 2 (A4+A5). Computes weighted total score from `AGENT_WEIGHTS`. Uses lazy imports inside method body to avoid circular deps. |
-| `app/config.py` | **Global config singleton.** `Settings` class via `pydantic-settings`, reads `.env`. Provides `settings.llm_provider`, `settings.database_url`, etc. `PROJECT_ROOT = Path(__file__).resolve().parent.parent`. |
+| `app/config.py` | **Global config singleton.** `Settings` class via `pydantic-settings`. Provides `normalize_competition_name()` (alias-based canonical name matching) and `get_competition_list()`. |
 | `app/database.py` | SQLAlchemy engine + session factory. `init_db()` calls `Base.metadata.create_all()`. |
 
 ### Agents (`app/agents/`) — 5 LLM-powered reviewers
@@ -121,6 +121,8 @@ All under `/api/v1/`:
 | `POST` | `/sync/calibration` | Receive calibration report from colleague | JSON body with `instance_name` |
 | `GET` | `/sync/configs` | **Download current configs** (all JSON files + version hash) | — |
 | `GET` | `/admin/dashboard` | Aggregated dashboard (total reviews, calibrations by instance/competition, recent records) | — |
+| `GET` | `/admin/competitions` | List all registered competitions with full config | — |
+| `POST` | `/admin/competitions` | Save competition registry (add/edit/delete). Auto-backs up old config. | JSON body with `competitions` array |
 
 All responses are JSON. Errors return `{"detail": "..."}` with appropriate HTTP status codes.
 
@@ -289,9 +291,11 @@ Key implications:
 5. Import in `app/llm/__init__.py` (try/except pattern)
 
 ### Add a new competition type
-1. Add entry to `configs/competition_registry.json`
-2. Create corresponding JSON files under `configs/structure_schemas/`, `configs/evidence_patterns/`, `configs/style_guides/`
-3. No code changes required — agents load configs dynamically
+1. Use the **"Competition Management"** Gradio tab (visual form, no coding required)
+2. Or manually add entry to `configs/competition_registry.json` with required fields and `aliases`
+3. Create corresponding JSON files under `configs/structure_schemas/`, `configs/evidence_patterns/`, `configs/style_guides/`
+4. No code changes required — agents load configs dynamically. Unknown competitions gracefully fall back to research type defaults.
+5. Add aliases for common alternate names so colleagues' data aggregates correctly. Registered in each competition's `aliases` field. `normalize_competition_name()` maps any alias → canonical name case-insensitively.
 
 ---
 
