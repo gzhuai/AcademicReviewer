@@ -7,6 +7,8 @@ from pathlib import Path
 import gradio as gr
 import httpx
 
+from app.config import get_competition_list
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gradio_app")
 
@@ -208,7 +210,7 @@ def load_stats():
 def _sync_status_md():
     try:
         from app.utils.sync import is_sync_enabled
-        from app.config import settings
+        from app.config import settings, get_competition_list
         if is_sync_enabled():
             return f"""
 ## 同步状态
@@ -331,8 +333,24 @@ def build_ui():
                 gr.Markdown("### 校准引擎 — 分析获奖/失败文章差距")
                 gr.Markdown("上传我方获奖文章和失败文章目录（.txt/.md），系统将自动提取特征并生成校准报告。")
 
-                cal_competition = gr.Textbox(label="竞赛名称", value="ISEF")
-                cal_type = gr.Textbox(label="竞赛类型", value="research")
+                cal_competition = gr.Dropdown(
+                    label="竞赛名称",
+                    choices=[c["name"] for c in get_competition_list()],
+                    value="ISEF",
+                )
+                cal_type = gr.Dropdown(
+                    label="竞赛类型 (自动匹配)",
+                    choices=sorted(set(c["type"] for c in get_competition_list())),
+                    value="research",
+                )
+
+                def on_competition_change(selected):
+                    for c in get_competition_list():
+                        if c["name"] == selected:
+                            return c["type"]
+                    return "research"
+
+                cal_competition.change(fn=on_competition_change, inputs=[cal_competition], outputs=[cal_type])
                 with gr.Row():
                     cal_winners = gr.File(label="我方获奖文章 (可多选)", file_count="multiple", file_types=[".txt", ".md", ".pdf", ".docx"])
                     cal_losers = gr.File(label="我方失败文章 (可多选)", file_count="multiple", file_types=[".txt", ".md", ".pdf", ".docx"])

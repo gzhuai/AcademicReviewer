@@ -186,9 +186,10 @@ def run_calibration(
 
     try:
         from app.utils.sync import report_calibration
+        from app.config import normalize_competition_name
         import asyncio
         asyncio.ensure_future(report_calibration({
-            "competition": competition,
+            "competition": normalize_competition_name(competition),
             "competition_type": competition_type,
             "n_winners": len(winners_features),
             "n_losers": len(losers_features),

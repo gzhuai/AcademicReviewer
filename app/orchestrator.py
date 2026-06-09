@@ -159,8 +159,9 @@ class Orchestrator:
 
         try:
             from app.utils.sync import report_review
+            from app.config import normalize_competition_name
             await report_review({
-                "competition": report.competition,
+                "competition": normalize_competition_name(report.competition),
                 "competition_type": report.competition_type,
                 "total_score": report.total_score,
                 "scores": report.scores,

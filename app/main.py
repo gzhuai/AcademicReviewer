@@ -10,7 +10,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import func
 
-from app.config import settings, ensure_dirs
+from app.config import settings, ensure_dirs, normalize_competition_name
 from app.database import init_db, SessionLocal
 from app.llm.base import LLMFactory
 from app.orchestrator import Orchestrator, ReviewReport
@@ -300,9 +300,10 @@ async def sync_review(payload: dict):
     db = SessionLocal()
     try:
         instance_name = payload.get("instance_name", "unknown")
+        raw_competition = payload.get("competition", "")
         record = CalibrationRecord(
             instance_name=instance_name,
-            competition=payload.get("competition", ""),
+            competition=normalize_competition_name(raw_competition),
             competition_type=payload.get("competition_type", ""),
             n_winners=0,
             n_losers=0,
@@ -320,9 +321,10 @@ async def sync_review(payload: dict):
 async def sync_calibration(payload: dict):
     db = SessionLocal()
     try:
+        raw_competition = payload.get("competition", "")
         record = CalibrationRecord(
             instance_name=payload.get("instance_name", "unknown"),
-            competition=payload.get("competition", ""),
+            competition=normalize_competition_name(raw_competition),
             competition_type=payload.get("competition_type", ""),
             n_winners=payload.get("n_winners", 0),
             n_losers=payload.get("n_losers", 0),
