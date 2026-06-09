@@ -118,11 +118,14 @@ def build_annotated_markdown(
 
     if structure:
         lines.append(f"\n### 结构 (A2) — {structure.get('structure_score', '?')}/10\n")
-        tc = structure.get("thesis_coaching", {})
-        if tc.get("current_thesis"):
-            lines.append(f"**当前 thesis:** {tc['current_thesis']}")
+        # Support both old field name and new
+        tc = structure.get("main_argument_coaching") or structure.get("thesis_coaching", {})
+        if tc.get("current_statement") or tc.get("current_thesis"):
+            lines.append(f"**当前论点:** {tc.get('current_statement') or tc.get('current_thesis', '')}")
         if tc.get("stronger_version"):
             lines.append(f"**更强版本:** {tc['stronger_version']}")
+        if tc.get("vulnerability"):
+            lines.append(f"**脆弱点:** {tc['vulnerability']}")
         for p in structure.get("positive_points", []):
             lines.append(f"- ✅ {p}")
         for ki in structure.get("key_issues", []):
@@ -130,11 +133,14 @@ def build_annotated_markdown(
 
     if argument:
         lines.append(f"\n### 论证 (A3) — {argument.get('overall_score', '?')}/10\n")
-        ca = argument.get("counterargument_analysis", {})
-        if ca.get("strongest_objection_not_addressed"):
-            lines.append(f"**未回应的最强反方:** {ca['strongest_objection_not_addressed']}")
-        if ca.get("rebuttal_guidance"):
-            lines.append(f"**Rebuttal 指导:** {ca['rebuttal_guidance']}")
+        # Support both old field name and new
+        vp = argument.get("validation_point") or argument.get("counterargument_analysis", {})
+        if vp.get("coach_guidance"):
+            lines.append(f"**竞赛专项审查:** {vp['coach_guidance']}")
+        elif vp.get("strongest_objection_not_addressed"):
+            lines.append(f"**未回应的最强反方:** {vp['strongest_objection_not_addressed']}")
+        if vp.get("rebuttal_guidance") or vp.get("word_count_suggestion"):
+            lines.append(f"**指导:** {vp.get('rebuttal_guidance') or vp.get('word_count_suggestion', '')}")
         for p in argument.get("positive_points", []):
             lines.append(f"- ✅ {p}")
         for ki in argument.get("key_issues", []):
