@@ -32,7 +32,7 @@ def _collect_files(dir_path: str) -> list[str]:
     p = Path(dir_path)
     if not p.is_dir():
         return []
-    supported = {".txt", ".md"}
+    supported = {".txt", ".md", ".pdf", ".docx"}
     files = sorted(
         str(f) for f in p.iterdir()
         if f.suffix.lower() in supported and f.is_file()
@@ -47,8 +47,8 @@ def main():
     )
     parser.add_argument("--competition", required=True, help="竞赛名称，如 ISEF")
     parser.add_argument("--type", required=True, dest="competition_type", help="竞赛类型，如 research")
-    parser.add_argument("--winners", required=True, help="我方获奖文章目录")
-    parser.add_argument("--losers", required=True, help="我方失败文章目录")
+    parser.add_argument("--winners", default="", help="我方获奖文章目录")
+    parser.add_argument("--losers", default="", help="我方失败文章目录")
     parser.add_argument("--external", default=None, help="外部获奖文章目录（可选）")
     parser.add_argument("--expert-docs", default=None, help="教师经验文档目录（可选，.md格式）")
     parser.add_argument("--output", default=None, help="报告输出路径（可选，默认打印到 stdout）")
@@ -61,10 +61,12 @@ def main():
     expert_doc_files = _collect_files(args.expert_docs) if args.expert_docs else []
 
     if not winner_files:
-        logger.error(f"未找到获奖文章: {args.winners}")
-        sys.exit(1)
+        logger.warning(f"No winner files found in: {args.winners}")
     if not loser_files:
-        logger.error(f"未找到失败文章: {args.losers}")
+        logger.warning(f"No loser files found in: {args.losers}")
+
+    if not (winner_files or loser_files or external_files or expert_doc_files):
+        logger.error("No files found in any of the specified directories")
         sys.exit(1)
 
     logger.info(

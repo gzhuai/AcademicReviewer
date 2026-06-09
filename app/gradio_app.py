@@ -366,14 +366,10 @@ def build_ui():
                 def run_calibration_ui(competition, comp_type, winners, losers, external, expert_docs, output_path):
                     winners = winners or []
                     losers = losers or []
-                    if not winners and not losers:
-                        return "❌ 请至少上传「我方获奖文章」或「我方失败文章」其中一组（可以只上传一组 + 外部获奖文章）"
-
-                    # For Cohen's d we ideally need both winners and losers.
-                    if not winners:
-                        winners = []
-                    if not losers:
-                        losers = []
+                    external = external or []
+                    expert_docs = expert_docs or []
+                    if not (winners or losers or external or expert_docs):
+                        return "❌ 请至少上传一组文件（获奖文章 / 失败文章 / 外部获奖文章 / 教师经验文档 任选其一即可）"
 
                     import subprocess
                     import sys

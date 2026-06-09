@@ -100,12 +100,20 @@ def run_calibration(
 
     logger.info("Step 2/5: Computing Cohen's d effect sizes...")
     fnames = feature_names()
-    effect_sizes = compute_effect_sizes(winners_features, losers_features, fnames)
+    effect_sizes = []
+    if winners_features and losers_features:
+        effect_sizes = compute_effect_sizes(winners_features, losers_features, fnames)
+    else:
+        logger.warning("Skipping Cohen's d: need both winners and losers to compute effect sizes.")
 
     logger.info("Step 3/5: Cross-validation against external winners...")
-    cross_validations = cross_validate(
-        winners_features, losers_features, external_features, fnames
-    ) if external_features else []
+    cross_validations = []
+    if external_features and winners_features and losers_features:
+        cross_validations = cross_validate(
+            winners_features, losers_features, external_features, fnames
+        )
+    elif external_features:
+        logger.info("External winners available but Cohen's d skipped; extracting features for comparison only.")
 
     logger.info("Step 4/5: Generating config change suggestions...")
     config_files = _find_compatible_config_files(competition_type)
