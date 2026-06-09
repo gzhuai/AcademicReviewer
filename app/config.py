@@ -39,7 +39,7 @@ def normalize_competition_name(name: str) -> str:
 
 
 def get_competition_list() -> list[dict]:
-    """返回竞赛下拉列表 [{name, type, type_cn}, ...]"""
+    """返回竞赛下拉列表 [{name, type, type_cn, structure_schema, evidence_config, style_template}, ...]"""
     registry = _load_registry()
     types = registry.get("competition_types", {})
     result = []
@@ -48,6 +48,9 @@ def get_competition_list() -> list[dict]:
             "name": name,
             "type": cfg["type"],
             "type_cn": types.get(cfg["type"], cfg["type"]),
+            "structure_schema": cfg.get("structure_schema", "research.json"),
+            "evidence_config": cfg.get("evidence_config", "research.json"),
+            "style_template": cfg.get("style_template", "tech_academic.json"),
         })
     return result
 
