@@ -489,6 +489,136 @@ def build_ui():
 
                 admin_btn.click(fn=load_admin_dashboard, outputs=[admin_md])
 
+            # Tab 6: Competition Management
+            with gr.TabItem("赛事管理"):
+                gr.Markdown("### 🏆 赛事注册管理")
+                gr.Markdown("添加、编辑或删除赛事信息。修改后即时生效，旧配置会自动备份。")
+
+                comp_list_md = gr.Markdown("点击「加载赛事列表」查看当前注册的赛事")
+
+                def load_comp_list():
+                    data = _api("/api/v1/admin/competitions")
+                    if "error" in data:
+                        return f"加载失败: {data['error']}"
+                    comps = data.get("competitions", [])
+                    types = data.get("types", {})
+                    md = f"### 当前已注册 {len(comps)} 个赛事\n\n"
+                    md += "| 名称 | 类型 | 引用格式 | 别名 |\n"
+                    md += "|------|------|----------|------|\n"
+                    for c in comps:
+                        cn = types.get(c.get("type", ""), c.get("type", ""))
+                        aliases = ", ".join(c.get("aliases", [])[:3])
+                        md += f"| {c['_name']} | {cn}({c.get('type','')}) | {c.get('citation_style','')} | {aliases} |\n"
+                    return md
+
+                load_comp_btn = gr.Button("加载赛事列表", variant="secondary")
+                load_comp_btn.click(fn=load_comp_list, outputs=[comp_list_md])
+
+                gr.Markdown("---")
+                gr.Markdown("### ➕ 添加/编辑赛事")
+
+                with gr.Row():
+                    new_name = gr.Textbox(label="赛事名称 *", placeholder="如: IMMC, Conrad Challenge")
+                    new_type = gr.Dropdown(
+                        label="竞赛类型 *",
+                        choices=sorted(set(c["type"] for c in get_competition_list())),
+                        value="research",
+                    )
+                new_subtype = gr.Textbox(label="子类型 (可选)", placeholder="如: advanced, economics")
+                with gr.Row():
+                    new_structure = gr.Dropdown(
+                        label="结构模板",
+                        choices=[c["structure_schema"] for c in get_competition_list()],
+                        value="research.json",
+                    )
+                    new_evidence = gr.Dropdown(
+                        label="证据标准",
+                        choices=sorted(set(c["evidence_config"] for c in get_competition_list())),
+                        value="research.json",
+                    )
+                with gr.Row():
+                    new_style = gr.Dropdown(
+                        label="风格模板",
+                        choices=sorted(set(c["style_template"] for c in get_competition_list())),
+                        value="tech_academic.json",
+                    )
+                    new_citation = gr.Dropdown(label="引用格式", choices=["APA", "MLA", "Chicago"], value="APA")
+                new_aliases = gr.Textbox(
+                    label="别名 (逗号分隔)",
+                    placeholder="如: immc, 国际数学建模挑战赛, IMMC竞赛",
+                    value="",
+                )
+
+                def add_competition_fn(name, comp_type, subtype, structure, evidence, style, citation, aliases):
+                    if not name or not name.strip():
+                        return "❌ 赛事名称不能为空", gr.update()
+                    data = _api("/api/v1/admin/competitions")
+                    if "error" in data:
+                        return f"❌ 读取失败: {data['error']}", gr.update()
+                    comps = data.get("competitions", [])
+                    found = False
+                    for c in comps:
+                        if c["_name"] == name.strip():
+                            c["type"] = comp_type
+                            c["subtype"] = subtype.strip() or None
+                            c["structure_schema"] = structure
+                            c["evidence_config"] = evidence
+                            c["style_template"] = style
+                            c["citation_style"] = citation
+                            c["aliases"] = [a.strip() for a in aliases.split(",") if a.strip()]
+                            found = True
+                            break
+                    if not found:
+                        comps.append({
+                            "_name": name.strip(),
+                            "type": comp_type,
+                            "subtype": subtype.strip() or None,
+                            "structure_schema": structure,
+                            "evidence_config": evidence,
+                            "style_template": style,
+                            "citation_style": citation,
+                            "aliases": [a.strip() for a in aliases.split(",") if a.strip()],
+                        })
+                    payload = {"competitions": comps, "types": data.get("types", {})}
+                    save = _api("/api/v1/admin/competitions", "POST", json=payload)
+                    if "error" in save:
+                        return f"❌ 保存失败: {save['error']}", gr.update()
+                    action = "更新" if found else "添加"
+                    return f"✅ 已{action}赛事「{name.strip()}」(共 {save.get('count', '?')} 个赛事)", gr.update()
+
+                add_comp_btn = gr.Button("保存赛事", variant="primary", size="lg")
+                add_result = gr.Markdown("")
+
+                add_comp_btn.click(
+                    fn=add_competition_fn,
+                    inputs=[new_name, new_type, new_subtype, new_structure, new_evidence, new_style, new_citation, new_aliases],
+                    outputs=[add_result, comp_list_md],
+                )
+
+                gr.Markdown("---")
+                gr.Markdown("### 🗑️ 删除赛事")
+                with gr.Row():
+                    del_name = gr.Dropdown(
+                        label="选择要删除的赛事",
+                        choices=[c["name"] for c in get_competition_list()],
+                    )
+
+                    def delete_competition_fn(name):
+                        if not name:
+                            return "请选择赛事", gr.update(choices=[c["name"] for c in get_competition_list()])
+                        data = _api("/api/v1/admin/competitions")
+                        comps = data.get("competitions", [])
+                        comps = [c for c in comps if c["_name"] != name]
+                        payload = {"competitions": comps, "types": data.get("types", {})}
+                        save = _api("/api/v1/admin/competitions", "POST", json=payload)
+                        if "error" in save:
+                            return f"❌ {save['error']}", gr.update(choices=[c["name"] for c in get_competition_list()])
+                        return f"✅ 已删除「{name}」(剩余 {save.get('count', '?')} 个赛事)", gr.update(choices=[c["_name"] for c in comps])
+
+                    del_btn = gr.Button("确认删除", variant="stop")
+                    del_result = gr.Markdown("")
+                    del_btn.click(fn=delete_competition_fn, inputs=[del_name], outputs=[del_result, del_name])
+
     return demo
 
 

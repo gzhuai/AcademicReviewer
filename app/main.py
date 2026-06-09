@@ -402,3 +402,47 @@ async def sync_configs_download():
         "version": config_hash,
         "files": files,
     }
+
+
+@app.get("/api/v1/admin/competitions")
+async def admin_competitions_list():
+    import copy
+    registry_path = _CONFIGS_DIR / "competition_registry.json"
+    data = json.loads(registry_path.read_text(encoding="utf-8"))
+    result = []
+    for name, cfg in data.get("competitions", {}).items():
+        entry = copy.deepcopy(cfg)
+        entry["_name"] = name
+        result.append(entry)
+    result.sort(key=lambda x: x["_name"])
+    return {"competitions": result, "types": data.get("competition_types", {})}
+
+
+@app.post("/api/v1/admin/competitions")
+async def admin_competitions_save(payload: dict):
+    registry_path = _CONFIGS_DIR / "competition_registry.json"
+    current = json.loads(registry_path.read_text(encoding="utf-8"))
+
+    competitions = {}
+    for entry in payload.get("competitions", []):
+        name = entry.pop("_name", "").strip()
+        if not name:
+            continue
+        aliases = []
+        for a in entry.get("aliases", []):
+            a = a.strip()
+            if a and a.lower() != name.lower():
+                aliases.append(a)
+        entry["aliases"] = aliases
+        competitions[name] = entry
+
+    current["competitions"] = competitions
+    if "types" in payload:
+        current["competition_types"] = payload["types"]
+
+    backup = registry_path.with_suffix(".json.bak")
+    if registry_path.exists():
+        backup.write_text(registry_path.read_text(encoding="utf-8"))
+
+    registry_path.write_text(json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"status": "ok", "count": len(competitions)}
