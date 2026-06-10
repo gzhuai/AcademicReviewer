@@ -12,6 +12,7 @@ PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "prompts"
 class BaseAgent:
     agent_name: str = "base"
     prompt_template_path: str = ""
+    score_key: str = ""  # key in the JSON response dict that holds this agent's score
 
     def __init__(self, llm: LLMAdapter):
         self.llm = llm

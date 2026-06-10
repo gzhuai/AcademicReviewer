@@ -4,6 +4,7 @@ from app.agents.base import BaseAgent
 class LanguageStyleAgent(BaseAgent):
     agent_name = "LanguageStyle"
     prompt_template_path = "a4_language_style.txt"
+    score_key = "language_score"
 
     async def run(self, document_text: str = "", style_guide: dict | None = None, **kwargs) -> dict:
         style_context = ""

@@ -200,26 +200,32 @@ class Orchestrator:
         return report
 
     def _compute_total_score(self, report: ReviewReport) -> float | None:
+        from app.agents.rubric_parser import RubricParserAgent
+        from app.agents.structure_logic import StructureLogicAgent
+        from app.agents.argument_evidence import ArgumentEvidenceAgent
+        from app.agents.language_style import LanguageStyleAgent
+        from app.agents.academic_integrity import AcademicIntegrityAgent
+
         weighted_sum = 0.0
         weight_sum = 0.0
 
         agent_score_map = [
-            ("RubricParser", report.rubric, "rubric_score"),
-            ("StructureLogic", report.structure, "structure_score"),
-            ("ArgumentEvidence", report.argument, "overall_score"),
-            ("LanguageStyle", report.language, "language_score"),
-            ("AcademicIntegrity", report.integrity, "integrity_score"),
+            (RubricParserAgent, report.rubric),
+            (StructureLogicAgent, report.structure),
+            (ArgumentEvidenceAgent, report.argument),
+            (LanguageStyleAgent, report.language),
+            (AcademicIntegrityAgent, report.integrity),
         ]
 
-        for agent_name, result, score_key in agent_score_map:
+        for agent_cls, result in agent_score_map:
             if result is None:
                 continue
-            score = self._extract_numeric_score(result, score_key)
+            score = self._extract_numeric_score(result, agent_cls.score_key)
             if score is not None:
-                weight = AGENT_WEIGHTS.get(agent_name, 0.0)
+                weight = AGENT_WEIGHTS.get(agent_cls.agent_name, 0.0)
                 weighted_sum += score * weight
                 weight_sum += weight
-                report.scores[agent_name] = round(score, 1)
+                report.scores[agent_cls.agent_name] = round(score, 1)
 
         if weight_sum == 0:
             return None
@@ -237,6 +243,8 @@ class Orchestrator:
 
     def _load_rubric_config(self, competition: str) -> dict:
         safe_name = competition.lower().replace(" ", "_").replace("-", "_")
+        # Prevent path traversal: only use the basename portion
+        safe_name = Path(safe_name).name
         rubric_path = CONFIGS_DIR / "rubrics" / f"{safe_name}_2026.json"
         if not rubric_path.exists():
             rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"

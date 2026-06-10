@@ -8,6 +8,7 @@ CONFIGS_DIR = Path(__file__).resolve().parent.parent.parent / "configs"
 class ArgumentEvidenceAgent(BaseAgent):
     agent_name = "ArgumentEvidence"
     prompt_template_path = "a3_argument_evidence.txt"
+    score_key = "overall_score"
 
     async def run(self, document_text: str = "", competition_type: str = "", **kwargs) -> dict:
         evidence_config = self._load_evidence_config(competition_type)

@@ -29,6 +29,13 @@ def _build_alias_map() -> dict[str, str]:
     return _alias_map
 
 
+def clear_config_cache():
+    """重置竞赛注册表缓存（用于测试或热加载场景）。"""
+    global _registry_cache, _alias_map
+    _registry_cache = None
+    _alias_map = None
+
+
 def normalize_competition_name(name: str) -> str:
     """将任意赛事名称归一化为 canonical name。支持英文全称/缩写/中英混写。"""
     if not name or not name.strip():

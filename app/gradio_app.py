@@ -230,13 +230,14 @@ def _sync_status_md():
 
 # -------------- Build UI --------------
 
-def build_ui():
-    css = """
-    .gradio-container { max-width: 1200px; margin: 0 auto; }
-    .report-box { font-family: monospace; font-size: 13px; }
-    """
+CSS = """
+.gradio-container { max-width: 1200px; margin: 0 auto; }
+.report-box { font-family: monospace; font-size: 13px; }
+"""
 
-    with gr.Blocks(title="AcademicReviewer", css=css, theme=gr.themes.Soft()) as demo:
+
+def build_ui():
+    with gr.Blocks(title="AcademicReviewer") as demo:
         gr.Markdown("# AcademicReviewer — 学术竞赛论文智能评审系统")
 
         with gr.Tabs():
@@ -632,6 +633,8 @@ def main():
         server_name="127.0.0.1",
         server_port=7860,
         share=False,
+        css=CSS,
+        theme=gr.themes.Soft(),
     )
 
 

@@ -13,6 +13,7 @@ CONFIGS_DIR = Path(__file__).resolve().parent.parent.parent / "configs"
 class AcademicIntegrityAgent(BaseAgent):
     agent_name = "AcademicIntegrity"
     prompt_template_path = "a5_academic_integrity.txt"
+    score_key = "integrity_score"
 
     async def run(
         self,

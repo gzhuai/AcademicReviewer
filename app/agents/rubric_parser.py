@@ -4,6 +4,7 @@ from app.agents.base import BaseAgent
 class RubricParserAgent(BaseAgent):
     agent_name = "RubricParser"
     prompt_template_path = "a1_rubric_parser.txt"
+    score_key = "rubric_score"
 
     async def run(self, rubric_text: str = "", rubric_file: str = "", **kwargs) -> dict:
         if rubric_file:

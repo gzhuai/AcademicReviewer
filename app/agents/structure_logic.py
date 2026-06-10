@@ -8,6 +8,7 @@ CONFIGS_DIR = Path(__file__).resolve().parent.parent.parent / "configs"
 class StructureLogicAgent(BaseAgent):
     agent_name = "StructureLogic"
     prompt_template_path = "a2_structure_logic.txt"
+    score_key = "structure_score"
 
     async def run(self, document_text: str = "", competition_type: str = "", **kwargs) -> dict:
         schema = self._load_structure_schema(competition_type)
