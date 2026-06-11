@@ -138,9 +138,13 @@ class Orchestrator:
         from app.agents.academic_integrity import AcademicIntegrityAgent
 
         logger.info("Starting Round 2: A4 (Language) + A5 (Integrity)")
+
+        # Load style guide for A4
+        style_guide = self._load_style_guide(comp_config)
         r2_tasks = [
             self._get_agent(LanguageStyleAgent).run(
                 document_text=doc.text,
+                style_guide=style_guide,
             ),
             self._get_agent(AcademicIntegrityAgent).run(
                 document_text=doc.text,
@@ -254,6 +258,17 @@ class Orchestrator:
         if not rubric_path.exists():
             rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
         return json.loads(rubric_path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _load_style_guide(comp_config: dict) -> dict:
+        """Load the style guide JSON for the competition type, or return empty dict."""
+        style_template = comp_config.get("style_template", "")
+        if not style_template:
+            return {}
+        style_path = CONFIGS_DIR / "style_guides" / style_template
+        if style_path.exists():
+            return json.loads(style_path.read_text(encoding="utf-8"))
+        return {}
 
     @staticmethod
     def _extract_references_section(text: str) -> str:

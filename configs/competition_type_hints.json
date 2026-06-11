@@ -1,0 +1,53 @@
+{
+  "_meta": {
+    "note": "A3 ArgumentEvidence 使用的竞赛类型提示。Agent 从本文件读取，不再硬编码在代码中。修改此文件即可调整各类型的检查项，无需改代码。"
+  },
+  "research": {
+    "name_cn": "科研型",
+    "checks": ["hypothesis 可验证性", "P值/效应量/统计检验", "控制组设计", "局限性讨论", "实验可复现性"],
+    "skip": ["counterargument", "rebuttal"],
+    "hint": "科研型论文。检查 hypothesis 可验证性、p值/效应量、控制组、统计检验、局限性讨论。不要检查 counterargument/rebuttal。"
+  },
+  "research_advanced": {
+    "name_cn": "科研进阶型",
+    "checks": ["hypothesis 可验证性", "P值/效应量/统计检验", "理论贡献度", "方法原创性", "局限性讨论"],
+    "skip": ["counterargument", "rebuttal"],
+    "hint": "进阶科研型。除科研型检查外，还需检查理论贡献度和方法原创性。不要检查 counterargument/rebuttal。"
+  },
+  "math_modeling": {
+    "name_cn": "数模型",
+    "checks": ["模型假设合理性", "求解路径可追溯", "灵敏度分析", "公式正确性"],
+    "skip": ["counterargument", "rebuttal"],
+    "hint": "数学建模论文。检查模型假设合理性、求解路径可追溯、灵敏度分析、公式正确性。不要检查 counterargument/rebuttal。"
+  },
+  "discursive": {
+    "name_cn": "思辨型",
+    "checks": ["counterargument 质量", "rebuttal 强度", "逻辑链完整性", "哲学引用深度"],
+    "skip": [],
+    "hint": "思辨型议论文。检查 counterargument 质量、rebuttal 强度、逻辑链完整性、哲学引用深度。"
+  },
+  "social_science": {
+    "name_cn": "社科型",
+    "checks": ["调研方法论", "案例深度", "跨文化视角"],
+    "skip": [],
+    "hint": "社科型论文。检查调研方法论、案例深度、跨文化视角。"
+  },
+  "history": {
+    "name_cn": "历史型",
+    "checks": ["一手史料引用", "史学视角", "时代语境还原"],
+    "skip": [],
+    "hint": "历史型论文。检查一手史料引用、史学视角、时代语境还原。"
+  },
+  "finance": {
+    "name_cn": "金融型",
+    "checks": ["估值模型假设", "数据来源可溯性", "风险分析", "图表准确性"],
+    "skip": ["counterargument", "rebuttal"],
+    "hint": "金融投资报告。检查估值模型假设、数据来源可溯性、风险分析、图表准确性。不要检查 counterargument/rebuttal。"
+  },
+  "business_case": {
+    "name_cn": "商科型",
+    "checks": ["SWOT/PEST/五力框架应用", "方案可行性", "ROI 计算", "alternative solutions 对比"],
+    "skip": ["counterargument"],
+    "hint": "商科案例报告。检查 SWOT/PEST/五力框架应用、方案可行性、ROI 计算。需要检查 alternative solutions 对比而非 counterargument。"
+  }
+}
