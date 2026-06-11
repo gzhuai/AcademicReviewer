@@ -235,8 +235,18 @@ def features_to_dict(f: DocumentFeatures) -> dict:
     }
 
 
-def feature_names() -> list[str]:
-    return [
+def feature_names(competition_type: str = "research") -> list[str]:
+    """Return feature names relevant to the given competition type."""
+    return FEATURES_BY_TYPE.get(competition_type, FEATURES_BY_TYPE["research"])
+
+
+# === Feature sets per competition type ===
+# Research types keep all 21 features including quantitative checks.
+# Non-research types drop has_p_value, has_effect_size, has_control_group, has_sample_size
+# since those are meaningless for discursive/finance/business_case papers.
+
+FEATURES_BY_TYPE: dict[str, list[str]] = {
+    "research": [
         "word_count", "avg_sentence_length", "sentence_length_std",
         "citation_density", "passive_voice_ratio", "vocabulary_diversity",
         "logical_marker_density", "transition_frequency",
@@ -245,4 +255,73 @@ def feature_names() -> list[str]:
         "evidence_diversity_score", "evidence_source_count", "claim_count_estimate",
         "hook_sentence_present", "gap_statement_present",
         "limitations_section_present", "future_work_mentioned",
-    ]
+    ],
+    "research_advanced": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "passive_voice_ratio", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "has_p_value", "has_effect_size", "has_control_group", "has_sample_size",
+        "evidence_diversity_score", "evidence_source_count", "claim_count_estimate",
+        "hook_sentence_present", "gap_statement_present",
+        "limitations_section_present", "future_work_mentioned",
+    ],
+    "discursive": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "evidence_diversity_score", "evidence_source_count",
+        "claim_count_estimate",
+        "hook_sentence_present", "gap_statement_present",
+        "future_work_mentioned",
+    ],
+    "math_modeling": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "has_sample_size",
+        "evidence_diversity_score", "evidence_source_count",
+        "gap_statement_present", "limitations_section_present",
+        "future_work_mentioned",
+    ],
+    "social_science": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "evidence_diversity_score", "evidence_source_count",
+        "claim_count_estimate",
+        "hook_sentence_present", "gap_statement_present",
+        "limitations_section_present", "future_work_mentioned",
+    ],
+    "history": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "evidence_diversity_score", "evidence_source_count",
+        "claim_count_estimate", "hook_sentence_present",
+        "gap_statement_present", "future_work_mentioned",
+    ],
+    "finance": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "evidence_diversity_score", "evidence_source_count",
+        "claim_count_estimate",
+        "gap_statement_present", "limitations_section_present",
+        "future_work_mentioned",
+    ],
+    "business_case": [
+        "word_count", "avg_sentence_length", "sentence_length_std",
+        "citation_density", "vocabulary_diversity",
+        "logical_marker_density", "transition_frequency",
+        "avg_paragraph_length", "section_coverage",
+        "evidence_diversity_score", "evidence_source_count",
+        "claim_count_estimate", "hook_sentence_present",
+        "gap_statement_present", "future_work_mentioned",
+    ],
+}

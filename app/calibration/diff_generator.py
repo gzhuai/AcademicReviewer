@@ -58,14 +58,11 @@ def generate_fatal_defect_updates(
     losers_features: list[dict],
     winners_features: list[dict],
     current_config: dict,
+    competition_type: str = "research",
 ) -> list[ConfigChange]:
     changes = []
 
-    binary_features = [
-        "has_p_value", "has_effect_size", "has_control_group",
-        "has_sample_size", "gap_statement_present",
-        "limitations_section_present",
-    ]
+    binary_features = BINARY_FEATURES_BY_TYPE.get(competition_type, BINARY_FEATURES_BY_TYPE["research"])
 
     for es in effect_sizes:
         if es.feature_name not in binary_features:
@@ -141,3 +138,41 @@ def _get_nested_value(data: dict, path: str):
         else:
             return None
     return current
+
+
+# === Binary features per competition type for fatal_defect detection ===
+# Only features that are appropriate for each type are checked.
+# Non-research types exclude p_value, effect_size, control_group, sample_size
+# since these have no meaning in discursive/finance/business_case writing.
+
+BINARY_FEATURES_BY_TYPE: dict[str, list[str]] = {
+    "research": [
+        "has_p_value", "has_effect_size", "has_control_group",
+        "has_sample_size", "gap_statement_present",
+        "limitations_section_present",
+    ],
+    "research_advanced": [
+        "has_p_value", "has_effect_size", "has_control_group",
+        "has_sample_size", "gap_statement_present",
+        "limitations_section_present",
+    ],
+    "discursive": [
+        "hook_sentence_present", "gap_statement_present",
+    ],
+    "math_modeling": [
+        "has_sample_size", "gap_statement_present",
+        "limitations_section_present",
+    ],
+    "social_science": [
+        "gap_statement_present", "limitations_section_present",
+    ],
+    "history": [
+        "hook_sentence_present", "gap_statement_present",
+    ],
+    "finance": [
+        "gap_statement_present", "limitations_section_present",
+    ],
+    "business_case": [
+        "hook_sentence_present", "gap_statement_present",
+    ],
+}

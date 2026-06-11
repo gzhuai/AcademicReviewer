@@ -20,24 +20,117 @@ CONFIGS_DIR = BASE_DIR / "configs"
 CALIBRATION_DATA_DIR = BASE_DIR / "data" / "calibration"
 
 
-FEATURE_TO_CONFIG_MAP = {
-    "citation_density": "evidence_standards.min_total_citations",
-    "passive_voice_ratio": "style_passive_ratio.max_passive_ratio",
-    "vocabulary_diversity": "style_vocabulary.min_ttr",
-    "logical_marker_density": "style_transitions.min_logical_markers_per_1000w",
-    "transition_frequency": "style_transitions.min_transitions_per_1000w",
-    "avg_sentence_length": "style_sentence.avg_sentence_length",
-    "sentence_length_std": "style_sentence.max_std",
-    "section_coverage": "required_sections.coverage_ratio",
-    "has_p_value": "quantitative_requirements.expects_p_value",
-    "has_effect_size": "quantitative_requirements.expects_effect_size",
-    "has_control_group": "quantitative_requirements.expects_control_group",
-    "has_sample_size": "quantitative_requirements.expects_sample_size_justification",
-    "evidence_diversity_score": "evidence_standards.min_source_types",
-    "gap_statement_present": "logic_checks.gap_statement_required",
-    "limitations_section_present": "logic_checks.limitations_required",
-    "future_work_mentioned": "logic_checks.future_work_required",
+FEATURE_TO_CONFIG_MAP_BY_TYPE = {
+    "research": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "passive_voice_ratio": "style_passive_ratio.max_passive_ratio",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "logical_marker_density": "style_transitions.min_logical_markers_per_1000w",
+        "transition_frequency": "style_transitions.min_transitions_per_1000w",
+        "avg_sentence_length": "style_sentence.avg_sentence_length",
+        "sentence_length_std": "style_sentence.max_std",
+        "section_coverage": "required_sections.coverage_ratio",
+        "has_p_value": "quantitative_requirements.expects_p_value",
+        "has_effect_size": "quantitative_requirements.expects_effect_size",
+        "has_control_group": "quantitative_requirements.expects_control_group",
+        "has_sample_size": "quantitative_requirements.expects_sample_size_justification",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "limitations_section_present": "logic_checks.limitations_required",
+        "future_work_mentioned": "logic_checks.future_work_required",
+    },
+    "research_advanced": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "passive_voice_ratio": "style_passive_ratio.max_passive_ratio",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "logical_marker_density": "style_transitions.min_logical_markers_per_1000w",
+        "transition_frequency": "style_transitions.min_transitions_per_1000w",
+        "avg_sentence_length": "style_sentence.avg_sentence_length",
+        "sentence_length_std": "style_sentence.max_std",
+        "section_coverage": "required_sections.coverage_ratio",
+        "has_p_value": "quantitative_requirements.expects_p_value",
+        "has_effect_size": "quantitative_requirements.expects_effect_size",
+        "has_control_group": "quantitative_requirements.expects_control_group",
+        "has_sample_size": "quantitative_requirements.expects_sample_size_justification",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "limitations_section_present": "logic_checks.limitations_required",
+        "future_work_mentioned": "logic_checks.future_work_required",
+    },
+    "discursive": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "claim_count_estimate": "argument_standards.min_distinct_claims",
+        "hook_sentence_present": "structure_requirements.requires_hook",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "section_coverage": "required_sections.coverage_ratio",
+        "avg_sentence_length": "style_sentence.target_sentence_length",
+        "sentence_length_std": "style_sentence.max_std",
+        "avg_paragraph_length": "style_paragraph.target_paragraph_length",
+    },
+    "math_modeling": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "section_coverage": "required_sections.coverage_ratio",
+        "has_sample_size": "quantitative_requirements.expects_sample_size",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "limitations_section_present": "logic_checks.limitations_required",
+    },
+    "social_science": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "section_coverage": "required_sections.coverage_ratio",
+        "claim_count_estimate": "argument_standards.min_distinct_claims",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "limitations_section_present": "logic_checks.limitations_required",
+    },
+    "history": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "section_coverage": "required_sections.coverage_ratio",
+        "claim_count_estimate": "argument_standards.min_distinct_claims",
+        "hook_sentence_present": "structure_requirements.requires_hook",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+    },
+    "finance": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "section_coverage": "required_sections.coverage_ratio",
+        "claim_count_estimate": "argument_standards.min_distinct_claims",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+        "limitations_section_present": "logic_checks.limitations_required",
+    },
+    "business_case": {
+        "citation_density": "evidence_standards.min_total_citations",
+        "logical_marker_density": "logic_checks.min_logical_markers_per_1000w",
+        "transition_frequency": "logic_checks.min_transitions_per_1000w",
+        "vocabulary_diversity": "style_vocabulary.min_ttr",
+        "evidence_diversity_score": "evidence_standards.min_source_types",
+        "section_coverage": "required_sections.coverage_ratio",
+        "claim_count_estimate": "argument_standards.min_distinct_claims",
+        "hook_sentence_present": "structure_requirements.requires_hook",
+        "gap_statement_present": "logic_checks.gap_statement_required",
+    },
 }
+
+
+def _get_config_mapping(competition_type: str) -> dict[str, str]:
+    return FEATURE_TO_CONFIG_MAP_BY_TYPE.get(competition_type, FEATURE_TO_CONFIG_MAP_BY_TYPE["research"])
 
 
 def _find_compatible_config_files(competition_type: str) -> dict[str, Path]:
@@ -99,7 +192,7 @@ def run_calibration(
     logger.info(f"Features extracted: {len(winners_features)}W + {len(losers_features)}L + {len(external_features)}Ext")
 
     logger.info("Step 2/5: Computing Cohen's d effect sizes...")
-    fnames = feature_names()
+    fnames = feature_names(competition_type)
     effect_sizes = []
     if winners_features and losers_features:
         effect_sizes = compute_effect_sizes(winners_features, losers_features, fnames)
@@ -125,17 +218,18 @@ def run_calibration(
             current_config[cfg_type] = {}
 
     config_changes = []
+    config_mapping = _get_config_mapping(competition_type)
 
     for cfg_type, cfg_data in current_config.items():
         changes = generate_rule_updates(
-            effect_sizes, fnames, FEATURE_TO_CONFIG_MAP, cfg_data
+            effect_sizes, fnames, config_mapping, cfg_data
         )
         for c in changes:
             c.path = f"{cfg_type}.{c.path}"
         config_changes.extend(changes)
 
         fatal_changes = generate_fatal_defect_updates(
-            effect_sizes, losers_features, winners_features, cfg_data
+            effect_sizes, losers_features, winners_features, cfg_data, competition_type
         )
         for c in fatal_changes:
             c.path = f"{cfg_type}.{c.path}"

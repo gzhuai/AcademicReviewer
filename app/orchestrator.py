@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
 
-AGENT_WEIGHTS = {
+# Default agent weights — used when competition config doesn't specify its own.
+DEFAULT_AGENT_WEIGHTS = {
     "RubricParser": 0.25,
     "StructureLogic": 0.20,
     "ArgumentEvidence": 0.25,
@@ -206,6 +207,10 @@ class Orchestrator:
         from app.agents.language_style import LanguageStyleAgent
         from app.agents.academic_integrity import AcademicIntegrityAgent
 
+        # Load competition-specific weights, fall back to defaults
+        comp_config = self.lookup_competition(report.competition)
+        agent_weights = comp_config.get("agent_weights", DEFAULT_AGENT_WEIGHTS)
+
         weighted_sum = 0.0
         weight_sum = 0.0
 
@@ -222,7 +227,7 @@ class Orchestrator:
                 continue
             score = self._extract_numeric_score(result, agent_cls.score_key)
             if score is not None:
-                weight = AGENT_WEIGHTS.get(agent_cls.agent_name, 0.0)
+                weight = agent_weights.get(agent_cls.agent_name, 0.0)
                 weighted_sum += score * weight
                 weight_sum += weight
                 report.scores[agent_cls.agent_name] = round(score, 1)
