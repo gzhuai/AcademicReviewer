@@ -372,13 +372,14 @@ def build_ui():
                     if not (winners or losers or external or expert_docs):
                         return "❌ 请至少上传一组文件（获奖文章 / 失败文章 / 外部获奖文章 / 教师经验文档 任选其一即可）"
 
-                    import subprocess
-                    import sys
+                    import shutil
+                    from app.calibration.engine import run_calibration
 
                     winner_dir = tempfile.mkdtemp(prefix="cal_win_")
                     loser_dir = tempfile.mkdtemp(prefix="cal_los_")
                     ext_dir = tempfile.mkdtemp(prefix="cal_ext_") if external else None
                     expert_dir = tempfile.mkdtemp(prefix="cal_exp_") if expert_docs else None
+                    output_file = output_path if output_path else None
 
                     try:
                         for f in winners:
@@ -396,41 +397,33 @@ def build_ui():
                                 dest = Path(expert_dir) / Path(f).name
                                 dest.write_bytes(Path(f).read_bytes())
 
-                        cmd = [
-                            sys.executable, "cli/calibrate.py",
-                            "--competition", competition,
-                            "--type", comp_type,
-                            "--winners", winner_dir,
-                            "--losers", loser_dir,
-                        ]
-                        if ext_dir and external:
-                            cmd.extend(["--external", ext_dir])
-                        if expert_dir and expert_docs:
-                            cmd.extend(["--expert-docs", expert_dir])
-                        if output_path:
-                            cmd.extend(["--output", output_path])
+                        winner_files = [str(Path(winner_dir) / Path(f).name) for f in winners]
+                        loser_files = [str(Path(loser_dir) / Path(f).name) for f in losers]
+                        ext_files = []
+                        if external and ext_dir:
+                            ext_files = [str(Path(ext_dir) / Path(f).name) for f in external] if ext_dir else []
+                        expert_files = []
+                        if expert_docs and expert_dir:
+                            expert_files = [str(Path(expert_dir) / Path(f).name) for f in expert_docs] if expert_dir else []
 
-                        result = subprocess.run(
-                            cmd,
-                            cwd=str(Path(__file__).resolve().parent.parent),
-                            capture_output=True,
-                            text=True,
-                            timeout=120,
+                        report = run_calibration(
+                            competition=competition,
+                            competition_type=comp_type,
+                            winner_files=winner_files,
+                            loser_files=loser_files,
+                            external_winner_files=ext_files or None,
+                            expert_doc_paths=expert_files or None,
+                            output_report_path=output_file,
                         )
 
-                        if result.returncode != 0:
-                            return f"校准失败:\n```\n{result.stderr}\n```"
+                        if output_file:
+                            return f"报告已保存到: {output_file}\n\n{report[-3000:]}" if report else "校准完成"
+                        return report or "校准完成（无输出）"
 
-                        if output_path:
-                            return f"报告已保存到: {output_path}\n\n{result.stdout[-3000:]}"
-                        return result.stdout or "校准完成（无输出）"
-
-                    except subprocess.TimeoutExpired:
-                        return "校准超时 (>120s)"
                     except Exception as e:
-                        return f"错误: {e}"
+                        import traceback
+                        return f"校准失败:\n{traceback.format_exc()}"
                     finally:
-                        import shutil
                         shutil.rmtree(winner_dir, ignore_errors=True)
                         shutil.rmtree(loser_dir, ignore_errors=True)
                         if ext_dir:
