@@ -6,8 +6,9 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Header, Request, Depends
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 
 from app.config import settings, ensure_dirs, normalize_competition_name
@@ -26,6 +27,29 @@ app = FastAPI(title="AcademicReviewer", version="0.2.0")
 
 SUBMISSIONS_DIR = Path(__file__).resolve().parent.parent / "data" / "submissions"
 _CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
+
+# === Security settings ===
+_MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+_ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf", ".docx"}
+
+
+async def _verify_api_token(authorization: str = Header(default=None)):
+    """Simple Bearer Token auth. If API_TOKEN is not set, allow all requests."""
+    if not settings.api_token:
+        return
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing authentication token")
+    token = authorization[7:]
+    if token != settings.api_token:
+        raise HTTPException(status_code=403, detail="Invalid authentication token")
+
+
+def _validate_file(suffix: str, size: int) -> None:
+    """Validate file extension and size. Raises HTTPException on failure."""
+    if suffix not in _ALLOWED_EXTENSIONS:
+        raise HTTPException(400, f"Unsupported file format: {suffix}. Allowed: {', '.join(sorted(_ALLOWED_EXTENSIONS))}")
+    if size > _MAX_FILE_SIZE:
+        raise HTTPException(413, f"File too large ({size / 1024 / 1024:.1f}MB). Max allowed: {_MAX_FILE_SIZE / 1024 / 1024:.0f}MB")
 
 
 def _get_llm():
@@ -52,16 +76,21 @@ async def review_document(
     competition: str = Form(...),
     student_name: str = Form(""),
     model_provider: str = Form(""),
+    token_check: None = Depends(_verify_api_token),
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
-    provider = model_provider or settings.llm_provider
+    suffix = Path(file.filename).suffix.lower()
 
-    suffix = Path(file.filename).suffix
+    # Read file content for size check and processing
+    contents = await file.read(_MAX_FILE_SIZE + 1)
+    _validate_file(suffix, len(contents))
+
+    provider = model_provider or settings.llm_provider
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     try:
-        shutil.copyfileobj(file.file, tmp)
+        tmp.write(contents)
         tmp.close()
 
         llm = LLMFactory.create(provider)
@@ -296,7 +325,7 @@ async def config_stats():
 
 
 @app.post("/api/v1/sync/review")
-async def sync_review(payload: dict):
+async def sync_review(payload: dict, token_check: None = Depends(_verify_api_token)):
     db = SessionLocal()
     try:
         instance_name = payload.get("instance_name", "unknown")
@@ -318,7 +347,7 @@ async def sync_review(payload: dict):
 
 
 @app.post("/api/v1/sync/calibration")
-async def sync_calibration(payload: dict):
+async def sync_calibration(payload: dict, token_check: None = Depends(_verify_api_token)):
     db = SessionLocal()
     try:
         raw_competition = payload.get("competition", "")
@@ -339,7 +368,7 @@ async def sync_calibration(payload: dict):
 
 
 @app.get("/api/v1/admin/dashboard")
-async def admin_dashboard():
+async def admin_dashboard(token_check: None = Depends(_verify_api_token)):
     db = SessionLocal()
     try:
         total_reviews = db.query(func.count(Submission.id)).scalar() or 0
@@ -389,7 +418,7 @@ async def admin_dashboard():
 
 
 @app.get("/api/v1/sync/configs")
-async def sync_configs_download():
+async def sync_configs_download(token_check: None = Depends(_verify_api_token)):
     files = {}
     for json_file in sorted(_CONFIGS_DIR.rglob("*.json")):
         rel = str(json_file.relative_to(_CONFIGS_DIR)).replace("\\", "/")
@@ -405,7 +434,7 @@ async def sync_configs_download():
 
 
 @app.get("/api/v1/admin/competitions")
-async def admin_competitions_list():
+async def admin_competitions_list(token_check: None = Depends(_verify_api_token)):
     import copy
     registry_path = _CONFIGS_DIR / "competition_registry.json"
     data = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -419,7 +448,7 @@ async def admin_competitions_list():
 
 
 @app.post("/api/v1/admin/competitions")
-async def admin_competitions_save(payload: dict):
+async def admin_competitions_save(payload: dict, token_check: None = Depends(_verify_api_token)):
     registry_path = _CONFIGS_DIR / "competition_registry.json"
     current = json.loads(registry_path.read_text(encoding="utf-8"))
 

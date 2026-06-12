@@ -79,6 +79,8 @@ class Settings(BaseSettings):
     sync_server_url: str = ""
     instance_name: str = ""
 
+    api_token: str = ""  # Leave empty to skip auth (backward compatible)
+
     model_config = {"env_file": PROJECT_ROOT / ".env", "env_file_encoding": "utf-8"}
 
 
