@@ -15,7 +15,7 @@ from app.config import settings, ensure_dirs, normalize_competition_name
 from app.database import init_db, SessionLocal
 from app.llm.base import LLMFactory
 from app.orchestrator import Orchestrator, ReviewReport
-from app.models.submission import Submission, Review, CalibrationRecord
+from app.models.submission import Submission, Review, CalibrationRecord, TeacherFeedback
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 ensure_dirs()
 init_db()
 
-app = FastAPI(title="AcademicReviewer", version="0.2.0")
+app = FastAPI(title="AcademicReviewer", version="0.6.0")
 
 SUBMISSIONS_DIR = Path(__file__).resolve().parent.parent / "data" / "submissions"
 _CONFIGS_DIR = Path(__file__).resolve().parent.parent / "configs"
@@ -257,6 +257,256 @@ async def get_review(submission_id: int):
         }
     finally:
         db.close()
+
+
+# ── Teacher Feedback API (Phase 3: 反馈闭环) ──
+
+
+@app.post("/api/v1/feedback")
+async def submit_teacher_feedback(payload: dict, token_check: None = Depends(_verify_api_token)):
+    """老师对 AI 评审结果逐条审核并提交反馈。
+
+    Payload:
+        review_id: int
+        teacher_id: str
+        corrections: [
+            {
+                agent_name: str (A2/A3/A4/A5),
+                item_path: str (e.g. "section_issues[0]"),
+                item_type: str (e.g. "section_issue"),
+                ai_content: str,
+                ai_substitutability: str (FULL/REVIEW/ESCALATE),
+                teacher_action: str (CONFIRM/OVERRIDE/REFINE),
+                teacher_note: str (optional),
+            }
+        ]
+    """
+    review_id = payload.get("review_id")
+    teacher_id = payload.get("teacher_id", "")
+    corrections = payload.get("corrections", [])
+
+    if not review_id:
+        raise HTTPException(status_code=400, detail="Missing review_id")
+    if not corrections:
+        raise HTTPException(status_code=400, detail="No corrections provided")
+
+    db = SessionLocal()
+    try:
+        review = db.query(Review).filter(Review.id == review_id).first()
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+
+        saved = 0
+        for corr in corrections:
+            fb = TeacherFeedback(
+                review_id=review_id,
+                teacher_id=teacher_id,
+                agent_name=corr.get("agent_name", ""),
+                item_path=corr.get("item_path", ""),
+                item_type=corr.get("item_type", ""),
+                ai_content=corr.get("ai_content", ""),
+                ai_substitutability=corr.get("ai_substitutability", "REVIEW"),
+                teacher_action=corr.get("teacher_action", "CONFIRM"),
+                teacher_note=corr.get("teacher_note", ""),
+            )
+            db.add(fb)
+            saved += 1
+
+        db.commit()
+        return {"status": "ok", "saved": saved}
+    finally:
+        db.close()
+
+
+@app.get("/api/v1/reviews/{submission_id}/feedback")
+async def get_review_feedback(submission_id: int):
+    """获取某个 submission 的全部 feedback 记录。"""
+    db = SessionLocal()
+    try:
+        reviews = (
+            db.query(Review)
+            .filter(Review.submission_id == submission_id)
+            .order_by(Review.created_at.desc())
+            .all()
+        )
+        if not reviews:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        all_feedback = []
+        for rv in reviews:
+            fbs = (
+                db.query(TeacherFeedback)
+                .filter(TeacherFeedback.review_id == rv.id)
+                .order_by(TeacherFeedback.created_at.asc())
+                .all()
+            )
+            for fb in fbs:
+                all_feedback.append({
+                    "feedback_id": fb.id,
+                    "review_id": fb.review_id,
+                    "teacher_id": fb.teacher_id,
+                    "agent_name": fb.agent_name,
+                    "item_path": fb.item_path,
+                    "item_type": fb.item_type,
+                    "ai_content": fb.ai_content,
+                    "ai_substitutability": fb.ai_substitutability,
+                    "teacher_action": fb.teacher_action,
+                    "teacher_note": fb.teacher_note,
+                    "created_at": fb.created_at.isoformat() if fb.created_at else None,
+                })
+
+        return {
+            "submission_id": submission_id,
+            "feedback_count": len(all_feedback),
+            "feedback": all_feedback,
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/v1/feedback/stats")
+async def feedback_stats(token_check: None = Depends(_verify_api_token)):
+    """置信度校准统计：按 Agent/竞赛类型统计 AI 信心 vs 老师确认率。"""
+    db = SessionLocal()
+    try:
+        all_fb = db.query(TeacherFeedback).all()
+
+        by_agent = {}
+        by_substitutability = {}
+        total_confirmed = 0
+        total_overridden = 0
+        total_refined = 0
+
+        for fb in all_fb:
+            agent = fb.agent_name or "unknown"
+            if agent not in by_agent:
+                by_agent[agent] = {"total": 0, "confirmed": 0, "overridden": 0, "refined": 0}
+            by_agent[agent]["total"] += 1
+            if fb.teacher_action == "CONFIRM":
+                by_agent[agent]["confirmed"] += 1
+                total_confirmed += 1
+            elif fb.teacher_action == "OVERRIDE":
+                by_agent[agent]["overridden"] += 1
+                total_overridden += 1
+            elif fb.teacher_action == "REFINE":
+                by_agent[agent]["refined"] += 1
+                total_refined += 1
+
+            sub = fb.ai_substitutability or "REVIEW"
+            if sub not in by_substitutability:
+                by_substitutability[sub] = {"total": 0, "confirmed": 0, "overridden": 0, "refined": 0}
+            by_substitutability[sub]["total"] += 1
+            if fb.teacher_action == "CONFIRM":
+                by_substitutability[sub]["confirmed"] += 1
+            elif fb.teacher_action == "OVERRIDE":
+                by_substitutability[sub]["overridden"] += 1
+            elif fb.teacher_action == "REFINE":
+                by_substitutability[sub]["refined"] += 1
+
+        # Build per-agent summary with confirmation rates
+        agent_summary = {}
+        for agent, stats in sorted(by_agent.items()):
+            t = stats["total"]
+            agent_summary[agent] = {
+                "total": t,
+                "confirmed": stats["confirmed"],
+                "overridden": stats["overridden"],
+                "refined": stats["refined"],
+                "confirmation_rate": round(stats["confirmed"] / t, 3) if t > 0 else 0,
+            }
+
+        sub_summary = {}
+        for sub, stats in sorted(by_substitutability.items()):
+            t = stats["total"]
+            sub_summary[sub] = {
+                "total": t,
+                "confirmed": stats["confirmed"],
+                "overridden": stats["overridden"],
+                "refined": stats["refined"],
+                "confirmation_rate": round(stats["confirmed"] / t, 3) if t > 0 else 0,
+            }
+
+        total = len(all_fb)
+        return {
+            "total_feedback": total,
+            "total_confirmed": total_confirmed,
+            "total_overridden": total_overridden,
+            "total_refined": total_refined,
+            "overall_confirmation_rate": round(total_confirmed / total, 3) if total > 0 else 0,
+            "by_agent": agent_summary,
+            "by_substitutability": sub_summary,
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/v1/feedback/suggestions")
+async def feedback_suggestions(threshold: int = 3, token_check: None = Depends(_verify_api_token)):
+    """基于反馈数据，自动检测需要修正的知识卡条目。
+
+    当某个 Agent 的特定 item_type 被老师反复 override/refine 超过 threshold 次时，
+    说明 AI 在该领域判断不准，建议补充或修正对应的知识卡条目。
+
+    Args:
+        threshold: 触发建议的最低 override/refine 次数（默认 3）
+    """
+    db = SessionLocal()
+    try:
+        all_fb = db.query(TeacherFeedback).filter(
+            TeacherFeedback.teacher_action.in_(["OVERRIDE", "REFINE"])
+        ).all()
+
+        # Aggregate by agent_name + item_type
+        from collections import Counter
+        counter = Counter()
+        pattern_map = {}  # (agent, item_type) -> list of teacher_notes
+
+        for fb in all_fb:
+            key = (fb.agent_name or "unknown", fb.item_type or "unknown")
+            counter[key] += 1
+            if key not in pattern_map:
+                pattern_map[key] = []
+            if fb.teacher_note:
+                pattern_map[key].append(fb.teacher_note)
+
+        suggestions = []
+        for (agent, item_type), count in counter.most_common():
+            if count >= threshold:
+                notes = pattern_map.get((agent, item_type), [])
+                # Suggest what kind of knowledge card update is needed
+                suggestion = {
+                    "agent_name": agent,
+                    "item_type": item_type,
+                    "override_count": count,
+                    "recommended_action": f"建议在 {agent} 的知识卡中添加或修正关于 '{item_type}' 的条目",
+                    "sample_teacher_notes": notes[-5:],  # last 5 notes
+                    "knowledge_card_type": _suggest_card_type(item_type),
+                }
+                suggestions.append(suggestion)
+
+        return {
+            "total_override_events": len(all_fb),
+            "threshold": threshold,
+            "suggestions": suggestions,
+            "note": "建议定期（每学期）检查此列表，将高频被纠正的模式写入 data/expert_insights/ 目录下的专家经验文档。",
+        }
+    finally:
+        db.close()
+
+
+def _suggest_card_type(item_type: str) -> str:
+    """根据 item_type 建议对应的知识卡类型。"""
+    mapping = {
+        "section_issue": "fatal_defect 或 pattern",
+        "logic_issue": "pitfall",
+        "claim": "pattern 或 benchmark",
+        "logical_fallacy": "pitfall",
+        "rewrite": "pattern",
+        "suggestion": "pattern 或 signal",
+        "citation_issue": "fatal_defect 或 rubric",
+        "originality_flag": "fatal_defect",
+    }
+    return mapping.get(item_type, "pattern")
 
 
 @app.get("/api/v1/config/stats")

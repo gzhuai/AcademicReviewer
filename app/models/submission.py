@@ -62,3 +62,30 @@ class CalibrationRecord(Base):
 
     def __repr__(self):
         return f"<CalibrationRecord(id={self.id}, instance={self.instance_name}, competition={self.competition})>"
+
+
+class TeacherFeedback(Base):
+    """老师对 AI 评审结果的逐条审核反馈。
+
+    用于反馈闭环（HUMAN_AGENT_COLLABORATION.md 方案 C）：
+    老师确认(confirm)/修正(override)/细化(refine) AI 的每条评审意见，
+    积累数据用于置信度校准和 Prompt 优化。
+    """
+    __tablename__ = "teacher_feedback"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    review_id = Column(Integer, ForeignKey("reviews.id"), nullable=False, index=True)
+    teacher_id = Column(String(128), nullable=False, default="")
+    agent_name = Column(String(32), nullable=False, default="")
+    item_path = Column(String(256), nullable=False, default="")
+    item_type = Column(String(64), nullable=False, default="")
+    ai_content = Column(Text, nullable=True)
+    ai_substitutability = Column(String(16), nullable=False, default="REVIEW")
+    teacher_action = Column(String(16), nullable=False, default="CONFIRM")  # CONFIRM / OVERRIDE / REFINE
+    teacher_note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    review = relationship("Review", backref="teacher_feedbacks")
+
+    def __repr__(self):
+        return f"<TeacherFeedback(id={self.id}, review_id={self.review_id}, action={self.teacher_action})>"

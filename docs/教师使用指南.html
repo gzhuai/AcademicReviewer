@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcademicReviewer 教师使用指南</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --warning: #ea580c;
+    --danger: #dc2626;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    padding-bottom: 80px;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: #0f172a; color: #e2e8f0; overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  .sidebar h2 { font-size: 16px; padding: 0 20px 16px; color: #fff; border-bottom: 1px solid #334155; margin-bottom: 8px; }
+  .sidebar nav a {
+    display: block; padding: 8px 20px; color: #94a3b8; text-decoration: none; font-size: 14px;
+    border-left: 3px solid transparent; transition: all 0.15s;
+  }
+  .sidebar nav a:hover { color: #fff; background: #1e293b; border-left-color: var(--primary); }
+  .sidebar nav a.active { color: #fff; background: #1e293b; border-left-color: var(--primary); }
+
+  /* Main */
+  .main { margin-left: 260px; max-width: 960px; padding: 40px 48px; }
+  h1 { font-size: 32px; margin-bottom: 8px; color: #0f172a; }
+  .subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 40px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); color: #0f172a; }
+  h3 { font-size: 18px; margin: 32px 0 12px; color: #334155; }
+  h4 { font-size: 16px; margin: 20px 0 8px; color: #475569; }
+  p { margin: 8px 0; color: #334155; }
+  ul, ol { margin: 8px 0 16px 24px; color: #334155; }
+  li { margin: 4px 0; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card-info { border-left: 4px solid var(--primary); }
+  .card-success { border-left: 4px solid var(--success); }
+  .card-warning { border-left: 4px solid var(--warning); }
+  .card-danger { border-left: 4px solid var(--danger); }
+
+  /* Screenshot */
+  .screenshot {
+    display: block; margin: 20px auto; border-radius: 8px;
+    border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    max-width: 100%; height: auto;
+  }
+  .screenshot-caption {
+    text-align: center; font-size: 13px; color: var(--text-muted); margin-top: -12px; margin-bottom: 20px;
+  }
+  .screenshot-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 8px;
+    height: 200px; margin: 20px 0; color: #94a3b8; font-size: 14px;
+    text-align: center; padding: 20px;
+  }
+
+  /* Code */
+  code {
+    background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 13px; color: #1e293b;
+  }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 16px 20px; border-radius: 8px;
+    overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase; }
+  tr:hover { background: #f8fafc; }
+
+  /* Tags */
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-get { background: #dcfce7; color: #166534; }
+  .tag-post { background: #dbeafe; color: #1e40af; }
+
+  /* Steps */
+  .step { display: flex; gap: 16px; margin: 16px 0; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin: 0 0 4px; }
+
+  /* TOC */
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
+  .toc h3 { margin-top: 0; }
+  .toc ul { list-style: none; margin-left: 0; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>📘 AcademicReviewer</h2>
+  <nav>
+    <a href="#overview">系统简介</a>
+    <a href="#quickstart">第一次使用</a>
+    <a href="#core-features">核心功能</a>
+    <a href="#expert-insights">教师经验（知识卡）</a>
+    <a href="#teacher-review">教师审核工作流</a>
+    <a href="#team-collab">团队协作</a>
+    <a href="#faq">常见问题</a>
+    <a href="#appendix">附录：竞赛速查</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+<h1>AcademicReviewer 教师使用指南</h1>
+<p class="subtitle">面向竞赛指导老师（非技术背景）· v0.6.0 · 2026-06-13</p>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#overview">一、系统简介</a> — 它能做什么、不能做什么</li>
+    <li><a href="#quickstart">二、第一次使用</a> — 只需 3 步</li>
+    <li><a href="#core-features">三、核心功能详解</a> — 5 个审查员、标注报告解读</li>
+    <li><a href="#expert-insights">四、教师经验（知识卡）</a> — 如何填写、格式、工作流</li>
+    <li><a href="#teacher-review">五、教师审核工作流</a> — 审核流程、覆写格式、反馈统计</li>
+    <li><a href="#team-collab">六、团队协作模式</a> — 多教师数据汇总</li>
+    <li><a href="#faq">七、常见问题</a></li>
+    <li><a href="#appendix">附录：各竞赛类型速查</a></li>
+  </ul>
+</div>
+
+<p style="margin-top: 8px; font-size: 14px; color: var(--text-muted);">
+  配套文档：<a href="使用指南.html">使用指南.html</a>（系统安装与操作）、<a href="../AI_HANDOFF.md">AI_HANDOFF.md</a>（开发者参考）
+</p>
+
+<!-- ==================== 一、系统简介 ==================== -->
+<h2 id="overview">一、系统简介：它能做什么、不能做什么</h2>
+
+<p>AcademicReviewer 是一个 AI 辅助论文评审系统，覆盖 <strong>11 个主流学术竞赛</strong>（ISEF、John Locke、HiMCM、CTB、NHD、FBLA、SIC、WGHS、STS、丘成桐、Marshall Society），用 5 个专业 AI 审查员并行评审学生论文。</p>
+
+<h3>它能做的（可替代老师）</h3>
+
+<table>
+  <tr><th>层次</th><th>内容</th><th>AI 替代度</th></tr>
+  <tr><td><strong>形式检查</strong></td><td>语法、拼写、格式、引用规范</td><td>95%</td></tr>
+  <tr><td><strong>结构诊断</strong></td><td>章节完整性、比例合理性、逻辑衔接</td><td>85%</td></tr>
+  <tr><td><strong>论证评估</strong></td><td>证据匹配、逻辑谬误、反方回应</td><td>70-80%</td></tr>
+</table>
+
+<h3>它不能做的（需要老师把关）</h3>
+
+<ul>
+  <li>判断实验设计的原创性和科学性（ISEF/丘成桐）</li>
+  <li>判断哲学论证的深度和原创性（John Locke/Marshall）</li>
+  <li>判断估值模型的合理性（SIC/WGHS）</li>
+  <li>根据学生个人水平调整教学策略</li>
+</ul>
+
+<div class="card card-success">
+  <strong>💡 核心策略：</strong>让 AI 做它能做的，老师做 AI 做不到的，并通过本系统的教师审核功能最大化协作效率。
+</div>
+
+<!-- ==================== 二、第一次使用 ==================== -->
+<h2 id="quickstart">二、第一次使用：只需 3 步</h2>
+
+<h3>Step 1: 安装与启动</h3>
+
+<pre><code># Windows: 双击运行
+scripts\install.bat     # 一键安装（仅首次）
+scripts\start_all.bat   # 启动系统
+
+# macOS/Linux:
+bash scripts/install.sh
+bash scripts/start_all.sh</code></pre>
+
+<p>启动后浏览器访问 <strong>http://127.0.0.1:7860</strong></p>
+
+<h3>Step 2: 配置 API Key</h3>
+
+<p>编辑项目根目录的 <code>.env</code> 文件，填入至少一个 LLM 提供商的 Key：</p>
+
+<pre><code>DEEPSEEK_API_KEY=sk-你的key
+# 或
+OPENAI_API_KEY=sk-你的key
+# 其他选项: GEMINI_API_KEY, GLM_API_KEY
+
+LLM_PROVIDER=deepseek   # 推荐：性价比最高</code></pre>
+
+<h3>Step 3: 提交第一篇论文评审</h3>
+
+<ol>
+  <li>打开 Gradio 界面 → <strong>「提交评审」</strong> 标签</li>
+  <li>上传学生论文（支持 .txt / .docx / .pdf）</li>
+  <li>选择竞赛名称（如 "John Locke"）</li>
+  <li>点击「开始评审」→ 等待约 30-60 秒</li>
+  <li>查看评分明细和标注报告</li>
+</ol>
+
+<!-- ==================== 三、核心功能详解 ==================== -->
+<h2 id="core-features">三、核心功能详解</h2>
+
+<h3>3.1 5 个 AI 审查员各负责什么</h3>
+
+<table>
+  <tr><th>审查员</th><th>检查内容</th><th>权重说明</th></tr>
+  <tr><td><strong>A1 评分标准解析</strong></td><td>解析竞赛评分细则，建立评分维度树</td><td>基础参考</td></tr>
+  <tr><td><strong>A2 结构逻辑</strong></td><td>章节完整性、比例合理性、逻辑衔接、内容重复</td><td>John Locke 权重 30%（最重要）</td></tr>
+  <tr><td><strong>A3 论点证据</strong></td><td>Claim-Evidence 匹配、逻辑谬误、推理链完整性</td><td>ISEF 权重 30%（最重要）</td></tr>
+  <tr><td><strong>A4 语言风格</strong></td><td>仅修正拼写/语法/标点错误，不做风格改写</td><td>各竞赛 10-20%</td></tr>
+  <tr><td><strong>A5 学术诚信</strong></td><td>引用匹配检测 + 原创性审查 + AI 痕迹检测</td><td>各竞赛 15-20%</td></tr>
+</table>
+
+<div class="card card-info">
+  <strong>💡 权重说明：</strong>权重根据竞赛类型自动调整。例如 John Locke 偏结构（A2 占 30%），ISEF 偏证据（A3 占 30%）。
+</div>
+
+<h3>3.2 标注报告解读</h3>
+
+<p>提交评审后，系统生成带标注的 Markdown 报告。报告结构：</p>
+
+<pre><code># 审稿标注报告
+
+### 段落 1
+原文内容...
+&gt; **[A4-spelling]** `recieve` → `receive`
+
+### 段落 3
+原文内容...
+&gt; ⚡**[A2!!—high]** 缺少 counterargument 段落
+&gt; **[A3!!—逻辑谬误]** straw_man: ...
+
+---
+
+## 总结
+### 结构 (A2) — 7.5/10
+...</code></pre>
+
+<div class="card card-info">
+  <strong>标注格式说明：</strong>
+  <ul style="margin-bottom: 0;">
+    <li><code>[A4-spelling]</code> — A4 发现的拼写错误（无前缀 = AI 可完全替代，直接采用）</li>
+    <li><code>⚡[A2!—medium]</code> — ⚡ = 建议老师确认后再采用</li>
+    <li><code>🔴[A5—引用]</code> — 🔴 = 必须老师亲自审核</li>
+  </ul>
+</div>
+
+<table>
+  <tr><th>标记</th><th>含义</th><th>老师处理</th></tr>
+  <tr><td>无标记</td><td>AI 判断可靠（如拼写、格式）</td><td>直接信任，无需查看</td></tr>
+  <tr><td>⚡</td><td>AI 判断需确认（如论证强度）</td><td>快速查看（10-15 秒/条）</td></tr>
+  <tr><td>🔴</td><td>AI 无法判断（如原创性）</td><td>必须仔细审核（1-2 分钟/条）</td></tr>
+</table>
+
+<!-- ==================== 四、教师经验（知识卡） ==================== -->
+<h2 id="expert-insights">四、⭐ 重点：如何填写专家经验（知识卡）</h2>
+
+<p>这是提升 AI 评审质量<strong>最关键的一步</strong>。你的一次性 20 分钟投入，可以让后续所有评审的准确性大幅提升。</p>
+
+<h3>4.1 什么是知识卡</h3>
+
+<p>知识卡是你作为竞赛指导老师的经验结晶，系统在每次评审时将其注入 AI 审查员的 prompt，作为判断的参照标准。</p>
+
+<p>知识卡分三层：</p>
+
+<table>
+  <tr><th>层级</th><th>内容</th><th>必填</th><th>更新频率</th></tr>
+  <tr>
+    <td><strong>Layer 1: 核心必填</strong></td>
+    <td>优秀标准 + 致命缺陷 + 评分锚点</td>
+    <td>是</td>
+    <td>竞赛标准变化时（一年一两次）</td>
+  </tr>
+  <tr>
+    <td><strong>Layer 2: 标杆案例</strong></td>
+    <td>好/差段落对照文本</td>
+    <td>建议 ≥ 1 对</td>
+    <td>每届比赛后补充 2-3 个</td>
+  </tr>
+  <tr>
+    <td><strong>Layer 3: 自由笔记</strong></td>
+    <td>教学策略、随手记</td>
+    <td>否</td>
+    <td>随时</td>
+  </tr>
+</table>
+
+<h3>4.2 文件位置与命名</h3>
+
+<p>在 <code>data/expert_insights/</code> 目录下创建 <code>.md</code> 文件。建议命名格式：<code>[竞赛名]_[老师名].md</code></p>
+
+<pre><code>data/expert_insights/
+├── ISEF_张老师.md          ← 张老师的 ISEF 经验
+├── John_Locke_李老师.md     ← 李老师的 John Locke 经验
+├── HiMCM_Mode2_example.md  ← HiMCM 经验
+├── CTB_social_science.md   ← CTB 经验
+├── NHD_history.md          ← NHD 经验
+├── SIC_finance.md          ← SIC/WGHS 经验
+└── FBLA_business_case.md   ← FBLA 经验</code></pre>
+
+<h3>4.3 文档格式（复制即用）</h3>
+
+<pre><code>## 竞赛: John Locke
+## 作者: 李老师
+## 经验年限: 5年
+
+### [pattern] 这里是标题
+**标题**: 简洁总结你的发现
+**描述**: 详细描述你观察到的规律。越具体越好——要有数字、比例、具体案例。
+**关联特征**: 如果知道关联的系统特征名，填写。不知道可以留空。
+
+### [pitfall] 这里是标题
+**标题**: 学生最常犯的错误
+**描述**: 描述什么类型的错误、出现频率、以及正确的做法。
+**关联特征**: 可选
+
+### [signal] 这里是标题
+**标题**: 高分信号的观察
+**描述**: 你注意到的获奖者特有的做法或特征。
+**关联特征**: 可选
+
+### [fatal_defect] 
+**标题**: 一碰就死的问题
+**描述**: 只要出现这个问题的论文，无论其他部分多好，总分必须受限。说明限制多少（如"总分上限 6/10"）。
+**关联特征**: 可选
+
+### [scoring_anchor]
+**标题**: 9-10分段：描述这个分数段的典型特征
+**描述**: 具体描述这个分数段论文的特征。每个分数段写一条。
+
+### [scoring_anchor]
+**标题**: 5-6分段：描述这个分数段的典型特征
+**描述**: 同上，覆盖至少高分和中等两个分数段。
+
+### [benchmark]
+**标题**: 优秀 thesis — 争议性主张 + 论证路径暗示
+**描述**: 贴一段真实的优秀写作示例
+**为什么好**: 解释为什么这是好的——越具体越好
+
+### [benchmark]
+**标题**: 薄弱 thesis — 事实陈述，无法争论
+**描述**: 贴一段真实的薄弱写作示例
+**为什么差**: 解释问题在哪里
+
+### [strategy]
+**标题**: 你常用的教学技巧
+**描述**: 记录你的教学方法、训练框架、检查清单等。
+**关联特征**: 可选</code></pre>
+
+<h3>4.4 重点：你应该重点填写哪些部分</h3>
+
+<h4>必填（Layer 1 — 3 类，每类至少 1 条）</h4>
+
+<p><strong>1. 什么是"好"的标准（pattern / pitfall / signal）</strong></p>
+
+<p>这是最重要的！告诉 AI 你眼中好论文长什么样、差论文长什么样。</p>
+
+<div class="card card-info">
+  <strong>示例（ISEF 科研型）：</strong>
+  <ul style="margin-bottom: 0;">
+    <li><strong>pattern:</strong> "获奖者引用密度 15-25 条/千字，初赛淘汰者 &lt; 10 条"</li>
+    <li><strong>pitfall:</strong> "中国学生被动语态 &gt; 35% 是主要扣分原因，建议 &lt; 20%"</li>
+    <li><strong>signal:</strong> "跨学科引用是 ISEF 决赛信号——几乎所有大奖作品都有"</li>
+  </ul>
+</div>
+
+<div class="card card-info">
+  <strong>示例（John Locke 思辨型）：</strong>
+  <ul style="margin-bottom: 0;">
+    <li><strong>pattern:</strong> "逻辑连接词密度 &gt; 8 个/千字是入围关键——获奖者尤其擅长递进和转折类连接词"</li>
+    <li><strong>pitfall:</strong> "引言使用 'In today's society...' 是致命开场——评审首 30 秒决定是否继续阅读"</li>
+    <li><strong>signal:</strong> "Shortlisted 论文无一例外对反方最强论点做了充分回应，不是简单驳斥而是深入理解后再建设性反驳"</li>
+  </ul>
+</div>
+
+<p><strong>2. 致命缺陷 / 红线（fatal_defect）</strong></p>
+
+<p>列出"一碰就死"的问题。这些问题出现时，总分必须受限。</p>
+
+<div class="card card-danger">
+  <strong>示例：</strong>
+  <ul style="margin-bottom: 0;">
+    <li><strong>John Locke:</strong> "全文无 counterargument → 总分上限 6/10。counterargument 是稻草人 → 论证维度上限 4/10"</li>
+    <li><strong>ISEF:</strong> "无 limitations discussion → 方法维度上限 5/10"</li>
+    <li><strong>FBLA:</strong> "SWOT 只有列表没有分析 → 战略维度上限 5/10"</li>
+    <li><strong>SIC/WGHS:</strong> "估值模型关键假设无理由说明 → 分析维度上限 5/10"</li>
+  </ul>
+</div>
+
+<p><strong>3. 评分锚点（scoring_anchor）</strong></p>
+
+<p>至少写 9-10 分段和 5-6 分段的特征描述。这能帮 AI 校准评分尺度。</p>
+
+<div class="card card-info">
+  <strong>示例（John Locke）：</strong>
+  <ul style="margin-bottom: 0;">
+    <li><strong>9-10分段:</strong> "论证链完整且原创性强、counterargument 回应了最强反方、rebuttal 展示了深层推理、结论超出题目本身进行了哲学升华"</li>
+    <li><strong>5-6分段:</strong> "方向大致正确但论证链不完整——有论点但缺乏充分证据或 rebuttal 缺失"</li>
+  </ul>
+</div>
+
+<h4>强烈建议（Layer 2 — 至少 1 对标杆案例）</h4>
+
+<p><strong>标杆案例（benchmark）</strong></p>
+
+<p>给出真实的"好"和"差"段落对比。这是最能直接提升 AI 判断准确性的方式。</p>
+
+<div class="card card-success">
+  <strong>示例：</strong>
+  <ul style="margin-bottom: 0;">
+    <li>
+      <strong>优秀 thesis:</strong> "This essay argues that Rawls' difference principle, while normatively appealing, fails to account for motivational constraints — a gap Cohen's critique identifies but does not fully resolve."
+      <ul><li><strong>为什么好:</strong> 提出可争议的主张、暗示论证路径、概念使用精准</li></ul>
+    </li>
+    <li>
+      <strong>薄弱 thesis:</strong> "Rawls' theory of justice is important. In this essay I will discuss his main ideas."
+      <ul><li><strong>为什么差:</strong> 无争议性、无分析性承诺、读者不知道要论证什么</li></ul>
+    </li>
+  </ul>
+</div>
+
+<h4>可选（Layer 3 — 随时补充）</h4>
+
+<p><strong>教学策略（strategy）</strong></p>
+
+<p>记录你的教学方法和框架，不直接进入 AI prompt 但供团队参考。</p>
+
+<div class="card card-info">
+  <strong>示例：</strong>
+  <ul style="margin-bottom: 0;">
+    <li>"PEEL 段落结构法：Point → Evidence → Explanation → Link"</li>
+    <li>"ISEF 方法论写作的 5 段式黄金框架"</li>
+  </ul>
+</div>
+
+<h3>4.5 工作流：从零到持续优化</h3>
+
+<pre><code>第一天（15-20 分钟）
+├── 打开 data/expert_insights/[竞赛名]_[你的名字].md
+├── 填写 Layer 1 核心：至少 3 条 pattern/pitfall/signal + 2 条 fatal_defect + 2 条 scoring_anchor
+└── 建议：至少写 1 对 benchmark（好/差对照）
+
+日常使用中（随时 3 分钟）
+├── 看到 AI 犯了一个新类型的错误 → 打开文件，加一个 pitfall
+├── 发现一个新的高分特征 → 加一个 signal
+└── 格式不重要！随手写一段文字丢进去即可，系统自动解析
+
+每届比赛后（30 分钟）
+├── 打开 Gradio → 「教师审核」Tab → 「知识卡更新建议」
+├── 查看系统自动检测的高频被纠正模式
+├── 针对性补充或修正知识卡
+└── 审核 10-20 篇 AI 评审结果，发现反复判错的地方 → 修正</code></pre>
+
+<!-- ==================== 五、教师审核工作流 ==================== -->
+<h2 id="teacher-review">五、教师审核工作流（重要！）</h2>
+
+<h3>5.1 为什么需要审核 AI 的评审结果</h3>
+
+<p>AI 的判断不是 100% 准确。通过你的一次次审核，系统会：</p>
+
+<ul>
+  <li>统计哪些类型的判断 AI 做得好（可以自动化）</li>
+  <li>发现哪些类型的判断 AI 反复出错（需要补充知识卡）</li>
+  <li>积累数据用于未来自动校准 AI 的置信度</li>
+</ul>
+
+<h3>5.2 审核流程（每次 2-5 分钟）</h3>
+
+<ol>
+  <li><strong>打开 Gradio</strong> → <strong>「教师审核」</strong> 标签</li>
+  <li><strong>输入 Submission ID</strong>（从评审历史中获取）→ 点击「加载评审」</li>
+  <li><strong>查看标注报告</strong>：展开「📄 标注报告」查看完整的带批注原文</li>
+  <li><strong>查看审核项明细</strong>：系统自动列出所有 AI 审查意见，按置信度分类
+    <ul>
+      <li>FULL（无标记）= 可直接信任，无需操作</li>
+      <li>REVIEW（⚡）= 快速确认，约 10-15 秒/条</li>
+      <li>ESCALATE（🔴）= 必须仔细审核，约 1-2 分钟/条</li>
+    </ul>
+  </li>
+  <li><strong>两种操作方式</strong>：
+    <ul>
+      <li><strong>快速通道</strong>: 如果 AI 判断整体靠谱 → 点击「全部确认」</li>
+      <li><strong>精确覆写</strong>: 如果某些条目需要修正 → 在「覆写说明」中输入 JSON</li>
+    </ul>
+  </li>
+  <li><strong>提交反馈</strong></li>
+</ol>
+
+<h3>5.3 覆写说明格式</h3>
+
+<pre><code>[
+  {"index": 0, "action": "OVERRIDE", "note": "rebuttal 确实回应了核心主张但推理步骤不完整"},
+  {"index": 3, "action": "REFINE", "note": "这里不是 straw_man，是 weak_analogy"},
+  {"index": 7, "action": "CONFIRM", "note": ""}
+]</code></pre>
+
+<ul>
+  <li><code>index</code>: 审核项序号（从审核项表格第一列获取）</li>
+  <li><code>action</code>: CONFIRM（确认）/ OVERRIDE（修正：AI 判断错误）/ REFINE（细化：AI 方向对但不完整）</li>
+  <li><code>note</code>: 你的修正说明，越具体越好</li>
+</ul>
+
+<h3>5.4 查看反馈统计</h3>
+
+<p>在「教师审核」标签底部，点击「加载统计」查看：</p>
+
+<ul>
+  <li>整体确认率（你认可 AI 判断的比例）</li>
+  <li>按 Agent 的确认率（哪个 Agent 最靠谱/最不靠谱）</li>
+  <li>按置信度标签的确认率（AI 标 FULL 的你真的都确认了吗？）</li>
+</ul>
+
+<h3>5.5 知识卡更新建议</h3>
+
+<p>在「教师审核」标签底部，点击「检测建议」：</p>
+
+<ul>
+  <li>系统自动发现哪些 Agent + 条目类型被反复纠正</li>
+  <li>给出建议的知识卡类型（fatal_defect / pattern / pitfall / benchmark）</li>
+  <li>附带你的历史备注作为参考</li>
+</ul>
+
+<!-- ==================== 六、团队协作 ==================== -->
+<h2 id="team-collab">六、团队协作模式（可选）</h2>
+
+<p>如果你们是多人团队，可以让所有老师本地运行系统，数据自动汇总到一个中央实例。</p>
+
+<ol>
+  <li><strong>管理员</strong>部署一台中央服务器（设置 <code>HOST=0.0.0.0</code>）</li>
+  <li><strong>同事</strong>在 <code>.env</code> 中配置：
+    <pre><code>SYNC_SERVER_URL=http://管理员IP:8000
+INSTANCE_NAME=你的名字</code></pre>
+  </li>
+  <li>同事每次提交评审或运行校准，结果自动上报</li>
+  <li>管理员在「管理看板」查看所有汇总数据</li>
+</ol>
+
+<!-- ==================== 七、常见问题 ==================== -->
+<h2 id="faq">七、常见问题</h2>
+
+<div class="card card-warning">
+  <h3>Q: 我写的专家经验文件多久生效？</h3>
+  <p><strong>A:</strong> 下次提交评审时自动生效，无需重启。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 我可以同时有多个经验文件吗？</h3>
+  <p><strong>A:</strong> 可以。系统会合并同一竞赛的所有 <code>.md</code> 文件。建议每人一个文件方便管理。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 知识卡会影响哪些审查员？</h3>
+  <p><strong>A:</strong> 当前注入 A2（结构）和 A3（论证）。这两个 Agent 最能从领域经验中受益。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 学生论文数据安全吗？</h3>
+  <p><strong>A:</strong> 论文全文发送到 LLM API（DeepSeek/OpenAI/Gemini/GLM）进行处理。请勿上传包含个人敏感信息的学生作品。评审结果仅在本地 SQLite 数据库存储。</p>
+</div>
+
+<div class="card card-warning">
+  <h3>Q: 反馈闭环有什么用？</h3>
+  <p><strong>A:</strong> 每一次审核都不浪费——你的确认/修正在统计层面校准 AI 的置信度，在内容层面优化知识卡。长期来看，AI 的准确率会随你的使用而提升。</p>
+</div>
+
+<!-- ==================== 附录 ==================== -->
+<h2 id="appendix">附录：各竞赛类型速查</h2>
+
+<table>
+  <tr><th>竞赛</th><th>类型</th><th>关键权重</th><th>知识卡重点</th></tr>
+  <tr>
+    <td>ISEF / STS</td>
+    <td>科研型</td>
+    <td>A3 证据 30%</td>
+    <td>实验设计规范、统计方法、局限性讨论</td>
+  </tr>
+  <tr>
+    <td>丘成桐</td>
+    <td>进阶科研</td>
+    <td>A3 证据 30%</td>
+    <td>同上，标准更高</td>
+  </tr>
+  <tr>
+    <td>John Locke</td>
+    <td>思辨型</td>
+    <td>A2 结构 30%</td>
+    <td>反方回应质量、论证链完整性、哲学深度</td>
+  </tr>
+  <tr>
+    <td>Marshall</td>
+    <td>思辨型(经济)</td>
+    <td>A2 结构 30%</td>
+    <td>同上 + 经济模型应用</td>
+  </tr>
+  <tr>
+    <td>HiMCM</td>
+    <td>数模型</td>
+    <td>A3 证据 30%</td>
+    <td>模型假设合理性、灵敏度分析、公式正确性</td>
+  </tr>
+  <tr>
+    <td>CTB</td>
+    <td>社科型</td>
+    <td>A2/A3 均衡</td>
+    <td>调研方法论、跨学科视角、方案可行性</td>
+  </tr>
+  <tr>
+    <td>NHD</td>
+    <td>历史型</td>
+    <td>A3 证据 30%</td>
+    <td>一手史料、史学解读、时代语境还原</td>
+  </tr>
+  <tr>
+    <td>SIC / WGHS</td>
+    <td>金融型</td>
+    <td>均衡分布</td>
+    <td>估值假设合理性、数据可溯性、风险量化</td>
+  </tr>
+  <tr>
+    <td>FBLA</td>
+    <td>商科型</td>
+    <td>A2 结构 30%</td>
+    <td>框架应用正确性、财务预测合理性、竞品分析</td>
+  </tr>
+</table>
+
+</div>
+</body>
+</html>

@@ -135,6 +135,8 @@
     <a href="#overview">概述</a>
     <a href="#quickstart">快速开始</a>
     <a href="#gradio-ui">Gradio 图形界面</a>
+    <a href="#teacher-review">教师审核</a>
+    <a href="#expert-knowledge">专家经验配置</a>
     <a href="#api">API 接口</a>
     <a href="#calibration">校准引擎</a>
     <a href="#expert-insights">教师经验注入</a>
@@ -148,20 +150,22 @@
 <div class="main">
 
 <h1>AcademicReviewer 使用指南</h1>
-<p class="subtitle">学术竞赛论文智能评审系统 · 5 Agent 多轮并行架构</p>
+<p class="subtitle">学术竞赛论文智能评审系统 · v0.6.0</p>
 
 <div class="toc">
   <h3>目录</h3>
   <ul>
     <li><a href="#overview">1. 系统概述</a></li>
     <li><a href="#quickstart">2. 快速开始</a> — 环境配置、启动服务</li>
-    <li><a href="#gradio-ui">3. Gradio 图形界面</a> — 提交评审、查看历史、系统状态、校准引擎</li>
-    <li><a href="#api">4. API 接口参考</a> — 6 个 REST 端点</li>
-    <li><a href="#calibration">5. 校准引擎</a> — CLI 与界面操作，教师经验注入</li>
-    <li><a href="#team-sync">6. 团队协作</a> — 数据集中汇总，管理看板</li>
-    <li><a href="#comp-mgmt">7. 赛事管理</a> — 可视化添加/编辑/删除赛事，别名归一化</li>
-    <li><a href="#config">8. 配置管理</a> — 竞赛注册、评分标准、风格模板</li>
-    <li><a href="#faq">9. 常见问题</a></li>
+    <li><a href="#gradio-ui">3. Gradio 图形界面</a> — 提交评审、查看历史、系统状态、校准引擎、赛事管理</li>
+    <li><a href="#teacher-review">4. 教师审核</a> — 人工复核 AI 评审结果，确认/覆盖反馈（v0.5.0）</li>
+    <li><a href="#expert-knowledge">5. 专家经验配置</a> — 知识卡片，6 种标注类型（v0.3.0）</li>
+    <li><a href="#api">6. API 接口参考</a> — 7 个 REST 端点</li>
+    <li><a href="#calibration">7. 校准引擎</a> — CLI 与界面操作，教师经验注入</li>
+    <li><a href="#team-sync">8. 团队协作</a> — 数据集中汇总，管理看板</li>
+    <li><a href="#comp-mgmt">9. 赛事管理</a> — 可视化添加/编辑/删除赛事，别名归一化</li>
+    <li><a href="#config">10. 配置管理</a> — 竞赛注册、评分标准、风格模板</li>
+    <li><a href="#faq">11. 常见问题</a></li>
   </ul>
 </div>
 
@@ -175,14 +179,16 @@
   <p>解决教师团队在辅导多名学生时<strong>评审质量不一致</strong>的核心痛点。系统通过 5 个专用 Agent 两轮并行协作，确保每篇稿件的评审标准高度统一。</p>
 </div>
 
-<h3>系统架构</h3>
+<h3>系统功能</h3>
 <table>
   <tr><th>组件</th><th>说明</th></tr>
   <tr><td>5 个评审 Agent</td><td>A1 评分标准解析、A2 结构与逻辑、A3 论证与证据、A4 语言与风格、A5 学术诚信</td></tr>
   <tr><td>2 轮并行调度</td><td>Round 1: A1+A2+A3 并行 → Round 2: A4+A5 并行</td></tr>
+  <tr><td>7 个功能标签页</td><td>提交评审、评审历史、系统状态、校准引擎、管理看板、赛事管理、<strong>教师审核（v0.5.0 新增）</strong></td></tr>
+  <tr><td>学生级别适配（v0.6.0）</td><td>支持初中/高中/大学三档学生级别，自动调整评审深度和反馈粒度</td></tr>
   <tr><td>校准引擎</td><td>纯统计分析（无 LLM 调用），分析获奖/失败文章差距，生成配置优化建议</td></tr>
   <tr><td>4 模型适配</td><td>DeepSeek / GPT / Gemini / GLM，一键切换</td></tr>
-  <tr><td>11 项竞赛</td><td>ISEF、丘成桐、John Locke、HiMCM、SIC 等，不同竞赛自动加载专属评审配置</td></tr>
+  <tr><td>全覆盖竞赛（7 大类型 · 11 项竞赛）</td><td>科研论文、数学建模、议论文、社会科学、历史研究、金融投资分析、商业案例 — 覆盖 ISEF、丘成桐、John Locke、HiMCM、SIC 等全部 11 项竞赛</td></tr>
 </table>
 
 <h3>支持竞赛一览</h3>
@@ -420,7 +426,7 @@ copy .env.example .env      # Windows</code></pre>
 <!-- ==================== 3. Gradio 界面 ==================== -->
 <h2 id="gradio-ui">3. Gradio 图形界面</h2>
 
-<p>Gradio 界面提供 6 个功能标签页，无需记忆命令即可完成所有操作。</p>
+<p>Gradio 界面提供 7 个功能标签页，无需记忆命令即可完成所有操作。</p>
 
 <h3>3.1 提交评审</h3>
 
@@ -561,6 +567,200 @@ copy .env.example .env      # Windows</code></pre>
 
 <h4>提交评审时使用自定义赛事名称</h4>
 <p>在「提交评审」页面的竞赛名称下拉框中，<strong>可以直接输入不在列表中的赛事名称</strong>。系统会自动使用通用配置进行评审，不会报错。要正式注册该赛事，再到「赛事管理」页面添加即可。</p>
+
+
+<!-- ==================== 四、教师审核 ==================== -->
+<h2 id="teacher-review">四、教师审核 <span class="tag tag-get" style="font-size:13px;">新增 v0.5.0</span></h2>
+
+<p>教师审核标签页让教师可以在 AI 初审后，<strong>人工复核并最终决定</strong>每条反馈的取舍。系统会标注每条 AI 反馈的置信度，帮助教师聚焦在真正需要人类判断的地方。</p>
+
+<div class="card card-info">
+  <h3>🎯 为什么需要教师审核？</h3>
+  <p>AI 评审在常规语法、格式、结构等问题上准确度很高，但在涉及<strong>学术判断、论证深度、竞赛特定偏好</strong>等主观问题上可能出错。教师审核环节让你获得 AI 的速度，同时保留人类教师的最终决定权。</p>
+</div>
+
+<h3>工作流程</h3>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>加载评审报告</h4>
+    <p>在「教师审核」标签页中，输入一个 <strong>Submission ID</strong>（可在「评审历史」中找到），点击「加载评审」。系统会展示完整的 AI 评审报告，每条反馈都带有置信度标记。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>查看带标注的评审报告</h4>
+    <p>加载后你会看到按 Agent 分组的反馈列表，每条反馈都带有颜色编码的置信度标记：</p>
+  </div>
+</div>
+
+<h3>置信度标记体系</h3>
+
+<table>
+  <tr><th>标记</th><th>含义</th><th>颜色</th><th>建议操作</th></tr>
+  <tr>
+    <td><strong>FULL</strong>（无标记）</td>
+    <td>AI 高置信度，该反馈在统计学上非常可靠</td>
+    <td>无标记 / 默认</td>
+    <td>通常可以直接确认，无需修改</td>
+  </tr>
+  <tr>
+    <td><strong>⚡ REVIEW</strong></td>
+    <td>AI 中置信度，需要教师人工确认</td>
+    <td><span style="display:inline-block;width:12px;height:12px;background:#eab308;border-radius:2px;vertical-align:middle;"></span> 黄色</td>
+    <td>阅读反馈内容，判断是否合理后确认或修改</td>
+  </tr>
+  <tr>
+    <td><strong>🔴 ESCALATE</strong></td>
+    <td>AI 低置信度，必须由教师做出判断</td>
+    <td><span style="display:inline-block;width:12px;height:12px;background:#dc2626;border-radius:2px;vertical-align:middle;"></span> 红色</td>
+    <td><strong>必须人工判断</strong>，AI 的反馈仅作参考</td>
+  </tr>
+</table>
+
+<div class="card card-warning">
+  <strong>⚡ REVIEW 标记的典型场景：</strong>论证强度判断、竞赛特定偏好、跨学科评价、非标准结构的合理性评估等。这些领域 AI 可能有偏见或知识盲区。
+</div>
+
+<div class="card card-danger">
+  <strong>🔴 ESCALATE 标记的典型场景：</strong>原创性争议、学术诚信边界判断、需要领域专家知识的内容评价、风格创新的取舍等。这些必须由真人教师做最终裁定。
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>确认或覆盖反馈</h4>
+    <p>对于每条反馈，你可以选择：</p>
+    <ul>
+      <li><strong>确认：</strong>勾选该条反馈，表示同意 AI 的判断</li>
+      <li><strong>修改：</strong>编辑反馈文本，调整措辞、严重程度或建议内容</li>
+      <li><strong>删除：</strong>取消勾选，该条反馈不会发给学生</li>
+    </ul>
+  </div>
+</div>
+
+<h3>两种提交模式</h3>
+
+<table>
+  <tr><th>模式</th><th>适用场景</th><th>操作方式</th></tr>
+  <tr>
+    <td><strong>全部确认</strong></td>
+    <td>整体质量良好，绝大多数 AI 反馈都正确</td>
+    <td>点击 <strong>「全部确认并提交」</strong> 按钮，一键通过所有 REVIEW 标记的反馈（ESCALATE 标记的反馈仍会提示你逐个确认）</td>
+  </tr>
+  <tr>
+    <td><strong>JSON 覆盖</strong></td>
+    <td>需要精细控制每条反馈的内容</td>
+    <td>在文本框中编辑 JSON 格式的反馈数据，修改、删除或新增条目，然后提交。适合批量调整场景</td>
+  </tr>
+</table>
+
+<div class="card card-success">
+  <strong>💡 推荐工作流：</strong>先使用「全部确认」快速通过 FULL 和大部分 REVIEW 标记，然后手动处理 ESCALATE 标记的反馈，最后用 JSON 覆盖模式做微调。这样效率最高。
+</div>
+
+<div class="card card-info">
+  <strong>📖 详细指南：</strong>教师审核的完整操作说明、JSON 格式规范、以及与其他同事协审的流程，请参阅 <a href="教师使用指南.html"><strong>docs/教师使用指南.html</strong></a>。
+</div>
+
+
+<!-- ==================== 五、专家经验配置 ==================== -->
+<h2 id="expert-knowledge">五、专家经验配置 <span class="tag tag-get" style="font-size:13px;">新增 v0.3.0</span></h2>
+
+<p>教师可以将自己多年的辅导经验沉淀为<strong>结构化知识卡片</strong>，这些卡片会被校准引擎读取，并在评审过程中作为领域知识的补充上下文。</p>
+
+<div class="card card-info">
+  <h3>🎓 什么是知识卡片？</h3>
+  <p>知识卡片是存储在 <code>data/expert_insights/</code> 目录下的 Markdown 文件，每张卡片描述一个经教师验证的评审经验。卡片使用 <strong>6 种标注类型</strong>分类，系统自动解析并应用到校准分析和评审流程中。</p>
+</div>
+
+<h3>6 种标注类型</h3>
+
+<table>
+  <tr><th>类型</th><th>标注标记</th><th>用途</th><th>示例场景</th></tr>
+  <tr>
+    <td><strong>获奖规律</strong></td>
+    <td><code>pattern</code></td>
+    <td>描述获奖论文中的可量化共同特征</td>
+    <td>"获奖 ISEF 论文的 Introduction 平均引用 8-15 篇文献"</td>
+  </tr>
+  <tr>
+    <td><strong>常见陷阱</strong></td>
+    <td><code>pitfall</code></td>
+    <td>记录学生常犯的错误和失分原因</td>
+    <td>"90% 的学生忘记讨论对立假设"</td>
+  </tr>
+  <tr>
+    <td><strong>高分信号</strong></td>
+    <td><code>signal</code></td>
+    <td>标记能显著加分但容易被忽略的细节</td>
+    <td>"评审特别看重对实验局限性的反思"</td>
+  </tr>
+  <tr>
+    <td><strong>致命缺陷</strong></td>
+    <td><code>fatal_defect</code></td>
+    <td>一旦出现就几乎不可能获奖的问题</td>
+    <td>"缺少对照组 → 直接淘汰"</td>
+  </tr>
+  <tr>
+    <td><strong>评分锚点</strong></td>
+    <td><code>scoring_anchor</code></td>
+    <td>为某个分数段提供具体的文章质量参照</td>
+    <td>"7分线：数据可视化清晰，但统计方法为描述性"</td>
+  </tr>
+  <tr>
+    <td><strong>标杆文章</strong></td>
+    <td><code>benchmark</code></td>
+    <td>引用一篇具体的获奖文章作为某方面的标杆</td>
+    <td>"以此文为文献综述的标杆：结构完整、批判性强"</td>
+  </tr>
+</table>
+
+<h3>Markdown 格式示例</h3>
+
+<p>在 <code>data/expert_insights/</code> 下创建一个 <code>.md</code> 文件，按以下格式编写：</p>
+
+<pre><code>## 竞赛: ISEF
+## 作者: 刘老师
+## 日期: 2026-03
+
+### [pattern] 获奖论文 Introduction 篇幅规律
+统计了我带过的 5 篇 ISEF 获奖论文，Introduction 平均 1200-1800 词，
+占全文的 20-25%。超出这个范围的都没有获奖。
+
+### [pitfall] 缺少研究假设
+至少 80% 的初稿没有明确写出研究假设（Hypothesis）。
+ISEF 评审手册明确要求必须包含假设陈述。
+
+### [signal] 实验局限性反思
+在 Discussion 中主动讨论实验局限性，不仅不扣分，反而是加分项。
+我观察到所有一等奖论文都有这一节。
+
+### [fatal_defect] 无对照组
+任何涉及实验的 ISEF 论文，如果缺少对照组（Control Group），
+一律无法通过初审。这是必须向学生强调的底线。
+
+### [scoring_anchor] ISEF 7 分线参考
+7.5 分以上的论文特征：
+- 研究方法有引用支持（不只是描述）
+- 数据可视化包含误差线
+- 讨论部分至少 3 段
+
+### [benchmark] 文献综述标杆
+data/calibration/winners/ISEF_2025_best.txt 这篇的文献综述
+可以作为 9 分标杆：覆盖 30+ 文献，按主题分组，每段结尾有批判性评价。
+</code></pre>
+
+<div class="card card-success">
+  <strong>💡 格式要求：</strong>每条知识卡片以 <code>### [类型] 标题</code> 开头，后跟一段描述。类型必须是上述 6 种之一。标题和描述之间可以自由发挥，系统会自动解析。
+</div>
+
+<div class="card card-info">
+  <strong>📖 详细指南：</strong>知识卡片的完整编写规范、如何在 CLI 和 Gradio 中引用卡片、卡片如何影响校准报告等内容，请参阅 <a href="教师使用指南.html"><strong>docs/教师使用指南.html</strong></a>。
+</div>
 
 
 <!-- ==================== 4. API 接口 ==================== -->

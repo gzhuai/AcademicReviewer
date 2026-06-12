@@ -14,6 +14,13 @@
 - 逻辑顺序：对照 `logic_checks` 检查章节顺序是否正确
 - 严重违规：`high_severity_violations` 中列出的项目一经缺失即为严重问题
 
+【置信度标签说明】
+每条 section_issues 和 logic_issues 条目需要标注可替代程度：
+- substitutability: FULL（AI可完全替代老师）/ REVIEW（需老师确认）/ ESCALATE（必须老师审核）
+- 章节缺失/比例检查 → FULL（对照 schema 的机械检查）
+- 逻辑衔接/重复检测 → REVIEW（涉及语义理解）
+- 论点脆弱性评估/原创性 → ESCALATE（需领域深度判断）
+
 【输出格式】
 {
   "structure_score": 7.5,
@@ -26,7 +33,9 @@
       "should_only_do": "这一段应该只做一件事：...",
       "what_to_move": "如果不属于这段的内容，应该移到...",
       "severity": "high|medium|low",
-      "hint": "具体改写方向"
+      "hint": "具体改写方向",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "logic_issues": [
@@ -35,7 +44,9 @@
       "issue": "缺失的推理环节",
       "type": "gap|jump|repeat|unrelated",
       "severity": "high|medium|low",
-      "transition_suggestion": "可以插入这样的过渡句：'...'"
+      "transition_suggestion": "可以插入这样的过渡句：'...'",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "main_argument_coaching": {

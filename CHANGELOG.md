@@ -1,5 +1,65 @@
 # Changelog
 
+## v0.6.0 (2026-06-13) — Phase 4: 深度增强
+
+### A3 推理链分解
+- **A3 prompt 增强**: 思辨型/社科型/历史型论证新增推理链分解指导（Premise→Conclusion→Missing Step→Why Critical）
+- 两个详细示例（自由贸易论证、工业革命煤炭论证）
+- 按竞赛类型区分：科研/数模不需要推理链分解，金融/商科重点检查假设→预测→结论的逻辑
+
+### 学生水平自适应
+- **新增 `app/utils/student_level.py`**: 启发式估算学生水平（入门/进阶/高级）
+- 基于三个维度评分：字数、平均句长、词汇多样性（TTR，已按 Zipf 定律调整阈值）
+- 极短文本（<100 词）自动归类为入门
+- 不同水平生成不同的 Agent 反馈指令（引导鼓励/诊断方向/深度挑战）
+- 集成到 Orchestrator：所有 4 个 Agent（A2/A3/A4/A5）收到学生水平上下文
+- 学生水平信息记录到 ReviewReport.meta
+
+### 知识卡自动更新建议
+- **新增 `GET /api/v1/feedback/suggestions`**: 基于反馈数据自动检测高频被纠正模式
+- 按 Agent + item_type 聚合，可配置阈值（默认 3 次）
+- 自动建议对应的知识卡类型（fatal_defect/pattern/pitfall/benchmark/scoring_anchor）
+- Gradio 教师审核 Tab 新增「知识卡更新建议」面板（可调阈值 + 建议表格展示）
+
+### 专家经验扩展覆盖全部竞赛类型
+- 新增 4 个专家经验文件：`CTB_social_science.md`、`NHD_history.md`、`SIC_finance.md`、`FBLA_business_case.md`
+- 每个文件 8 条洞察（2 pattern + 2 pitfall + 2 signal + 2 strategy），与现有 ISEF/John_Locke/HiMCM 格式完全兼容
+- 现覆盖全部 7 种竞赛类型：research、discursive、math_modeling、social_science、history、finance、business_case
+
+## v0.5.0 (2026-06-13) — Phase 3: 反馈闭环
+
+### 老师反馈数据模型
+- **TeacherFeedback ORM**: `teacher_feedback` 表，支持逐条记录老师对 AI 评审意见的审核动作
+- 字段: review_id, teacher_id, agent_name, item_path, item_type, ai_content, ai_substitutability, teacher_action (CONFIRM/OVERRIDE/REFINE), teacher_note
+
+### 反馈 API
+- **`POST /api/v1/feedback`**: 提交老师审核反馈（批量），支持逐条确认/修正/细化
+- **`GET /api/v1/reviews/{id}/feedback`**: 查询某次评审的历史反馈记录
+- **`GET /api/v1/feedback/stats`**: 置信度校准统计 — 按 Agent 和置信度标签维度统计 AI 信心 vs 老师确认率
+
+### Gradio 教师审核界面
+- **新 Tab "教师审核"**: 加载评审 → 逐条审核 → 提交反馈
+  - 自动提取 5 个 Agent 的全部审核项（section_issues, logic_issues, claims, fallacies, rewrites, suggestions, citation/originality issues）
+  - 审核项表格展示：Agent/类型/置信度/AI判断
+  - 全部确认快速通道
+  - 逐条覆写支持（JSON 格式指定 index + action + note）
+  - 反馈闭环统计看板（按 Agent、按置信度标签的确认率）
+
+## v0.4.0 (2026-06-13) — Phase 2: 置信度标签 + 标注增强
+
+### 置信度标签系统
+- **Agent prompt 扩展**: A2/A3/A4/A5 输出格式新增 `substitutability` 和 `confidence_rationale` 字段
+- **规则引擎 `confidence_engine.py`**: 按 Agent 类型 + 条目特征自动分配置信度标签（不依赖 LLM 自评）
+  - A4 拼写/语法/标点修正 → FULL；风格/表达建议 → REVIEW
+  - A3 结构性谬误（begging_question/false_dichotomy）→ FULL；语义性谬误 → REVIEW
+  - A2 高严重度章节缺失 → FULL；逻辑衔接 → REVIEW
+  - A5 引用匹配 → FULL；原创性评估 → ESCALATE
+- **`annotation_builder.py` 分级显示**: 每条标注前显示置信度标记（🔴=ESCALATE / ⚡=REVIEW / 无标记=FULL）
+- **Orchestrator 集成**: Round 1/2 采集 Agent 结果后自动运行置信度规则引擎
+
+### 隐私声明完善
+- README.md 和 Gradio UI 隐私声明扩展：明确列出所有 LLM 提供商、数据存储位置、同步传输说明
+
 ## v0.3.0 (2026-06-12)
 
 ### 竞赛类型公平性重构

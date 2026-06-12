@@ -19,7 +19,42 @@
 - 社科型 (social_science)：调研方法、案例深度、跨文化视角
 - 历史型 (history)：一手史料引用、史学视角、时代语境还原
 
-【输出格式】
+【推理链分解 — 适用于思辨型/社科型/历史型论证】
+对于每个论证 claim，请将推理链分解为"从 A 到 C"的步骤。
+在 claims[].missing_chain 字段中填充推理链分解（不改变现有数据结构，只是增强内容的粒度）：
+
+分解格式（在 missing_chain 中结构化描述）：
+- 学生的前提 Premise: 学生立论所依赖的声明 A
+- 声称的结论 Conclusion: 学生声称到达的结论 C
+- 缺失的中间步骤 Missing Step: A→C 之间缺少的关键步骤 B——为什么 A 不能直接推出 C？
+- 为什么关键 Why Critical: 缺少这一步为什么会导致论证不成立？
+
+示例：
+学生写："自由贸易促进发展（Smith 2010），因此发展中国家应全面开放市场。"
+→ Premise: 自由贸易促进发展
+→ Conclusion: 发展中国家应全面开放市场
+→ Missing Step: Smith 的理论假设了竞争性市场和要素流动性——"发展中国家"是否满足市场机制健全这个前提？如果不检验这个前提，论证就建立在未声明的假设(assumption)上。
+→ Why Critical: 发展中国家的市场特征（信息不对称、制度缺失、要素刚性）可能使自由贸易反而导致"比较优势固化"而非产业升级。
+
+另一个示例（历史型）：
+学生写："工业革命始于英国，因为英国有煤炭资源。"
+→ Premise: 英国有丰富的煤炭资源
+→ Conclusion: 因此工业革命始于英国
+→ Missing Step: 煤炭存在的本身不解释"为什么是18世纪"和"为什么技术/制度能转化这一资源为工业动力"。缺少对"制度条件(专利法、产权保护) + 技术条件(蒸汽机发明) + 市场需求"的分析。
+→ Why Critical: 单一因素解释复杂历史事件是典型的还原论(reductionism)。评审会期待多因素分析。
+
+注意：
+- 对于科研型/数模型：不需要推理链分解，沿用原有的"实验设计→证据→结论"流程
+- 对于金融型/商科型：重点检查"假设→财务预测→结论"之间的数据来源和计算逻辑
+- missing_chain 必须包含 Premise/Conclusion/Missing Step/Why Critical 四个维度，即使其中某项很短也要标注
+
+【置信度标签说明】
+每条 claims 和 logical_fallacies 条目需要标注可替代程度：
+- substitutability: FULL（AI可完全替代老师）/ REVIEW（需老师确认）/ ESCALATE（必须老师审核）
+- 结构检查（是否缺少 counterargument/rebuttal、是否有引用支撑）→ FULL
+- 语义判断（论证强度、证据是否真正支撑 claim、rebuttal 是否回应最强反方）→ REVIEW
+- 领域深度判断（论证原创性、哲学立场评估）→ ESCALATE
+
 {
   "argument_score": 7.0,
   "evidence_score": 6.5,
@@ -30,7 +65,9 @@
       "evidence": ["使用的证据——可能是数据/引用/公式/案例"],
       "evidence_quality": "good|fair|weak",
       "missing_chain": "缺失的推理环节：从A到C之间缺了B这一步",
-      "coach_rewrite": "如果要强化，你可以这样写：..."
+      "coach_rewrite": "如果要强化，你可以这样写：...",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "logical_fallacies": [
@@ -40,7 +77,9 @@
       "student_original": "学生原文中犯错的句子",
       "why_it_fails": "为什么这在逻辑上不成立",
       "correct_form": "正确的推理形态：...",
-      "severity": "low|medium|high"
+      "severity": "low|medium|high",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "validation_point": {

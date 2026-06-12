@@ -93,6 +93,12 @@ class Orchestrator:
         doc = parse_document(file_path)
         logger.info(f"Parsed document: {doc.word_count} words, {competition=}, type={comp_config['type']}")
 
+        # Estimate student level
+        from app.utils.student_level import estimate_student_level
+        level_estimation = estimate_student_level(doc.text)
+        student_level_context = level_estimation.to_prompt_context()
+        logger.info(f"Student level: {level_estimation.level.value} (confidence={level_estimation.confidence})")
+
         rubric_config = self._load_rubric_config(competition)
 
         from app.agents.rubric_parser import RubricParserAgent
@@ -111,11 +117,13 @@ class Orchestrator:
                 document_text=doc.text,
                 competition_type=comp_config["type"],
                 knowledge_cards=knowledge_cards_context,
+                student_level=student_level_context,
             ),
             self._get_agent(ArgumentEvidenceAgent).run(
                 document_text=doc.text,
                 competition_type=evidence_cfg,
                 knowledge_cards=knowledge_cards_context,
+                student_level=student_level_context,
             ),
         ]
 
@@ -130,9 +138,11 @@ class Orchestrator:
             if agent_name == "RubricParser":
                 report.rubric = r
             elif agent_name == "StructureLogic":
-                report.structure = r
+                from app.utils.confidence_engine import apply_confidence_labels
+                report.structure = apply_confidence_labels("StructureLogic", r)
             elif agent_name == "ArgumentEvidence":
-                report.argument = r
+                from app.utils.confidence_engine import apply_confidence_labels
+                report.argument = apply_confidence_labels("ArgumentEvidence", r)
 
         r1_t = time.perf_counter() - t0
         logger.info(f"Round 1 completed in {r1_t:.1f}s")
@@ -150,11 +160,13 @@ class Orchestrator:
             self._get_agent(LanguageStyleAgent).run(
                 document_text=doc.text,
                 style_guide=style_guide,
+                student_level=student_level_context,
             ),
             self._get_agent(AcademicIntegrityAgent).run(
                 document_text=doc.text,
                 references_section=ref_section,
                 similarity_report="{}",
+                student_level=student_level_context,
             ),
         ]
 
@@ -167,9 +179,11 @@ class Orchestrator:
                 continue
             agent_name = r.get("agent", "")
             if agent_name == "LanguageStyle":
-                report.language = r
+                from app.utils.confidence_engine import apply_confidence_labels
+                report.language = apply_confidence_labels("LanguageStyle", r)
             elif agent_name == "AcademicIntegrity":
-                report.integrity = r
+                from app.utils.confidence_engine import apply_confidence_labels
+                report.integrity = apply_confidence_labels("AcademicIntegrity", r)
 
         total_elapsed = time.perf_counter() - t0
         report.total_score = self._compute_total_score(report)
@@ -177,6 +191,7 @@ class Orchestrator:
         report.meta["word_count"] = doc.word_count
         report.meta["model"] = self.llm.model_name()
         report.meta["provider"] = self.llm.provider_name()
+        report.meta["student_level"] = level_estimation.to_summary()
 
         # Generate annotated document
         try:

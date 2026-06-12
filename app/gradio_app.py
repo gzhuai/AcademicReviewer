@@ -15,6 +15,110 @@ logger = logging.getLogger("gradio_app")
 API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 
 
+# ── Feedback extraction helper ──
+
+def _extract_review_items(feedback_json: dict) -> list[dict]:
+    """从 review feedback JSON 中提取所有可审核的条目。
+
+    返回列表，每个条目包含:
+        agent_name, item_path, item_type, ai_content, ai_substitutability
+    """
+    items = []
+
+    # A2 StructureLogic
+    structure = feedback_json.get("structure", {})
+    for i, si in enumerate(structure.get("section_issues", [])):
+        content = si.get("current_problem", "") or si.get("hint", "")
+        items.append({
+            "agent_name": "A2-StructureLogic",
+            "item_path": f"structure.section_issues[{i}]",
+            "item_type": "section_issue",
+            "ai_content": content[:300],
+            "ai_substitutability": si.get("substitutability", "REVIEW"),
+            "severity": si.get("severity", ""),
+        })
+    for i, li in enumerate(structure.get("logic_issues", [])):
+        content = li.get("issue", "") or li.get("transition_suggestion", "")
+        items.append({
+            "agent_name": "A2-StructureLogic",
+            "item_path": f"structure.logic_issues[{i}]",
+            "item_type": "logic_issue",
+            "ai_content": content[:300],
+            "ai_substitutability": li.get("substitutability", "REVIEW"),
+            "severity": li.get("severity", ""),
+        })
+
+    # A3 ArgumentEvidence
+    argument = feedback_json.get("argument", {})
+    for i, cl in enumerate(argument.get("claims", [])):
+        content = cl.get("missing_chain", "") or cl.get("coach_rewrite", "") or cl.get("claim", "")
+        items.append({
+            "agent_name": "A3-ArgumentEvidence",
+            "item_path": f"argument.claims[{i}]",
+            "item_type": "claim",
+            "ai_content": content[:300],
+            "ai_substitutability": cl.get("substitutability", "REVIEW"),
+        })
+    for i, fl in enumerate(argument.get("logical_fallacies", [])):
+        content = f"{fl.get('fallacy_type', '')}: {fl.get('why_it_fails', '')}"
+        items.append({
+            "agent_name": "A3-ArgumentEvidence",
+            "item_path": f"argument.logical_fallacies[{i}]",
+            "item_type": "logical_fallacy",
+            "ai_content": content[:300],
+            "ai_substitutability": fl.get("substitutability", "REVIEW"),
+            "severity": fl.get("severity", ""),
+        })
+
+    # A4 LanguageStyle
+    language = feedback_json.get("language", {})
+    for i, rw in enumerate(language.get("rewrites", [])):
+        content = f"{rw.get('original', '')} → {rw.get('corrected', '')} ({rw.get('issue', '')})"
+        items.append({
+            "agent_name": "A4-LanguageStyle",
+            "item_path": f"language.rewrites[{i}]",
+            "item_type": "rewrite",
+            "ai_content": content[:300],
+            "ai_substitutability": rw.get("substitutability", "FULL"),
+        })
+    for i, sg in enumerate(language.get("suggestions", [])):
+        content = f"{sg.get('type', '')}: {sg.get('description', '')}"
+        items.append({
+            "agent_name": "A4-LanguageStyle",
+            "item_path": f"language.suggestions[{i}]",
+            "item_type": "suggestion",
+            "ai_content": content[:300],
+            "ai_substitutability": sg.get("substitutability", "REVIEW"),
+        })
+
+    # A5 AcademicIntegrity
+    integrity = feedback_json.get("integrity", {})
+    cr = integrity.get("citation_report", {})
+    if cr:
+        issues = cr.get("format_issues", []) + cr.get("suspicious_citations", [])
+        for i, iss in enumerate(issues):
+            items.append({
+                "agent_name": "A5-AcademicIntegrity",
+                "item_path": f"integrity.citation_report.issues[{i}]",
+                "item_type": "citation_issue",
+                "ai_content": str(iss)[:300],
+                "ai_substitutability": cr.get("substitutability", "FULL"),
+            })
+    or_report = integrity.get("originality_report", {})
+    if or_report:
+        flags = or_report.get("similarity_flags", []) + or_report.get("ai_generation_flags", [])
+        for i, flg in enumerate(flags):
+            items.append({
+                "agent_name": "A5-AcademicIntegrity",
+                "item_path": f"integrity.originality_report.flags[{i}]",
+                "item_type": "originality_flag",
+                "ai_content": str(flg)[:300],
+                "ai_substitutability": or_report.get("substitutability", "ESCALATE"),
+            })
+
+    return items
+
+
 def _api(path: str, method: str = "GET", **kwargs):
     url = f"{API_BASE}{path}"
     try:
@@ -236,12 +340,192 @@ CSS = """
 """
 
 
+# ── Teacher Review functions ──
+
+def load_review_for_teacher(submission_id: int):
+    """加载评审结果供老师审核。返回 (annotated_md, items_summary, items_state)。"""
+    if not submission_id or submission_id <= 0:
+        return "请输入有效的 Submission ID", "", [], ""
+
+    data = _api(f"/api/v1/reviews/{submission_id}")
+    if "error" in data:
+        return f"加载失败: {data['error']}", "", [], ""
+
+    reviews = data.get("reviews", [])
+    if not reviews:
+        return "未找到评审记录", "", [], ""
+
+    latest = reviews[0]
+    feedback = latest.get("feedback", {})
+    if isinstance(feedback, str):
+        try:
+            feedback = json.loads(feedback)
+        except json.JSONDecodeError:
+            feedback = {}
+
+    # Build annotated markdown
+    meta = feedback.get("meta", {})
+    annotated_md = meta.get("annotated_md", "")
+
+    # Show review summary
+    scores = latest.get("scores", {})
+    summary = f"""## 评审概要
+- **ID**: {data.get('submission_id')}
+- **学生**: {data.get('student_name', '-')}
+- **竞赛**: {data.get('competition')} ({data.get('competition_type')})
+- **总评分**: {latest.get('total_score', '-')}
+- **A1-Rubric**: {scores.get('rubric', '-')} | **A2-Structure**: {scores.get('structure', '-')}
+- **A3-Argument**: {scores.get('argument', '-')} | **A4-Language**: {scores.get('language', '-')}
+- **A5-Integrity**: {scores.get('integrity', '-')} | **模型**: {latest.get('model_provider', '-')}
+"""
+
+    # Extract items
+    items = _extract_review_items(feedback)
+
+    # Build items summary
+    full_count = sum(1 for it in items if it["ai_substitutability"] == "FULL")
+    review_count = sum(1 for it in items if it["ai_substitutability"] == "REVIEW")
+    escalate_count = sum(1 for it in items if it["ai_substitutability"] == "ESCALATE")
+
+    items_md = f"""## 审核项列表（共 {len(items)} 条）
+
+| # | Agent | 类型 | 置信度 | AI 判断 |
+|---|-------|------|--------|---------|
+"""
+    for i, it in enumerate(items):
+        emoji_map = {"FULL": "", "REVIEW": "⚡", "ESCALATE": "🔴"}
+        emoji = emoji_map.get(it["ai_substitutability"], "")
+        content = it["ai_content"].replace("\n", " ")[:120]
+        sev = f"[{it.get('severity', '')}]" if it.get("severity") else ""
+        items_md += f"| {i} | {it['agent_name']} | {it['item_type']}{sev} | {emoji}{it['ai_substitutability']} | {content} |\n"
+
+    items_md += f"""
+> **汇总**: {full_count} FULL (可直接信任) | {review_count} REVIEW (需确认) | {escalate_count} ESCALATE (必须审核)
+"""
+
+    full_report = annotated_md if annotated_md else "*(无标注报告)*"
+    combined = summary + "\n---\n" + full_report
+    items_json = json.dumps(items, ensure_ascii=False)
+
+    return combined, items_md, items, items_json
+
+
+def submit_teacher_feedback(submission_id: int, teacher_id: str, items_state: list, override_notes: str) -> str:
+    """提交老师审核反馈。
+
+    items_state: 从 load_review_for_teacher 返回的 items list
+    override_notes: 覆写说明 JSON 文本，格式: [{"index": 0, "action": "OVERRIDE", "note": "..."}]
+    """
+    if not items_state:
+        return "请先加载评审结果"
+
+    # Parse override notes
+    overrides = {}
+    if override_notes and override_notes.strip():
+        try:
+            ov = json.loads(override_notes)
+            for entry in ov:
+                idx = entry.get("index")
+                if idx is not None and 0 <= idx < len(items_state):
+                    overrides[idx] = {
+                        "action": entry.get("action", "OVERRIDE"),
+                        "note": entry.get("note", ""),
+                    }
+        except json.JSONDecodeError:
+            return "覆写说明格式错误：请输入有效的 JSON 数组"
+
+    # Get review_id
+    data = _api(f"/api/v1/reviews/{submission_id}")
+    if "error" in data:
+        return f"加载评审失败: {data['error']}"
+    reviews = data.get("reviews", [])
+    if not reviews:
+        return "未找到评审记录"
+    review_id = reviews[0].get("review_id")
+
+    # Build corrections
+    corrections = []
+    for i, item in enumerate(items_state):
+        if i in overrides:
+            corrections.append({
+                "agent_name": item["agent_name"],
+                "item_path": item["item_path"],
+                "item_type": item["item_type"],
+                "ai_content": item["ai_content"],
+                "ai_substitutability": item["ai_substitutability"],
+                "teacher_action": overrides[i]["action"],
+                "teacher_note": overrides[i]["note"],
+            })
+        else:
+            corrections.append({
+                "agent_name": item["agent_name"],
+                "item_path": item["item_path"],
+                "item_type": item["item_type"],
+                "ai_content": item["ai_content"],
+                "ai_substitutability": item["ai_substitutability"],
+                "teacher_action": "CONFIRM",
+                "teacher_note": "",
+            })
+
+    payload = {
+        "review_id": review_id,
+        "teacher_id": teacher_id or "anonymous",
+        "corrections": corrections,
+    }
+
+    resp = _api("/api/v1/feedback", "POST", json=payload)
+    if "error" in resp:
+        return f"提交失败: {resp['error']}"
+
+    confirmed = sum(1 for c in corrections if c["teacher_action"] == "CONFIRM")
+    overridden = sum(1 for c in corrections if c["teacher_action"] == "OVERRIDE")
+    refined = sum(1 for c in corrections if c["teacher_action"] == "REFINE")
+    return f"✅ 反馈已提交 ({resp.get('saved', 0)} 条): {confirmed} 确认, {overridden} 修正, {refined} 细化"
+
+
+def load_feedback_stats():
+    """加载反馈统计。"""
+    data = _api("/api/v1/feedback/stats")
+    if "error" in data:
+        return f"加载失败: {data['error']}"
+
+    total = data.get("total_feedback", 0)
+    if total == 0:
+        return "暂无反馈数据。完成教师审核后自动积累。"
+
+    md = f"""## 反馈闭环统计
+
+**总计**: {total} 条反馈
+**整体确认率**: {data.get('overall_confirmation_rate', 0)*100:.1f}%
+  - ✅ 确认: {data.get('total_confirmed', 0)}
+  - ✏️ 修正: {data.get('total_overridden', 0)}  
+  - 🔧 细化: {data.get('total_refined', 0)}
+
+### 按 Agent
+| Agent | 总数 | 确认 | 修正 | 细化 | 确认率 |
+|-------|------|------|------|------|--------|
+"""
+    by_agent = data.get("by_agent", {})
+    for agent, stats in sorted(by_agent.items()):
+        md += f"| {agent} | {stats['total']} | {stats['confirmed']} | {stats['overridden']} | {stats['refined']} | {stats['confirmation_rate']*100:.1f}% |\n"
+
+    md += "\n### 按置信度标签\n"
+    md += "| AI 标签 | 总数 | 确认 | 修正 | 细化 | 确认率 |\n"
+    md += "|---------|------|------|------|------|--------|\n"
+    by_sub = data.get("by_substitutability", {})
+    for sub, stats in sorted(by_sub.items()):
+        emoji = {"FULL": "", "REVIEW": "⚡", "ESCALATE": "🔴"}.get(sub, "")
+        md += f"| {emoji}{sub} | {stats['total']} | {stats['confirmed']} | {stats['overridden']} | {stats['refined']} | {stats['confirmation_rate']*100:.1f}% |\n"
+
+    return md
+
+
 def build_ui():
     with gr.Blocks(title="AcademicReviewer") as demo:
         gr.Markdown("# AcademicReviewer — 学术竞赛论文智能评审系统")
         gr.Markdown("""
-> **隐私说明**：提交的论文全文将发送到您所选 LLM 提供商（DeepSeek/OpenAI/Gemini）的 API 进行处理。
-> 请勿上传包含身份证号、联系方式等个人敏感信息的学生作品。评审结果本地存储，不上传至第三方。
+> **隐私声明**：提交的论文全文将发送到您选择的 LLM 提供商（DeepSeek / OpenAI / Gemini / GLM）的 API 进行评审处理。
+> 请勿上传包含身份证号、联系方式等个人敏感信息的学生作品。评审结果仅在本地 SQLite 数据库存储，不上传至第三方。
 > 团队协作模式下，评审数据经内网同步到中央服务器，传输内容与上述相同。
 """)
 
@@ -621,6 +905,95 @@ def build_ui():
                     del_btn = gr.Button("确认删除", variant="stop")
                     del_result = gr.Markdown("")
                     del_btn.click(fn=delete_competition_fn, inputs=[del_name], outputs=[del_result, del_name])
+
+            # Tab 7: Teacher Review (Phase 3: 反馈闭环)
+            with gr.TabItem("教师审核"):
+                gr.Markdown("### 📝 教师审核 — AI评审结果人工复核")
+                gr.Markdown("加载已完成的评审，逐条确认/修正/细化 AI 的评审意见，积累数据用于置信度校准。")
+
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        gr.Markdown("#### 1. 加载评审")
+                        teacher_submission_id = gr.Number(label="Submission ID", value=0, precision=0)
+                        teacher_id_input = gr.Textbox(label="教师姓名", placeholder="张老师")
+                        load_review_btn = gr.Button("加载评审", variant="primary")
+                        teacher_items_state = gr.State([])
+
+                    with gr.Column(scale=1):
+                        gr.Markdown("#### 2. 提交反馈")
+                        gr.Markdown("覆写项格式 (JSON): `[{\"index\": 0, \"action\": \"OVERRIDE\", \"note\": \"...\"}]`")
+                        gr.Markdown("- action: CONFIRM / OVERRIDE / REFINE")
+                        override_notes = gr.Textbox(
+                            label="覆写说明 (可选)",
+                            placeholder='[{"index": 3, "action": "OVERRIDE", "note": "rebuttal 确实回应了核心主张"}]',
+                            lines=4,
+                        )
+                        submit_feedback_btn = gr.Button("提交审核反馈", variant="primary", size="lg")
+                        submit_all_confirm_btn = gr.Button("全部确认 (快速通道)", variant="secondary")
+
+                teacher_result = gr.Markdown("")
+
+                with gr.Accordion("📋 审核项明细", open=True):
+                    teacher_items_md = gr.Markdown("加载评审后显示")
+
+                with gr.Accordion("📄 标注报告", open=False):
+                    teacher_annotated_md = gr.Markdown("加载评审后显示", elem_classes="report-box")
+
+                load_review_btn.click(
+                    fn=load_review_for_teacher,
+                    inputs=[teacher_submission_id],
+                    outputs=[teacher_annotated_md, teacher_items_md, teacher_items_state, gr.State("")],
+                )
+
+                submit_feedback_btn.click(
+                    fn=submit_teacher_feedback,
+                    inputs=[teacher_submission_id, teacher_id_input, teacher_items_state, override_notes],
+                    outputs=[teacher_result],
+                )
+
+                submit_all_confirm_btn.click(
+                    fn=lambda sid, tid, items: submit_teacher_feedback(sid, tid, items, ""),
+                    inputs=[teacher_submission_id, teacher_id_input, teacher_items_state],
+                    outputs=[teacher_result],
+                )
+
+                gr.Markdown("---")
+                gr.Markdown("### 📊 反馈闭环统计")
+                feedback_stats_btn = gr.Button("加载统计", variant="secondary")
+                feedback_stats_md = gr.Markdown("点击加载反馈统计数据")
+                feedback_stats_btn.click(fn=load_feedback_stats, outputs=[feedback_stats_md])
+
+                gr.Markdown("---")
+                gr.Markdown("### 💡 知识卡更新建议")
+                gr.Markdown("检测被老师反复纠正的审核模式，建议补充或修正知识卡条目。")
+                with gr.Row():
+                    suggestion_threshold = gr.Number(label="触发阈值 (最低修正次数)", value=3, precision=0)
+                    suggestion_btn = gr.Button("检测建议", variant="secondary")
+                suggestion_md = gr.Markdown("")
+
+                def load_feedback_suggestions(threshold_val):
+                    data = _api(f"/api/v1/feedback/suggestions?threshold={int(threshold_val or 3)}")
+                    if "error" in data:
+                        return f"加载失败: {data['error']}"
+                    suggestions = data.get("suggestions", [])
+                    if not suggestions:
+                        return f"✅ 当前无建议（共 {data.get('total_override_events', 0)} 次修正事件，均未超过阈值 {data['threshold']}）"
+
+                    md = f"## 知识卡更新建议（阈值={data['threshold']}）\n\n"
+                    md += f"共 {data['total_override_events']} 次修正事件，{len(suggestions)} 个高频模式：\n\n"
+                    md += "| Agent | 条目类型 | 被修正次数 | 建议知识卡类型 | 教师备注样例 |\n"
+                    md += "|-------|----------|-----------|---------------|-------------|\n"
+                    for s in suggestions:
+                        notes = "; ".join(s.get("sample_teacher_notes", [])[:2])
+                        md += f"| {s['agent_name']} | {s['item_type']} | {s['override_count']} | {s['knowledge_card_type']} | {notes[:100]} |\n"
+                    md += f"\n> {data.get('note', '')}"
+                    return md
+
+                suggestion_btn.click(
+                    fn=load_feedback_suggestions,
+                    inputs=[suggestion_threshold],
+                    outputs=[suggestion_md],
+                )
 
     return demo
 

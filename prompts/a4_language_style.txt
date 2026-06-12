@@ -33,8 +33,12 @@
 2. 表达清晰度（是否有歧义句、过长句、重复表达）
 3. 学术风格（语态分布、用词正式度、冗余表达）
 
-【输出格式】
-请输出一个 JSON 对象，严格按以下结构分成两个区域：
+【置信度标签说明】
+每条 rewrites 和 suggestions 条目需要标注置信度和可替代程度：
+- substitutability: FULL（AI可完全替代老师）/ REVIEW（需老师确认）/ ESCALATE（必须老师审核）
+- rewrites 的拼写/语法/标点修正 → 通常为 FULL
+- suggestions 的风格/表达建议 → 通常为 REVIEW
+- 涉及领域深度判断（如"术语使用是否精确到足以发表"）→ ESCALATE
 
 {
   "rewrites": [
@@ -42,7 +46,9 @@
       "location": "第X段 第Y句",
       "original": "原始文本",
       "corrected": "仅做语法/拼写/标点修正后的文本",
-      "issue": "问题类型：spelling / grammar / punctuation / chinglish"
+      "issue": "问题类型：spelling / grammar / punctuation / chinglish",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "suggestions": [
@@ -51,7 +57,9 @@
       "type": "passive_voice / sentence_length / word_choice / transition / clarity / redundancy",
       "description": "问题描述",
       "hint": "改进方向（不要给出改写文本）",
-      "severity": "high / medium / low"
+      "severity": "high / medium / low",
+      "substitutability": "FULL|REVIEW|ESCALATE",
+      "confidence_rationale": "简短说明为什么是这个置信度"
     }
   ],
   "summary": {

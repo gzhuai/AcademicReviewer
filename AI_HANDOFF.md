@@ -2,7 +2,7 @@
 
 > **Who this is for:** AI coding assistants (Claude Code, Codex, Cursor, Copilot, etc.) that need to understand this codebase quickly and accurately.
 > **Language:** All source code comments and docs are in Chinese. This doc is in English for maximum AI comprehension.
-> **Last updated:** 2026-06-12
+> **Last updated:** 2026-06-13
 
 ---
 
@@ -64,10 +64,13 @@ All adapters use `httpx.AsyncClient` with 3 retries. No LangChain. Self-register
 | `gemini_adapter.py` | Gemini | gemini-pro | Uses Google REST API; system prompt simulated via user/model conversation pairs |
 | `glm_adapter.py` | GLM (Zhipu) | glm-4-plus | OpenAI-compatible protocol |
 
+| `app/utils/annotation_builder.py` | Builds annotated Markdown from 5-Agent feedback. Phase 2 added FULL/REVIEW/ESCALATE confidence markers. |
+| `app/utils/confidence_engine.py` | Rule engine for substitutability labels (Phase 2). Runs post-agent, pre-annotation. |
+
 ### Models (`app/models/`)
 | File | Role |
 |------|------|
-| `submission.py` | 3 SQLAlchemy ORM models: `Submission` (paper metadata), `Review` (agent scores + `feedback_json`), `CalibrationRecord` (sync history) |
+| `submission.py` | 4 SQLAlchemy ORM models: `Submission` (paper metadata), `Review` (agent scores + `feedback_json`), `CalibrationRecord` (sync history), `TeacherFeedback` (Phase 3: per-item teacher corrections) |
 
 ### Utils (`app/utils/`)
 | File | Role |
@@ -76,6 +79,8 @@ All adapters use `httpx.AsyncClient` with 3 retries. No LangChain. Self-register
 | `citation_checker.py` | **Rule engine (zero LLM).** `check_citations(text, refs_section)` → `CitationReport(total_cites, matched_count, unmatched_cites, unmatched_refs, match_rate, format_issues)`. Uses 4 regex patterns for cite key extraction + substring matching against reference section. |
 | `vector_store.py` | ChromaDB wrapper. `index_document()` chunks text and adds to collection. `check_originality()` queries top-k similar chunks, computes originality score from similarity thresholds (high≥0.75, medium≥0.50). Cosine distance, HNSW space. |
 | `sync.py` | **Team collaboration.** `report_review()` / `report_calibration()` fire-and-forget POST to central server. `pull_configs_from_server(dry_run=True/False)` GETs configs, diffs, applies with backup. Uses `_get_instance_name()`: `settings.instance_name` or `socket.gethostname()`. |
+| `confidence_engine.py` | **Phase 2.** Rule engine for substitutability labels (FULL/REVIEW/ESCALATE). Runs post-agent, pre-annotation. Not LLM-dependent. |
+| `student_level.py` | **Phase 4.** Heuristic student level estimation (beginner/intermediate/advanced) from word count, avg sentence length, and vocabulary diversity. TTR thresholds adjusted for Zipf's law. Injects level-appropriate feedback guidance into all 4 review agents. |
 
 ### Calibration Engine (`app/calibration/`) — Phase 3, pure statistics (no LLM)
 | File | Role |
@@ -123,6 +128,14 @@ All under `/api/v1/`:
 | `GET` | `/admin/dashboard` | Aggregated dashboard (total reviews, calibrations by instance/competition, recent records) | — |
 | `GET` | `/admin/competitions` | List all registered competitions with full config | — |
 | `POST` | `/admin/competitions` | Save competition registry (add/edit/delete). Auto-backs up old config. | JSON body with `competitions` array |
+
+### Phase 3 Feedback Endpoints (v0.5.0)
+| Method | Path | Purpose | Key Params |
+|--------|------|---------|------------|
+| `POST` | `/api/v1/feedback` | Submit teacher review corrections | JSON body: `review_id`, `teacher_id`, `corrections[]` |
+| `GET` | `/api/v1/reviews/{submission_id}/feedback` | Get all feedback for a submission | — |
+| `GET` | `/api/v1/feedback/stats` | Confidence calibration stats (by agent, by substitutability) | — |
+| `GET` | `/api/v1/feedback/suggestions` | **Phase 4.** Detect repeatedly-overridden patterns for knowledge card updates | `threshold` (default 3) |
 
 All responses are JSON. Errors return `{"detail": "..."}` with appropriate HTTP status codes.
 
