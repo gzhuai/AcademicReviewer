@@ -319,6 +319,7 @@ vp = argument.get("validation_point") or argument.get("counterargument_analysis"
   <tr><td>v1.5</td><td>2026-05-14</td><td>5 Agent 专用开发版。A4 Iron Law 确立。A5 规则引擎 + 语义比对双路径。</td></tr>
   <tr><td>v1.6</td><td>2026-06-09</td><td>教练型风格上线。"缺→问→改"三步法。thesis_coaching 和 counterargument_analysis 新增。原文标注输出模式。</td></tr>
   <tr><td><strong>v1.7</strong></td><td>2026-06-10</td><td><strong>竞赛类型感知重构。</strong>通用教练层与竞赛专用层拆分。sections_found 不再硬编码。counterargument_analysis → validation_point（类型切换）。thesis_coaching → main_argument_coaching（语义泛化）。quantitative_check 回归。A3 agent 注入 type hint。fallacy 类型扩充。</td></tr>
+  <tr><td><strong>v1.8</strong></td><td>2026-06-12</td><td><strong>深度竞赛公平性重构。</strong> 校准引擎特征集按类型切换（FEATURES_BY_TYPE、BINARY_FEATURES_BY_TYPE、FEATURE_TO_CONFIG_MAP_BY_TYPE）。Agent 权重按竞赛可配置。A4 加载并使用 style_guides JSON。A3 type_hints 移到配置文件。安全加固（Bearer Token + 文件验证）。</td></tr>
 </table>
 
 <div class="hr"></div>

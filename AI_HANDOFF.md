@@ -2,7 +2,7 @@
 
 > **Who this is for:** AI coding assistants (Claude Code, Codex, Cursor, Copilot, etc.) that need to understand this codebase quickly and accurately.
 > **Language:** All source code comments and docs are in Chinese. This doc is in English for maximum AI comprehension.
-> **Last updated:** 2026-05-15
+> **Last updated:** 2026-06-12
 
 ---
 
@@ -35,8 +35,8 @@ scripts/start_all.bat                      # Windows one-click launcher
 | File | Role |
 |------|------|
 | `app/main.py` | **FastAPI app.** All REST endpoints. File upload handling, DB session management. Defines `app = FastAPI(title="AcademicReviewer", version="0.2.0")`. |
-| `app/orchestrator.py` | **Scheduler.** `Orchestrator.review()` runs Round 1 (A1+A2+A3 in `asyncio.gather`) → Round 2 (A4+A5). Computes weighted total score from `AGENT_WEIGHTS`. Uses lazy imports inside method body to avoid circular deps. |
-| `app/config.py` | **Global config singleton.** `Settings` class via `pydantic-settings`. Provides `normalize_competition_name()` (alias-based canonical name matching) and `get_competition_list()`. |
+| `app/orchestrator.py` | **Scheduler.** `Orchestrator.review()` runs Round 1 (A1+A2+A3 in `asyncio.gather`) → Round 2 (A4+A5). Computes weighted total score from per-competition `agent_weights` in `competition_registry.json` (defaults exist). Loads `style_guide` JSON and passes to A4. Uses lazy imports inside method body to avoid circular deps. |
+| `app/config.py` | **Global config singleton.** `Settings` class via `pydantic-settings`. Provides `normalize_competition_name()`, `get_competition_list()`, and `api_token` (Bearer auth, optional). |
 | `app/database.py` | SQLAlchemy engine + session factory. `init_db()` calls `Base.metadata.create_all()`. |
 
 ### Agents (`app/agents/`) — 5 LLM-powered reviewers
@@ -45,11 +45,11 @@ Each agent extends `BaseAgent` and has a `.txt` prompt template in `prompts/`.
 | File | Agent | Prompt | Weight | What it checks |
 |------|-------|--------|--------|----------------|
 | `base.py` | `BaseAgent` (ABC) | — | — | `_load_prompt()`, `run()` calls `self.llm.chat_json()`, standardizes return dict with `agent/model/provider/duration_seconds` |
-| `rubric_parser.py` | A1 RubricParser | `a1_rubric_parser.txt` | 0.25 | Parses competition rubric JSON into structured dimension tree |
-| `structure_logic.py` | A2 StructureLogic | `a2_structure_logic.txt` | 0.20 | Checks skeleton completeness, section ratios, paragraph cohesion against `configs/structure_schemas/*.json` |
-| `argument_evidence.py` | A3 ArgumentEvidence | `a3_argument_evidence.txt` | 0.25 | Claim-evidence matching, logical fallacy detection, fatal_defects, quantitative requirements from `configs/evidence_patterns/*.json` |
-| `language_style.py` | A4 LanguageStyle | `a4_language_style.txt` | 0.15 | Grammar/spelling/punctuation rewrites (Iron Law: only fix surface errors, never restructure sentences) |
-| `academic_integrity.py` | A5 AcademicIntegrity | `a5_academic_integrity.txt` | 0.15 | Citation matching (rules engine) + originality check (ChromaDB) + LLM synthesis |
+| `rubric_parser.py` | A1 RubricParser | `a1_rubric_parser.txt` | from registry | Parses competition rubric JSON into structured dimension tree |
+| `structure_logic.py` | A2 StructureLogic | `a2_structure_logic.txt` | from registry | Checks skeleton completeness against `configs/structure_schemas/{type}.json`. Type-agnostic coaching prompt with per-type sections from config. |
+| `argument_evidence.py` | A3 ArgumentEvidence | `a3_argument_evidence.txt` | from registry | Claim-evidence matching, logical fallacy detection. Type hints loaded from `configs/competition_type_hints.json`. `validation_point` type auto-switches per competition type. |
+| `language_style.py` | A4 LanguageStyle | `a4_language_style.txt` | from registry | Grammar/spelling/punctuation rewrites (Iron Law: only fix surface errors). Receives `style_guide` JSON from orchestrator — e.g. tech_academic allows 40% passive, discursive caps at 30%. |
+| `academic_integrity.py` | A5 AcademicIntegrity | `a5_academic_integrity.txt` | from registry | Citation matching (rules engine) + originality check (ChromaDB) + LLM synthesis |
 
 **Agent execution model:** `BaseAgent.run(**kwargs)` → `_build_system_prompt(kwargs)` + `_build_user_message(kwargs)` → `llm.chat_json(system, user, temperature=0.2)` → dict. Each agent overrides `_build_user_message()` to format its specific input.
 
@@ -80,10 +80,10 @@ All adapters use `httpx.AsyncClient` with 3 retries. No LangChain. Self-register
 ### Calibration Engine (`app/calibration/`) — Phase 3, pure statistics (no LLM)
 | File | Role |
 |------|------|
-| `engine.py` | **Pipeline orchestrator.** `run_calibration()` chains: feature extraction → Cohen's d → cross-validation → config diff → expert parsing → report generation. Also fires `report_calibration()` sync if configured. |
-| `feature_extractor.py` | 21-dimension text feature extraction (regex + stats, zero LLM). Citation density, passive/active ratio, TTR, transition density, sentence length stats, binary features (has_p_value, has_control_group, etc.). Outputs `DocumentFeatures` dataclass. |
+| `engine.py` | **Pipeline orchestrator.** `run_calibration()` chains: feature extraction → Cohen's d → cross-validation → config diff → expert parsing → report generation. Features and config mappings are **per-competition-type**: `feature_names(type)` returns 21 features for research, 15 for discursive. `FEATURE_TO_CONFIG_MAP_BY_TYPE` provides type-specific mapping. |
+| `feature_extractor.py` | Type-aware text feature extraction (regex + stats, zero LLM). `FEATURES_BY_TYPE` dict: research gets 21 features (including has_p_value, has_effect_size), discursive gets 15 (excluding research-only binary checks). Outputs `DocumentFeatures` dataclass. |
+| `diff_generator.py` | `generate_rule_updates()` maps effect sizes to config paths via `FEATURE_TO_CONFIG_MAP_BY_TYPE`. `generate_fatal_defect_updates(competition_type)` uses `BINARY_FEATURES_BY_TYPE` — so John Locke won't suggest "missing p-value" as fatal defect. `diff_configs(old, new)` recursive dict diff. |
 | `cohens_d.py` | `compute_effect_sizes(w_features, l_features)` → list of `EffectSizeResult`. Labels: large (d≥0.8), major (d≥0.5), minor (d≥0.2), none. `cross_validate(my_w, ext_w)` for external validation. |
-| `diff_generator.py` | `generate_rule_updates()` maps effect sizes to config paths via `FEATURE_TO_CONFIG_MAP`. `generate_fatal_defect_updates()` detects binary features where loser_rate ≫ winner_rate. `diff_configs(old, new)` recursive dict diff. |
 | `report_generator.py` | `generate_calibration_report()` → Markdown string: effect size table, cross-validation table, config change proposals, manual review checklist, expert insights section. |
 | `expert_annotator.py` | Mode 3: structured teacher insight parser (regex, zero LLM). Parses `### [type] feature_name` format. `FEATURE_KEYWORDS` dict maps keywords to features. |
 | `expert_freeform_parser.py` | Mode 1/2: semi/free-form teacher insight parser (uses LLM for text→knowledge extraction, then local keyword mapping for feature assignment to prevent hallucination). |
@@ -125,6 +125,8 @@ All under `/api/v1/`:
 | `POST` | `/admin/competitions` | Save competition registry (add/edit/delete). Auto-backs up old config. | JSON body with `competitions` array |
 
 All responses are JSON. Errors return `{"detail": "..."}` with appropriate HTTP status codes.
+
+**Security:** All endpoints under `/api/v1/` are gated by optional Bearer Token auth. Set `API_TOKEN=secret` in `.env` to enable. File uploads capped at 50MB, extensions whitelisted to `.txt/.md/.pdf/.docx`.
 
 ---
 
@@ -251,6 +253,10 @@ Key implications:
 
 6. **All state is local.** SQLite + ChromaDB are file-based. No external database server needed. Data dirs created automatically via `ensure_dirs()`.
 
+7. **Competition-type-aware calibration.** The calibration engine uses different feature sets per competition type: research gets 21 features (including p-value/effect size), discursive gets 15. Fatal defect detection also varies — John Locke will never suggest "missing p-value" as a critical flaw. Agent weights are per-competition in `competition_registry.json` (e.g., John Locke weights Structure at 30%, ISEF weights Evidence at 30%).
+
+8. **Security is opt-in.** Bearer Token auth is available but disabled by default (`API_TOKEN=""`). All `/api/v1/*` endpoints accept a `Depends(_verify_api_token)` parameter that passes through when unconfigured. File uploads validated server-side (50MB cap, extension whitelist).
+
 ---
 
 ## 9. Common Pitfalls / Gotchas
@@ -292,10 +298,14 @@ Key implications:
 
 ### Add a new competition type
 1. Use the **"Competition Management"** Gradio tab (visual form, no coding required)
-2. Or manually add entry to `configs/competition_registry.json` with required fields and `aliases`
+2. Or manually add entry to `configs/competition_registry.json` with required fields:
+   - `type`, `structure_schema`, `evidence_config`, `style_template`, `citation_style`
+   - `agent_weights` (optional — falls back to `DEFAULT_AGENT_WEIGHTS` if omitted)
+   - `aliases` for common alternate names
 3. Create corresponding JSON files under `configs/structure_schemas/`, `configs/evidence_patterns/`, `configs/style_guides/`
-4. No code changes required — agents load configs dynamically. Unknown competitions gracefully fall back to research type defaults.
-5. Add aliases for common alternate names so colleagues' data aggregates correctly. Registered in each competition's `aliases` field. `normalize_competition_name()` maps any alias → canonical name case-insensitively.
+4. Add type hint entry to `configs/competition_type_hints.json` for A3 reasoning
+5. No code changes required — agents, orchestrator, and calibration engine all read from config
+6. Unknown competitions gracefully fall back to research type defaults
 
 ---
 
