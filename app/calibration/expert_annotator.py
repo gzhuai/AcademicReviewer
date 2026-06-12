@@ -15,6 +15,51 @@ from typing import Literal
 logger = logging.getLogger(__name__)
 
 
+# ── Multi-format expert document reader ──
+
+def _read_expert_text(file_path: str) -> str:
+    """Read text content from an expert document, supporting .md/.txt/.docx/.pdf.
+
+    Uses python-docx for .docx files and PyPDF2 for .pdf files.
+    Falls back to plain text read for .md/.txt/unknown formats.
+    """
+    path = Path(file_path)
+    suffix = path.suffix.lower()
+
+    if suffix == ".docx":
+        try:
+            import docx
+            doc = docx.Document(str(path))
+            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+            return "\n\n".join(paragraphs)
+        except Exception as e:
+            logger.warning(f"Failed to parse .docx '{file_path}': {e}. Falling back to plain text.")
+            return path.read_text(encoding="utf-8", errors="replace")
+
+    if suffix == ".pdf":
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(str(path))
+            pages = []
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    pages.append(text.strip())
+            if pages:
+                return "\n\n".join(pages)
+            logger.warning(f"PDF '{file_path}' produced no extractable text (possibly scanned PDF).")
+            return ""
+        except Exception as e:
+            logger.warning(f"Failed to parse .pdf '{file_path}': {e}. Falling back to plain text.")
+            return path.read_text(encoding="utf-8", errors="replace")
+
+    # .md, .txt, or unknown — read as plain text
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+# ── Expert annotation types ──
+
+
 ANNOTATION_TYPES = (
     "pattern", "pitfall", "rubric", "signal", "strategy",
     "fatal_defect",    # 致命缺陷 / 硬红线 — 总分自动受限
@@ -100,7 +145,7 @@ _META_RE = re.compile(r"^##\s*(.+?):\s*(.+)", re.MULTILINE)
 
 
 def parse_expert_document(file_path: str) -> ExpertInsights:
-    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    text = _read_expert_text(file_path)
 
     competition = ""
     author = ""
@@ -313,7 +358,7 @@ def insights_report_markdown(insights: ExpertInsights) -> str:
 
 
 def unify_parse(file_path: str, llm=None) -> ExpertInsights:
-    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    text = _read_expert_text(file_path)
 
     if _SECTION_RE.search(text):
         return parse_expert_document(file_path)

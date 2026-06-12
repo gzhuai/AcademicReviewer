@@ -286,7 +286,11 @@ class Orchestrator:
         if not expert_dir.is_dir():
             return ""
         comp_lower = competition.lower().replace(" ", "_")
-        matched = sorted(p for p in expert_dir.iterdir() if p.suffix == ".md" and comp_lower in p.name.lower().replace(" ", "_"))
+        matched = sorted(
+            p for p in expert_dir.iterdir()
+            if p.suffix in (".md", ".docx", ".pdf")
+            and comp_lower in p.name.lower().replace(" ", "_")
+        )
         if not matched:
             return ""
         try:

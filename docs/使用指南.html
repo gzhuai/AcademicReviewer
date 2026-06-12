@@ -674,7 +674,7 @@ copy .env.example .env      # Windows</code></pre>
 
 <div class="card card-info">
   <h3>🎓 什么是知识卡片？</h3>
-  <p>知识卡片是存储在 <code>data/expert_insights/</code> 目录下的 Markdown 文件，每张卡片描述一个经教师验证的评审经验。卡片使用 <strong>6 种标注类型</strong>分类，系统自动解析并应用到校准分析和评审流程中。</p>
+  <p>知识卡片是存储在 <code>data/expert_insights/</code> 目录下的文件（支持 .md / .docx / .pdf 三种格式），每张卡片描述一个经教师验证的评审经验。卡片使用 <strong>6 种标注类型</strong>分类，系统自动解析并应用到校准分析和评审流程中。</p>
 </div>
 
 <h3>6 种标注类型</h3>
@@ -721,7 +721,7 @@ copy .env.example .env      # Windows</code></pre>
 
 <h3>Markdown 格式示例</h3>
 
-<p>在 <code>data/expert_insights/</code> 下创建一个 <code>.md</code> 文件，按以下格式编写：</p>
+<p>在 <code>data/expert_insights/</code> 下创建文件（支持 .md / .docx / .pdf 三种格式），按以下格式编写：</p>
 
 <pre><code>## 竞赛: ISEF
 ## 作者: 刘老师
@@ -756,6 +756,14 @@ data/calibration/winners/ISEF_2025_best.txt 这篇的文献综述
 
 <div class="card card-success">
   <strong>💡 格式要求：</strong>每条知识卡片以 <code>### [类型] 标题</code> 开头，后跟一段描述。类型必须是上述 6 种之一。标题和描述之间可以自由发挥，系统会自动解析。
+</div>
+
+<div class="card card-success">
+  <strong>💡 推荐编辑方式：</strong>建议教师在 Word 或飞书（Lark）中编辑经验卡片，完成后导出为 <code>.docx</code> 格式放入 <code>data/expert_insights/</code> 目录。系统会自动解析文档内容，无需手动转换格式。
+</div>
+
+<div class="card card-warning">
+  <strong>⚠️ 注意：</strong>PDF 文件必须是<strong>文字型 PDF</strong>（由 Word / WPS / 飞书等办公软件导出），扫描版 PDF（纯图片）无法提取文本内容，请勿使用。
 </div>
 
 <div class="card card-info">

@@ -23,6 +23,7 @@ from app.calibration.expert_annotator import (
     ExpertInsights,
     FEATURE_KEYWORDS,
     _resolve_features,
+    _read_expert_text,
 )
 
 logger = logging.getLogger(__name__)
@@ -298,7 +299,7 @@ def parse_freeform_expert_doc(
     file_path: str,
     llm,
 ) -> ExpertInsights:
-    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    text = _read_expert_text(file_path)
     competition, author = _extract_meta(text)
     mode = detect_mode(text)
 

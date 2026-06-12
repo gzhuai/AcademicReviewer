@@ -2,8 +2,8 @@
 
 > **基于**: PROJECT_ASSESSMENT.md 评估报告（2026-06-10）
 > **目标**: 消除竞赛类型偏差，让系统在所有类型的报告提交类竞赛中有效且公平
-> **当前状态**: v0.3.0 — 核心偏差项（#1-4, #6）已完成，安全加固（#5）已完成，#7 部分完成
-> **最后更新**: 2026-06-12
+> **当前状态**: v0.6.0 — Phase 1-4 全部完成，仅剩 3 个低频优化项（pytest-asyncio 兼容/数据库迁移/配置热加载）
+> **最后更新**: 2026-06-13
 
 ---
 
@@ -498,11 +498,17 @@ def _load_type_hints(self):
 | # | 改进项 | 影响 | 优先级 | 工作量 |
 |---|--------|------|--------|--------|
 | 8 | Prompt 标杆案例（每种竞赛类型 2-3 对"好/差"样本注入 few-shot） | 直接提升 LLM 判断质量 | P0 | 2 天 | ✅ 已完成（知识卡系统 + ISEF+JL 示例） |
-| 9 | 反馈分级与置信度标签（Agent 输出 confidence/substitutability） | 让老师知道哪些需要人工审核 | P1 | 1 天 | 待开始 |
+| 9 | 反馈分级与置信度标签（Agent 输出 confidence/substitutability） | 让老师知道哪些需要人工审核 | P1 | 1 天 | ✅ 已完成（Phase 2: confidence_engine.py + prompt 扩展 + annotation_builder 分级显示） |
 | 10 | 老师知识卡系统（领域检查清单 + 阈值红线 JSON schema） | 弥补 L4 领域深度差距 | P1 | 1-2 天 | ✅ 已完成（与 #8 合并） |
-| 11 | 人类反馈闭环（老师审核 → 数据收集 → 置信度校准） | 系统自我优化 | P2 | 2-3 天 | 待开始 |
-| 12 | A3 quantitative_check 按类型动态输出 | 消除非科研类型输出噪声 | P1 | 0.5 天 | 待开始 |
-| 13 | 修复 pytest-asyncio 兼容性 | 测试覆盖率恢复到 100% | P1 | **4-6 小时** | 待开始 |
+| 11 | 人类反馈闭环（老师审核 → 数据收集 → 置信度校准） | 系统自我优化 | P2 | 2-3 天 | ✅ 已完成（Phase 3: TeacherFeedback ORM + 审核 API + Gradio 教师审核 Tab + 反馈统计） |
+| 12 | A3 quantitative_check 按类型动态输出 | 消除非科研类型输出噪声 | P1 | 0.5 天 | ✅ 已完成（已在 competition_type_hints.json 中按类型配置 applicable 字段） |
+| 13 | A3 推理链分解增强 | 思辨型/社科型/历史型论证深度分析 | P1 | 1 天 | ✅ 已完成（Phase 4: prompt 增强 Premise→Conclusion→Missing Step→Why Critical） |
+| 14 | 学生水平自适应 | 按字数/复杂度调整反馈粒度 | P2 | 1 天 | ✅ 已完成（Phase 4: app/utils/student_level.py + Orchestrator 集成） |
+| 15 | 知识卡自动更新建议 | 反馈数据驱动的知识卡优化 | P2 | 0.5 天 | ✅ 已完成（Phase 4: GET /api/v1/feedback/suggestions + Gradio 面板） |
+| 16 | 专家经验全竞赛覆盖 | 7 种竞赛类型专家经验示例 | P2 | 1 天 | ✅ 已完成（Phase 4: CTB/NHD/SIC/FBLA 4 个新文件） |
+| 17 | 修复 pytest-asyncio 兼容性 | Python 3.14 async 测试 | P2 | 4-6 小时 | 待开始 |
+| 18 | 数据库迁移 | Alembic 方案 | P3 | 0.5 天 | 未开始 |
+| 19 | 配置热加载 | 自动检测并刷新缓存 | P3 | 0.5 天 | 未开始 |
 
 ---
 
