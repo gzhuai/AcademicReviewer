@@ -87,6 +87,9 @@ class Orchestrator:
         comp_config = self.lookup_competition(competition)
         report.competition_type = comp_config["type"]
 
+        # Load teacher knowledge cards for this competition
+        knowledge_cards_context = self._load_knowledge_cards_for_competition(competition, comp_config)
+
         doc = parse_document(file_path)
         logger.info(f"Parsed document: {doc.word_count} words, {competition=}, type={comp_config['type']}")
 
@@ -107,10 +110,12 @@ class Orchestrator:
             self._get_agent(StructureLogicAgent).run(
                 document_text=doc.text,
                 competition_type=comp_config["type"],
+                knowledge_cards=knowledge_cards_context,
             ),
             self._get_agent(ArgumentEvidenceAgent).run(
                 document_text=doc.text,
                 competition_type=evidence_cfg,
+                knowledge_cards=knowledge_cards_context,
             ),
         ]
 
@@ -258,6 +263,34 @@ class Orchestrator:
         if not rubric_path.exists():
             rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
         return json.loads(rubric_path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _load_knowledge_cards_for_competition(competition: str, comp_config: dict) -> str:
+        """Load teacher knowledge cards and render for prompt injection."""
+        expert_dir = Path(__file__).resolve().parent.parent / "data" / "expert_insights"
+        if not expert_dir.is_dir():
+            return ""
+        comp_lower = competition.lower().replace(" ", "_")
+        matched = sorted(p for p in expert_dir.iterdir() if p.suffix == ".md" and comp_lower in p.name.lower().replace(" ", "_"))
+        if not matched:
+            return ""
+        try:
+            from app.calibration.expert_annotator import unify_parse, merge_insights
+            from app.calibration.knowledge_cards import build_knowledge_cards, render_knowledge_cards_for_prompt
+            all_insights = []
+            for fp in matched:
+                try:
+                    insights = unify_parse(str(fp))
+                    all_insights.append(insights)
+                except Exception:
+                    continue
+            if not all_insights:
+                return ""
+            merged = merge_insights(*all_insights)
+            cards = build_knowledge_cards(merged)
+            return render_knowledge_cards_for_prompt(cards)
+        except Exception:
+            return ""
 
     @staticmethod
     def _load_style_guide(comp_config: dict) -> dict:

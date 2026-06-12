@@ -15,7 +15,12 @@ from typing import Literal
 logger = logging.getLogger(__name__)
 
 
-ANNOTATION_TYPES = ("pattern", "pitfall", "rubric", "signal", "strategy")
+ANNOTATION_TYPES = (
+    "pattern", "pitfall", "rubric", "signal", "strategy",
+    "fatal_defect",    # 致命缺陷 / 硬红线 — 总分自动受限
+    "benchmark",        # 好/差对照案例 — AI 判断质量的参照物
+    "scoring_anchor",   # 分数锚点 — 各分数段的典型特征描述
+)
 
 FEATURE_KEYWORDS: dict[str, list[str]] = {
     "citation_density": ["引用", "citation", "文献密度", "参考文献", "bibliography", "reference"],
