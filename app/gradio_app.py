@@ -239,6 +239,11 @@ CSS = """
 def build_ui():
     with gr.Blocks(title="AcademicReviewer") as demo:
         gr.Markdown("# AcademicReviewer — 学术竞赛论文智能评审系统")
+        gr.Markdown("""
+> **隐私说明**：提交的论文全文将发送到您所选 LLM 提供商（DeepSeek/OpenAI/Gemini）的 API 进行处理。
+> 请勿上传包含身份证号、联系方式等个人敏感信息的学生作品。评审结果本地存储，不上传至第三方。
+> 团队协作模式下，评审数据经内网同步到中央服务器，传输内容与上述相同。
+""")
 
         with gr.Tabs():
             # Tab 1: Submit Review
