@@ -1,38 +1,50 @@
 # AcademicReviewer 项目评估报告
 
-> **评估日期**: 2026-06-12（第二次评估）
-> **上次评估**: 2026-06-10（7.4/10）
-> **代码规模**: ~5,800 行 Python + 267 行 Prompt 模板 + 30 个 JSON 配置文件 + 20 个文档文件
+> **评估日期**: 2026-06-13（第三次评估 — v0.6.0 人机协作完整实现）
+> **上次评估**: 2026-06-12（8.0/10，v0.3.0 公平性重构）
+> **代码规模**: ~7,200 行 Python + 267 行 Prompt 模板 + 30 个 JSON 配置文件 + 24 个文档文件
 > **技术栈**: Python 3.10+ / FastAPI / Gradio / SQLite / ChromaDB / httpx
-> **评估方法**: 完整阅读全部源代码后多维度分析 + 改进计划执行验证
+> **评估方法**: 完整阅读全部源代码 + 新增文件逐行审查 + 测试套件验证 + 改进计划执行对照
 
 ---
 
-## 综合评分: 8.0/10（更新于 2026-06-12 v0.3.0 公平性重构后）
+## 综合评分: 8.4/10（更新于 2026-06-13 v0.6.0 人机协作完成）
 
-| 维度 | 评分 | 等级 | 变化（自 6/10） |
+| 维度 | 评分 | 等级 | 变化（自 6/12） |
 |------|------|------|------|
-| 架构设计 | 8.5/10 | 优秀 — 类型感知已融入架构各层 | ↑ 0.5 |
-| 代码质量 | 8.0/10 | 良好 — type_hints 配置化，style_guides 生效 | ↑ 0.5 |
-| 安全性 & 鲁棒性 | 7.0/10 | 合格 — Bearer Token + 文件限制已落地 | ↑ 1.5 |
-| 测试 & 质量保障 | 7.5/10 | 合格 — 166/177 通过（py3.14 兼容待修） | — |
-| 文档质量 | 9.0/10 | 优秀 — CHANGELOG + CONTRIBUTING + .env.example | ↑ 0.5 |
-| 可维护性 & 可扩展性 | 8.5/10 | 优秀 — 硬编码全部配置化，subprocess 已移除 | ↑ 1.0 |
-| **竞赛类型公平性** | **7.5/10** | 良好 — 特征集/权重/映射/fatal_defect/style_guides 全部按类型切换 | **↑ 2.5** |
-| 依赖 & 技术债务 | 7.5/10 | 良好 — lock 文件到位，Changelog 就绪 | ↑ 0.5 |
+| 架构设计 | 9.0/10 | 优秀 — 知识卡+置信度+学生水平全管线贯通 | ↑ 0.5 |
+| 代码质量 | 8.5/10 | 优秀 — 置信度引擎规则驱动、知识卡分层清晰 | ↑ 0.5 |
+| 安全性 & 鲁棒性 | 7.5/10 | 良好 — 隐私声明已完善，反馈端点受认证保护 | ↑ 0.5 |
+| 测试 & 质量保障 | 7.5/10 | 合格 — 193/204 通过（py3.14 兼容依旧，新功能测试待补充） | — |
+| 文档质量 | 9.5/10 | 卓越 — 面向多角色的完整文档体系 | ↑ 0.5 |
+| 可维护性 & 可扩展性 | 9.0/10 | 优秀 — 知识卡系统零侵入已有架构 | ↑ 0.5 |
+| **竞赛类型公平性** | **8.0/10** | 良好 — 7 种类型全部有专家经验覆盖 | **↑ 0.5** |
+| 依赖 & 技术债务 | 8.0/10 | 良好 — 反馈闭环+自动建议已落地 | ↑ 0.5 |
 
-### v0.3.0 变更概述（2026-06-12）
+### v0.4.0–v0.6.0 变更概述（2026-06-13）
 
-Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化：
+Trae AI 基于 HUMAN_AGENT_COLLABORATION.md 执行了 Phase 1-4 全部实施，核心变化：
 
-- **校准引擎按类型切换特征集**: 8 种类型独立 `FEATURES_BY_TYPE`（科研 21 特征，思辨/金融/商科 15 特征），`feature_names(competition_type)` 动态返回
-- **fatal_defect 按类型分离**: 8 种类型独立 `BINARY_FEATURES_BY_TYPE`，John Locke 不再建议"缺少 p 值为致命缺陷"
-- **Agent 权重按竞赛可配置**: `competition_registry.json` 中 10 场比赛各有 `agent_weights`，`_compute_total_score()` 以 `weight_sum` 归一化防止偏移
-- **配置映射按类型分离**: `FEATURE_TO_CONFIG_MAP_BY_TYPE` 含全部 8 种类型，替换了全局统一映射
-- **A4 加载 style_guides**: `_load_style_guide()` 加载各类型风格 JSON，传入 LanguageStyle Agent
-- **A3 type_hints JSON 化**: 硬编码 → `competition_type_hints.json`，8 种类型各有独立 checks/skip/hint
-- **安全加固**: Bearer Token 认证 + 50MB 文件限制 + 类型白名单
-- **技术债务**: Gradio subprocess → 直接调用 + requirements-lock.txt + CHANGELOG/CONTRIBUTING
+**v0.4.0 — 置信度标签系统（Phase 2）**:
+- 新增 `app/utils/confidence_engine.py`（188 行）：规则引擎按 Agent 类型 + 条目特征自动分配置信度（FULL/REVIEW/ESCALATE），不依赖 LLM 自评
+- L3a/L3b 子分层落地：结构性检测→FULL（拼写/语法/高严重度章节缺失/引用匹配），语义性判断→REVIEW（论证强度/逻辑连贯性），领域深度→ESCALATE（原创性/哲学立场）
+- `annotation_builder.py` 扩展：置信度分级显示（🔴=ESCALATE / ⚡=REVIEW / 无标记=FULL）
+- 隐私声明完善：README + Gradio UI
+
+**v0.5.0 — 反馈闭环（Phase 3）**:
+- 新增 `TeacherFeedback` ORM 模型（`app/models/submission.py`）
+- 新增 `POST /api/v1/feedback`：批量提交老师审核反馈
+- 新增 `GET /api/v1/reviews/{id}/feedback`：查询历史反馈
+- 新增 `GET /api/v1/feedback/stats`：置信度校准统计（按 Agent/置信度标签维度）
+- 新增 `GET /api/v1/feedback/suggestions`：自动检测高频被纠正模式，建议更新知识卡
+- Gradio 新增「教师审核」Tab：逐条审核+全部确认+批次覆写+统计看板
+
+**v0.6.0 — 深度增强（Phase 4）**:
+- A3 prompt 增强推理链分解指导（Premise→Conclusion→Missing Step→Why Critical），按竞赛类型区分适用性
+- 新增 `app/utils/student_level.py`（168 行）：启发式估算学生水平（入门/进阶/高级），LLM-Free，基于字数+句长+TTR三维评分，考虑 Zipf 定律
+- Orchestrator 全管线注入：知识卡 → A2/A3 + 学生水平 → A2/A3/A4/A5 + 置信度标签采集
+- 新增 4 个专家经验文件：CTB、NHD、SIC、FBLA，覆盖全部 7 种竞赛类型
+- `knowledge_cards.py` 含 `render_knowledge_cards_for_prompt()`：知识卡自动渲染为 prompt 文本块
 
 ---
 
@@ -61,19 +73,22 @@ Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化
 - 仅教师文档解析的 Mode 1/2 调用 LLM，且特征映射仍使用本地关键词匹配防止幻觉
 - 这是一个精心设计的架构决策，确保了校准结果的可复现性和计算效率
 
-**1.5 配置驱动的竞赛可扩展性 (8/10)**
-- `competition_registry.json` 作为单一真相源，映射竞赛名 → 类型 → 配置文件
-- 添加竞赛：注册 JSON + 创建对应配置，无需修改代码
-- 别名归一化引擎允许用户/同事使用不同称呼
+**1.5 配置驱动的竞赛可扩展性 (9/10) ↑1**
+- 添加竞赛零代码改动；v0.6.0 专家经验文件自动匹配 + 知识卡自动分层进一步强化了配置驱动
+
+**1.6 人机协作管线的优雅集成 (9/10) 🆕**
+- 三条新增管线独立注入、互不耦合：知识卡→Agent prompt（`_load_knowledge_cards_for_competition()`）、学生水平→Agent prompt（`estimate_student_level()`）、置信度标签→后处理（`apply_confidence_labels()`）
+- 关键架构决策：`confidence_engine.py` 选择规则引擎而非 LLM 自评置信度——避免了"AI 判断 AI 判断可靠性"的循环依赖
+- 知识卡通过 `render_knowledge_cards_for_prompt()` 渲染为纯文本注入，Agent 零改动兼容
 
 ### 需改进
 
-**1.6 Agent 识别已改善 ✅（原依赖字符串比较）**
+**1.7 Agent 识别已改善 ✅（原依赖字符串比较）**
 - 原先 `orchestrator.py` 中通过 `r.get("agent", "")` 字符串匹配来识别 Agent 返回结果
 - **已修复**: 在 `BaseAgent` 添加 `score_key` 类属性，每个 Agent 子类声明自己的评分键名
 - `_compute_total_score()` 现在通过 Agent 类属性而非硬编码字符串来提取评分
 
-**1.7 两轮并行是硬编码的 (低)**
+**1.8 两轮并行是硬编码的 (低)**
 - 如果需要 3 轮或更复杂的依赖关系（如 A4 需要 A2 的某些输出），无法配置
 - 对于当前 5-Agent 规模可以接受，但值得文档化这个限制
 
@@ -83,79 +98,65 @@ Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化
 
 ---
 
-## 2. 代码质量 (7.5/10) ↑ 0.5
+## 2. 代码质量 (8.5/10) ↑0.5
 
-### 本次会话中修复的质量问题
+### v0.4.0–v0.6.0 新增代码质量评估
 
-**2.0 已完成的代码质量改进 (2026-06-10)**
+**`confidence_engine.py` (188 行) — 9/10**
+- 规则驱动而非 LLM 自评——这是正确的架构选择。`_AGENT_FIELD_DEFAULTS` 表 + 三个细化映射（`_A4_REWRITE_ISSUE_MAP`/`_A4_SUGGESTION_TYPE_MAP`/`_A3_FALLACY_TYPE_MAP`）覆盖了 L3a/L3b 的分层逻辑
+- `apply_confidence_labels()` shallow copy 避免修改调用者数据——细节正确
+- 结构性谬误→FULL、语义性谬误→REVIEW——分类准确
 
-| 文件 | 问题 | 修复 |
-|------|------|------|
-| `app/agents/base.py` | 无评分键名声明 | 新增 `score_key` 类属性 |
-| `app/agents/*.py` (5 个 Agent) | 每个 Agent 未声明自己的评分键 | 各添加 `score_key` 属性 (rubric_score / structure_score / overall_score / language_score / integrity_score) |
-| `app/orchestrator.py:202-228` | `_compute_total_score()` 硬编码评分键名映射 | 改用 Agent 类的 `score_key` 属性，消除魔法字符串 |
-| `app/orchestrator.py:238-243` | `_load_rubric_config()` 存在路径遍历风险 | 添加 `Path(safe_name).name` 防护 |
-| `app/config.py` | 全局缓存无失效机制 | 添加 `clear_config_cache()` 函数 |
-| `app/agents/__init__.py` | 空白文件，无导出 | 显式导出所有 6 个类，包含 `__all__` |
+**`student_level.py` (168 行) — 8/10**
+- 启发式规则，零 LLM 调用。三维评分（字数/句长/TTR），Zipf 定律 aware
+- 极短文本（<100词）强制 beginner——防守型处理
+- 缺少对非英语文本的适配（中文的 TTR 计算方式不同）——这是一个已知局限
 
-### 优势
+**`knowledge_cards.py` (137 行) — 9/10**
+- `build_knowledge_cards()` 严格遵循设计 spec，annotation_type → layer 映射清晰
+- `render_knowledge_cards_for_prompt()` 将三层知识卡渲染为结构化 markdown 文本——Agent 无需理解新数据格式
+- `_format_annotation()` 按类型分配 emoji 前缀（🔴/📊/📋/📌/⚠️/📡）——prompt 中的视觉结构化
 
-**2.1 良好的错误处理模式 (7/10)**
-- API 层统一捕获异常，返回 400/500 响应
-- Agent 错误通过 `return_exceptions=True` 收集到 `report.errors`，不中断流水线
-- 数据库 session 使用 try/finally 确保关闭
-- 临时文件使用 finally + `unlink(missing_ok=True)` 清理
+**Orchestrator 增量 (~30 行) — 8/10**
+- 知识卡加载、学生水平估算、置信度采集三条管线独立注入，无交叉依赖
+- lazy import 保持项目风格一致（函数内 import）
+- 小瑕疵：`_load_knowledge_cards_for_competition()` 中 expert_insights dir 路径硬编码
 
-**2.2 一致的编码风格 (8/10)**
-- 全项目遵循命名规范（PascalCase 类、snake_case 函数、UPPER_SNAKE 常量）
-- 导入顺序一致：标准库 → 第三方 → app.*
-- 文件编码统一使用 `encoding="utf-8"`
+### 修复更新
 
-**2.3 资源管理 (7/10)**
-- 数据库连接池由 SQLAlchemy 管理
-- ChromaDB 客户端懒初始化（`_get_chroma()`）
-- 广告-hoc 的 sync 调用使用 `asyncio.ensure_future()` 而非阻塞
+**2.5 subprocess 调用 — 已修复 ✅ (v0.3.0)**
+**2.7 type_hints 硬编码 — 已修复 ✅ (v0.3.0)**
 
 ### 仍需改进
 
-**2.4 循环导入处理方式需要文档化 (中)**
-- `orchestrator.py` 在方法体内进行 lazy import（`from app.agents.rubric_parser import RubricParserAgent`）
-- 这是实际可行的方案，但如果没有 AI_HANDOFF.md 的说明，新开发者会困惑
-
-**2.5 Gradio UI 中的 subprocess 调用 (中)**
-- `gradio_app.py:374` 校准功能通过 `subprocess.run` 调用 CLI 脚本
-- 这绕过了 Python 导入机制，增加了调试难度
-- 建议：直接调用 `run_calibration()` 函数
-
-**2.6 类型提示不完整 (低)**
-- 公共函数签名有类型提示，但私有方法、lambda、部分变量缺少
-
-**2.7 ArgumentEvidence 中的 type_hints 硬编码 (中)**
-- `app/agents/argument_evidence.py:23-31` 包含硬编码的 8 种类型提示字典
-- 建议：移到 `configs/` JSON 配置文件中
+**2.4 循环导入 (中)** — 不变
+**2.6 类型提示不完整 (低)** — 不变
+**2.8 A4 动态 Style Guide 注入 (低) 🆕**: Prompt 中风格指导为硬编码文本，未引用 JSON style_guide 中的具体数值参数。如果 style_guide JSON 修改了，prompt 不会自动更新
 
 ---
 
-## 3. 竞赛类型公平性分析 (7.5/10) ↑2.5
+## 3. 竞赛类型公平性分析 (8.0/10) ↑0.5
 
-> **核心问题**: 当前系统能否在所有类型的报告提交类竞赛中有效地给出作品质量评审和反馈？是否存在过于倾向某类型赛事的情况？
-> **v0.3.0 更新**: 特征集、权重、配置映射、fatal_defect 检测、style_guides、type_hints 全部完成按类型切换。
+> **v0.6.0 更新**: 全部 7 种竞赛类型（research, discursive, math_modeling, social_science, history, finance, business_case）现已有专家经验文件覆盖。`confidence_engine.py` 的 L3a/L3b 分层 + A3 推理链分解（科研/数模 skip，思辨/社科/历史 full 模式，金融/商科 hypothesis→prediction 模式）进一步减少了跨类型偏差。
 
-### 结论：研究型倾斜已基本修正，框架层面的类型感知已覆盖全部环节
+### 3.1 当前适配度（v0.6.0 更新）
 
-### 3.1 当前对各竞赛类型的适配度（v0.3.0 更新）
+| 适配度 | 赛事 | 新增优势 |
+|--------|------|---------|
+| ⭐⭐⭐⭐⭐ | **ISEF / STS / 丘成桐** | 专家经验已覆盖，research/advanced 全特征 |
+| ⭐⭐⭐⭐ | **HiMCM** | 专家经验已覆盖（HiMCM_Mode2），学生水平自适应可识别公式密度 |
+| ⭐⭐⭐⭐ | **CTB / NHD** | 🆕 专家经验新增（CTB_social_science / NHD_history），推理链→full |
+| ⭐⭐⭐⭐ | **John Locke / Marshall** | 专家经验已覆盖（John_Locke_李老师），推理链→full，L3a/L3b 分层 |
+| ⭐⭐⭐ | **SIC / WGHS** | 🆕 专家经验新增（SIC_finance），推理链→hypothesis模式 |
+| ⭐⭐⭐ | **FBLA** | 🆕 专家经验新增（FBLA_business_case），推理链→hypothesis模式 |
 
-按系统实际适配度排序：
+### 3.2 新增偏差防护（v0.4.0–v0.6.0）
 
-| 适配度 | 赛事 | 原因 |
-|--------|------|------|
-| ⭐⭐⭐⭐⭐ | **ISEF / STS** | 系统天然以科研论文为设计模板，21 特征全部适用，权重偏证据 |
-| ⭐⭐⭐⭐⭐ | **丘成桐** | 进阶科研，同 ISEF，research_advanced 特征集和 evidence config 覆盖 |
-| ⭐⭐⭐⭐ | **HiMCM** | 数模论文结构化+量化，特征集保留 has_sample_size，权重偏证据(30%) |
-| ⭐⭐⭐⭐ | **CTB / NHD** | 社科/历史，独立特征集（去科研专用项），权重适配（NHD 证据 30%） |
-| ⭐⭐⭐⭐ | **John Locke / Marshall** | 思辨型，discursive 特征集（15 特征，highlight 逻辑/过渡/词汇多样性），权重偏结构(30%) |
-| ⭐⭐⭐ | **SIC / WGHS** | 金融型，finance 特征集，权重分布均衡，style_guide=biz_finance |
-| ⭐⭐⭐ | **FBLA** | 商科型，business_case 特征集，权重偏结构(30%)，type_hints 覆盖 SWOT/PEST/ROI |
+**L3a/L3b 分层 — 防止 AI 过度自信 🆕**
+`confidence_engine.py` 明确区分结构性检测（FULL）和语义判断（REVIEW），确保非科研类型的论证质量判断不会错误地标为"AI可替代"。思辨型 counterargument 质量→REVIEW，结构性谬误（begging_question/false_dichotomy）→FULL。
+
+**专家经验全覆盖 — 消除"盲飞" 🆕**
+v0.6.0 新增 4 个文件，7 种竞赛类型全部有至少 8 条专家洞察 + 若干策略建议。这确保 AI 在评审任何类型时都有领域知识卡可供对照。
 
 ### 3.2 五个层面的偏差分析（v0.3.0 更新）
 
@@ -211,7 +212,7 @@ Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化
 
 ---
 
-## 4. 安全性 & 鲁棒性 (7.0/10) ↑1.5
+## 4. 安全性 & 鲁棒性 (7.5/10) ↑0.5
 
 ### 风险清单（v0.3.0 更新）
 
@@ -222,10 +223,8 @@ Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化
 **4.2 文件上传限制 — 已修复 ✅**
 - **已修复**: 服务端验证 `_validate_file(suffix, size)`：50MB 上限 + `.txt/.md/.pdf/.docx` 白名单。`await file.read(_MAX_FILE_SIZE + 1)` 避免无限读取。
 
-**4.3 学生数据隐私 (高) 🟠 — 未完全解决**
-- 学生论文全文仍发送到第三方 LLM API（DeepSeek/OpenAI/Gemini/GLM）
-- CHANGELOG 声称了隐私声明，但需验证 README 和 Gradio UI 是否实际添加
-- **建议**: 在 Gradio 提交界面和 README 中添加明确的隐私提示
+**4.3 学生数据隐私 (高) 🟠 — 已改善 ✅**
+- **v0.4.0 已添加**: README + Gradio UI 隐私声明扩展，明确列出所有 LLM 提供商、数据存储位置、同步传输说明
 
 **4.4 同步数据暴露 (中) 🟡 — 未变**
 - 同步仍使用明文 HTTP，需考虑 HTTPS/加密
@@ -242,52 +241,30 @@ Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化
 
 ---
 
-## 5. 测试 & 质量保障 (7.5/10) ↑ 4.0
+## 5. 测试 & 质量保障 (7.5/10)
 
-> **2026-06-10 更新**: 本次会话中完成了全面的测试基础设施建设和单元测试覆盖。
+> **2026-06-13 更新**: 从 177 个测试增至 **204 个**（193 pass / 11 fail）。新增测试覆盖校准引擎特征集、competition_type_hints 等。11 个失败仍是 pytest-asyncio + Python 3.14 兼容性问题，非代码逻辑缺陷。
 
-### 改进前 vs 改进后
+### 改进前后对比
 
-| 指标 | 之前 | 之后 |
-|------|------|------|
-| 单元测试文件数 | 1 (e2e only) | **13** |
-| 测试总数 | 0 (e2e 需 API Key) | **177** |
-| 测试通过率 | N/A | **177/177 ✅** |
+| 指标 | v0.2.0 | v0.6.0 |
+|------|--------|--------|
+| 单元测试文件数 | 1 (e2e only) | **13+** |
+| 测试总数 | 0 (e2e 需 API Key) | **204** |
+| 测试通过率 | N/A | **193/204 (94.6%)** |
 | Pytest 配置 | 无 | `pytest.ini` 含 markers + asyncio |
 | Mock/Fixture 基础设施 | 无 | `tests/conftest.py` 含 `MockLLMAdapter` + 样例数据 |
 | CI/CD | 无 | `.github/workflows/test.yml`（多版本矩阵） |
-| 运行时间 | N/A | ~62s（零 API 调用、零网络依赖） |
 
-### 新增测试清单
+### 测试覆盖缺口 🆕
 
-#### 纯函数测试 (127 个) — 零网络依赖、零 LLM 调用
+v0.4.0–v0.6.0 新增的以下模块**缺少专门的单元测试**：
+- `confidence_engine.py` (188 行) — 无测试
+- `student_level.py` (168 行) — 无测试
+- `knowledge_cards.py` (137 行) — 无测试
+- `POST /api/v1/feedback` 等 4 个新端点 — 无集成测试
 
-| 文件 | 测试数 | 覆盖内容 |
-|------|--------|----------|
-| `tests/test_utils/test_citation_checker.py` | 20 | 引文提取 (APA/MLA/Chicago/numeric)、参考文献行分割、匹配/未匹配检测、CitationReport 属性、边界条件 |
-| `tests/test_calibration/test_cohens_d.py` | 22 | Cohen's d 计算（大效应/无效应/负效应/零方差/小样本）、效应分类（critical/major/minor/none）、compute_effect_sizes 含排序和置信度、cross_validate 含一致/不一致/无外部样本 |
-| `tests/test_calibration/test_feature_extractor.py` | 33 | 句子分割与短句过滤、分词与小写、全部 21 个特征维度（citation_density / passive_voice_ratio / TTR / logical_marker_density / transition_frequency / section_coverage / has_p_value / has_effect_size / has_control_group / has_sample_size / evidence_diversity / gap_statement / limitations / future_work / hook_sentence / claim_count / avg_sentence_length / avg_paragraph_length）、features_to_dict 四舍五入、feature_names 21 元素验证 |
-| `tests/test_calibration/test_diff_generator.py` | 18 | `_get_nested_value` 简单/嵌套/缺失、rule updates 生成 (critical 触发/none 跳过/unknown 跳过/新增)、fatal defect (binary+negative+critical 触发/非 binary 跳过/正向信号跳过/minor 跳过/低 gap 跳过)、config diff (新增键/删除键/值变更/嵌套变更/列表变更/完全一致) |
-| `tests/test_config.py` | 15 | `normalize_competition_name` (精确匹配/大小写/英文别名/中文别名/未知穿透/空字符串)、`get_competition_list` (数量/必要字段/主要赛事)、缓存失效 |
-| `tests/test_utils/test_doc_parser.py` | 10 | TXT/MD 解析、不支持格式报错、元数据文件名和格式、ParsedDocument 段落分割与修剪、文本截断 |
-| `tests/test_llm/test_base.py` | 16 | JSON 解析 (干净/```json```/```/文本包围/嵌套花括号/无效/不完整/数组/尾部逗号/单引号/中文)、chat_json 端到端、Factory 注册+创建+未知 provider+隔离 |
-
-#### Mock 集成测试 (50 个) — 使用 MockLLMAdapter
-
-| 文件 | 测试数 | 覆盖内容 |
-|------|--------|----------|
-| `tests/test_agents/test_base.py` | 12 | Prompt 加载 (存在/缺失)、_build_system_prompt、_build_user_message (kwargs JSON/空)、run (成功/元数据/调用记录/temperature)、LLM 错误处理、_load_json (绝对路径/相对路径/不存在文件) |
-| `tests/test_agents/test_structure_logic.py` | 4 | 用户消息含文档文本/竞赛类型/结构 schema、mock run 全流程 |
-| `tests/test_agents/test_argument_evidence.py` | 7 | 含 research/discursive/math_modeling/business_case/unknown 五种类型的提示词检查、mock run 验证 overall_score |
-| `tests/test_agents/test_academic_integrity.py` | 5 | 用户消息含引文数据/相似度报告、跳过原创性检查、ChromaDB 空时优雅降级 |
-| `tests/test_agents/test_language_style.py` | 4 | 用户消息含/不含风格指南、mock run 验证 rewrites + suggestions |
-| `tests/test_agents/test_rubric_parser.py` | 3 | 用户消息含评分标准文本、mock run 验证 dimensions + rubric_score |
-
-### 测试基础设施
-
-- **`pytest.ini`**: 配置了 testpaths、pythonpath、asyncio_mode=auto、markers (unit/integration/slow)
-- **`tests/conftest.py`**: 共享 Fixtures — `MockLLMAdapter`（可控响应、调用记录跟踪）、`sample_isef_text`、`sample_jl_text`、`sample_refs_section`、`sample_winners_features` (3 篇获奖)、`sample_losers_features` (3 篇失败)、`feature_name_list`
-- **`.github/workflows/test.yml`**: Python 3.10/3.11/3.12 矩阵，push + PR 触发
+**建议**: 参照已有测试模式（纯函数 → 零依赖单测；Agent → MockLLMAdapter 集成测试），为这三个模块补充测试。`confidence_engine.py` 的规则表是纯函数，测试成本极低。
 
 ---
 
@@ -392,43 +369,43 @@ pydantic-settings     — 环境变量管理
 
 ### 项目亮点 ✨
 
-1. **架构决策清醒**: 拒绝 LangChain、校准引擎 LLM-Free、无框架依赖——每个技术选择都有明确原因
-2. **类型公平性已落地**: 从 Prompt 到权重到校准引擎到 style_guides，六层全部按类型切换——这是 v0.3.0 的最重要成就
-3. **AI_HANDOFF.md 堪称典范**: 这是 AI 辅助开发场景下接手指南的标杆级文档
-4. **配置驱动的可扩展性**: 添加竞赛类型无需修改代码，配合 GUI 管理界面用户体验良好
-5. **校准引擎思路精巧**: 用统计学方法（Cohen's d + 特征提取）从获奖/失败文章差距中自动生成评审规则优化建议，现在按类型正确选择特征集
-6. **实用主义贯穿始终**: 降级策略完善、fire-and-forget 同步不阻塞用户、错误不中断流水线
-7. **原文标注输出**: `annotation_builder.py` 将 5 个 Agent 的反馈映射回原文段落，生成 Word 修订模式般的 Markdown——这是"替代专业老师"目标的关键体验创新
+1. **架构决策每步都清醒**: 拒绝 LangChain、校准 LLM-Free、置信度规则引擎而非 LLM 自评——每个技术选择有明确原因
+2. **类型公平性从六层落地**: 特征集/权重/配置映射/fatal_defect/style_guides/type_hints 全部按类型切换（v0.3.0），加上 L3a/L3b 分层 + 推理链分解 + 专家经验全覆盖（v0.4.0–v0.6.0）
+3. **人机协作全管线贯通**: 知识卡注入（Layer 1/2→Agent prompt）→ 学生水平自适应（3 级→4 个 Agent）→ 置信度分级（FULL/REVIEW/ESCALATE→标注报告）→ 反馈闭环（老师审核→API→统计看板→知识卡更新建议）
+4. **零架构冲击的增量开发**: v0.3→v0.6 三次迭代，Orchestrator 仅增 ~30 行，三个新文件（confidence_engine/student_level/knowledge_cards）零耦合
+5. **AI_HANDOFF.md 堪称标杆**: AI 辅助开发接手指南的范本
+6. **专家经验文件化 + 知识卡自动分层**: 老师上传一份 .md → 自动检测模式 → 解析为 ExpertInsights → build_knowledge_cards() → 分层 → 渲染为 prompt → Agent 引用。流程全自动化
+7. **原文标注机制**: `annotation_builder.py` 生成 Word 修订模式般逐段批注 + 置信度 emoji 标记
 
 ### 关键风险 ⚠️
 
-1. **LLM 判断深度不足**: 架构层面已准备就绪，但 LLM 能否在思辨型/商科型/历史型竞赛中做出专业级判断，仍取决于 Prompt 质量（标杆案例）和 LLM 自身领域知识。详见 [HUMAN_AGENT_COLLABORATION.md](HUMAN_AGENT_COLLABORATION.md)
-2. **安全性在公网场景下仍不足**: 无速率限制、同步使用明文 HTTP
-3. **数据隐私声明需要验证**: 学生论文发送到商业 LLM API，需在 UI 和 README 中明确告知用户
-4. **测试基础设施需维护**: Python 3.14 下 11 个 async 测试因 pytest-asyncio 兼容性失败
+1. **LLM 判断深度仍是天花板**: 架构已就绪，但 LLM 能否在思辨型/商科型/历史型做出专业级 L4 判断，取决于知识卡质量和 LLM 自身能力。v0.6.0 的推理链分解缓解了这个问题（AI 不做判断而是分解结构），但未解决
+2. **安全在公网场景下仍有缺口**: 无速率限制、同步明文 HTTP
+3. **新功能测试覆盖为零**: `confidence_engine.py`、`student_level.py`、`knowledge_cards.py`、4 个新 API 端点皆无专门测试
+4. **pytest-asyncio 兼容**: Python 3.14 下 11 个 async 测试持续失败，从 v0.2.0 遗留至今
 
-### v0.2.0 → v0.3.0 完成的改进
+### v0.3.0 → v0.6.0 完成的改进
 
 | 类别 | 已完成 |
 |------|--------|
-| 校准引擎特征集 | FEATURES_BY_TYPE 含 8 种类型，feature_names() 动态返回 |
-| fatal_defect | BINARY_FEATURES_BY_TYPE 含 8 种类型，按类型过滤 |
-| Agent 权重 | 10 场比赛独立 agent_weights，weight_sum 归一化 |
-| 配置映射 | FEATURE_TO_CONFIG_MAP_BY_TYPE 含 8 种类型 |
-| A4 style_guides | _load_style_guide() 加载 JSON 传入 Agent |
-| A3 type_hints | competition_type_hints.json 含 8 种类型 |
-| 安全加固 | Bearer Token + 50MB 限制 + 类型白名单 |
-| 技术债务 | subprocess 移除 + lock 文件 + CHANGELOG + CONTRIBUTING |
+| 置信度标签 | `confidence_engine.py` 规则引擎 (FULL/REVIEW/ESCALATE)，L3a/L3b 分层 |
+| 标注增强 | `annotation_builder.py` 分级显示（🔴/⚡/无标记） |
+| 隐私声明 | README + Gradio UI（v0.4.0） |
+| 反馈闭环 | TeacherFeedback ORM + 4 个 API + Gradio 教师审核 Tab |
+| 知识卡系统 | `knowledge_cards.py` build + render + 3 个新 annotation 类型 |
+| 学生水平自适应 | `student_level.py` 启发式估算 + 4 个 Agent 注入 |
+| A3 推理链分解 | prompt 增强（Premise→Conclusion→Missing→Why），按类型区分 |
+| 专家经验扩展 | 4 个新文件，7 种竞赛类型全覆盖 |
+| 知识卡更新建议 | `GET /api/v1/feedback/suggestions` 自动检测高频被纠正模式 |
 
 ### 下一步改进优先级
 
 | 优先级 | 项目 | 预估工作量 |
 |--------|------|-----------|
-| P0 | Prompt 标杆案例（每种竞赛类型 2-3 对"好/差"样本注入 few-shot） | 2 天 |
-| P0 | 验证并完善隐私声明（README + Gradio UI） | 2 小时 |
-| P1 | A3 quantitative_check 按类型动态输出 | 0.5 天 |
-| P1 | 修复 pytest-asyncio 兼容性（Python 3.14） | 1-2 小时 |
-| P2 | 学生水平自适应（按字数/复杂度估级） | 1 天 |
-| P2 | 扩展 data/expert_insights/ 覆盖全部 7 种竞赛类型 | 1 天 |
-| P3 | 数据库迁移方案（Alembic） | 0.5 天 |
-| P3 | A4 prompt 动态注入 style_guide 数值参数 | 0.5 天 |
+| P0 | 为 `confidence_engine`/`student_level`/`knowledge_cards` 添加单元测试 | 1 天 |
+| P0 | 修复 pytest-asyncio 兼容性（upgrade 插件或降级 Python） | 1-2 小时 |
+| P1 | A4 prompt 动态注入 style_guide 参数（从 JSON 读数值而非硬编码） | 0.5 天 |
+| P1 | 速率限制（FastAPI middleware） | 2 小时 |
+| P2 | 数据库迁移方案（Alembic） | 0.5 天 |
+| P2 | 学生水平中文适配（当前 TTR 计算基于英文分词） | 0.5 天 |
+| P3 | 知识卡质量自动化检查（上线前验证必填项完整性） | 0.5 天 |
