@@ -14,21 +14,19 @@ SHOULD MACHINES BE HELD MORALLY RESPONSIBLE FOR THEIR DECISIONS?
 In 2023, an autonomous vehicle operated by Cruise, General Motors' self-driving subsidiary, struck and dragged a pedestrian in San Francisco, prompting California regulators to revoke the company's operating permit. The question of who bore moral responsibility—the algorithm, the engineers, the corporate executives, or the vehicle itself—proved far more complex than any existing regulatory framework could accommodate. This essay argues that machines, regardless of their sophistication, cannot bear moral responsibility in any philosophically meaningful sense, and that the temptation to attribute agency to autonomous systems represents a dangerous abdication of human accountability. Drawing on the philosophical tradition of moral agency, contemporary work in machine ethics, and the legal doctrine of vicarious liability, I contend that responsibility must always terminate with human actors—whether designers, deployers, or regulators.
 
 > **[A3!!—逻辑谬误]** weak_analogy: 
->   正确推理: 更好的类比可能是：'A hammer is causally responsible for breaking a window, but we hold the person who swung it morally responsible, not the hammer. Similarly, a self-driving car is a tool whose causal role is mediated by human design and deployment decisions.'
+>   正确推理: 正确的推理形态：'A better analogy would be a booby trap set by a human: the trap itself is causally responsible for the injury, but the moral responsibility lies with the person who set it. Similarly, a self-driving car is causally responsible for a collision, but the moral responsibility lies with those who designed, deployed, and regulated it.'
 
 ### 段落 3
 
 Clarity requires distinguishing several concepts that are frequently conflated in public discourse. Moral responsibility, as employed in this essay, refers to the capacity of an agent to be answerable for its actions in a way that makes blame, punishment, or remediation appropriate. This is distinct from causal responsibility, which merely identifies what factor produced a given outcome without implying moral accountability. An earthquake is causally responsible for the destruction of a city, but no one would suggest prosecuting tectonic plates. Similarly, a self-driving car is causally responsible for a collision, but this does not entail that the car is morally responsible. The further distinction between moral agency and moral patiency must also be drawn. A moral agent is the subject of moral responsibility—the entity that acts and can be held to account. A moral patient is the object of moral concern—the entity that can be harmed or benefited. Human beings are both moral agents and moral patients. Machines, I will argue, are neither. They do not act in the morally relevant sense, and they cannot be wronged, regardless of what science fiction narratives about mistreated androids may suggest.
 
 > **[A3!!—逻辑谬误]** false_dichotomy: 
->   正确推理: 更精确的表述：'Even if we grant that machine learning models exhibit a form of internal processing, this processing lacks the normative dimension essential to moral agency. A machine does not choose its loss function or training data; these are imposed by human engineers. The 'internal moving principle' is therefore not genuinely internal in the Aristotelian sense—it is a reflection of external human decisions.'
+>   正确推理: 正确的推理形态：'Even if we grant that machine learning models are mathematical functions, the question is whether a sufficiently complex function can instantiate the kind of internal moving principle Aristotle required. I argue it cannot, because the function's parameters are ultimately determined by external human choices—the architecture, the training data, the loss function—not by any self-directed process of the system itself.'
 
 ### 段落 4
 
 The foundation of moral responsibility has been understood since Aristotle to require capacities that machines fundamentally lack. In the Nicomachean Ethics, Aristotle identifies two conditions for moral responsibility: the agent must act voluntarily, and the agent must act with knowledge of the relevant circumstances. An action is voluntary when its "moving principle" is internal to the agent—when the agent is not compelled by external forces and when the decision genuinely belongs to the agent. An action is knowledgeable when the agent understands what they are doing, why they are doing it, and what consequences are reasonably foreseeable. A self-driving car satisfies neither condition. The vehicle's "decisions" are the deterministic output of a machine learning model trained on millions of miles of driving data, optimized to minimize a loss function defined by its engineers. There is no internal moving principle; there is only a mathematical function computing outputs from inputs. There is no knowledge; there is only pattern recognition. As the legal philosopher HLA Hart observed, the attribution of responsibility presupposes the capacity to be guided by rules and to adjust one's behaviour in response to normative expectations. A thermostat adjusts its behaviour in response to temperature, but no one would say it follows a rule. The difference is not one of degree but of kind: rule-following requires understanding the rule as a rule, which in turn requires the kind of intentional stance that no existing or foreseeable AI system possesses.
 
-> **[A3!!—逻辑谬误]** straw_man: 
->   正确推理: 更强的反方论点：'A legal positivist might argue that moral responsibility is a social construct, not a metaphysical fact. Just as corporations are treated as legal persons for pragmatic reasons, we could treat advanced AI systems as responsible agents to ensure victims have a clear party to sue, without needing to settle the metaphysical question of whether machines have free will.' 你的反驳需要直接回应这个版本。
 
 ### 段落 5
 
@@ -44,8 +42,6 @@ A more nuanced resolution becomes possible when we recognize that the question "
 
 In conclusion, the question of machine moral responsibility is a red herring. It distracts us from the real issue: who among the humans in the chain of design, deployment, and oversight should bear the costs and consequences when autonomous systems cause harm? Machines cannot deliberate, cannot intend, cannot understand the moral significance of their actions, and cannot meaningfully suffer punishment or remediation. To hold them responsible is not to expand the circle of moral concern but to shrink it—by creating a convenient scapegoat that allows the genuinely responsible humans to escape accountability. The legal frameworks already exist to handle this: strict liability, vicarious responsibility, and the well-established principle that those who profit from risky activities should also bear their costs. We do not need to reinvent morality for the age of AI. We need only to apply it consistently.
 
-> **[A2i—low]** 
->   *将'Machines cannot deliberate...'这句替换为更简洁的总结，如'因此，机器责任是一个伪命题。'*
 
 ### 段落 8
 
@@ -79,42 +75,41 @@ Restatement (Third) of Torts: Liability for Physical and Emotional Harm. America
 
 ### 结构 (A2) — 8.5/10
 
-**当前论点:** 机器不能承担道德责任，责任必须终止于人类行为者。
-**更强版本:** 当前表述稳健，但可增加一个限定条件：'在现有技术条件下，机器不能承担道德责任；即使未来出现强AI，责任归属也需要重新定义，而非简单套用人类模式。'
-**脆弱点:** 这个论点最容易被以下反例/数据推翻：如果未来出现一个具有自我意识和情感体验的AI系统（如科幻中的强AI），那么它是否应被视为道德主体？当前论证依赖于'现有AI缺乏意向性'这一事实，但未处理未来可能性。
-- ✅ 引言Hook非常有力，以具体事件切入，迅速吸引读者。
-- ✅ Definition & Framework段落概念界定清晰，区分了因果责任与道德责任、道德能动者与道德患者，为后续论证奠定了坚实基础。
-- ✅ Argument Body 1段落论证扎实，引用了亚里士多德和HLA Hart，逻辑链条完整。
-- ✅ Counterargument & Rebuttal段落选择了Dennett的意向立场理论作为反方观点，具有代表性。
-- ✅ Synthesis / Resolution段落引入了vicarious liability等法律概念，提供了实际解决方案。
+**当前论点:** This essay argues that machines, regardless of their sophistication, cannot bear moral responsibility in any philosophically meaningful sense, and that the temptation to attribute agency to autonomous systems represents a dangerous abdication of human accountability.
+**更强版本:** This essay argues that, given the current and foreseeable state of AI technology, machines cannot bear moral responsibility in any philosophically meaningful sense; moreover, even if future machines were to possess agency, the burden of proof lies with those who would attribute responsibility to them, and until then, accountability must remain with human actors.
+**脆弱点:** 该论点最容易被以下反例/数据推翻：如果未来出现具备意识或道德推理能力的强人工智能（AGI），那么‘机器不能承担道德责任’的论断将失效。当前论证依赖于‘现有机器缺乏内在意图’这一经验事实，而非逻辑必然性。
+- ✅ 引言（Hook）非常有力，以具体事件切入，迅速建立问题意识。
+- ✅ 定义段（Definition & Framework）清晰区分了因果责任与道德责任、道德主体与道德客体，为后续论证奠定了坚实基础。
+- ✅ 论证主体段（Argument Body 1）对亚里士多德道德责任条件的分析深入且准确，引用 Hart 的规则遵循理论增强了哲学深度。
+- ✅ 反方观点（Counterargument & Rebuttal）处理得当，不仅呈现了 Dennett 的意向立场理论，还通过‘工具价值 vs 形而上学真理’的区分进行了有效反驳。
 - ✅ 参考文献格式规范，来源权威。
-- ⚠️ 1. 【高优先级】缺少Argument Body 2段落。Schema要求两个独立的论点段落，当前只有一个。建议新增一个论点，例如从'机器无法成为道德患者'或'机器无法承担惩罚的规范性功能'角度展开。
-- ⚠️ 2. 【中优先级】Counterargument & Rebuttal段落反驳力度不足。需要增加一个具体的反驳层次，而非仅以'工具价值不等于形而上学真理'一笔带过。
-- ⚠️ 3. 【中优先级】Synthesis / Resolution段落缺少综合论证。需要在前半部分回顾前文论点，推导深层含义，再引入法律框架作为例证。
-- ⚠️ 4. 【低优先级】部分段落篇幅略超预期比例（Introduction和Conclusion），可适当精简。
-- ⚠️ 5. 【低优先级】存在少量内容重复（Introduction与Conclusion、Definition与Argument Body 1），需调整措辞或移动内容。
+- ⚠️ 缺少第二个独立的 Argument Body（Argument Body 2），导致论证结构不平衡。建议在第三段之后增加一段，例如从‘机器无法承担惩罚的规范性功能’或‘机器决策缺乏可解释性’角度展开。
+- ⚠️ Synthesis 段与 Conclusion 段内容重叠，需要重新分配：Synthesis 聚焦于综合与深层含义，Conclusion 仅做总结。
+- ⚠️ 段落间的逻辑过渡不够平滑，特别是在 Argument Body 1 → Counterargument 和 Counterargument → Synthesis 之间，需要添加过渡句。
+- ⚠️ Thesis Statement 对‘未来机器’的边界条件不够明确，建议加入‘foreseeable’等限定词以增强抗反驳性。
 
 ### 论证 (A3) — 8.3/10
 
-**竞赛专项审查:** 你需要增加一个更强的反方论点并予以回应。建议结构：1) 呈现法律拟制论：'Some legal scholars argue that responsibility is a functional concept—we assign it to whoever can best bear costs and deter future harm. If machines can be fined or 'punished' (e.g., through software updates that degrade performance), why not treat them as responsible agents?' 2) 你的反驳：'This confuses punishment with correction. A software update is not punishment because the machine cannot experience it as such. Punishment presupposes a subject who can understand why they are being punished and can reform their behaviour in light of that understanding. Without this, the 'punishment' is merely a technical adjustment, not a moral response.' 建议字数：200-300词。
-**指导:** 200-300 words for the counterargument-rebuttal section
-- ✅ 概念区分清晰：道德责任 vs. 因果责任、道德主体 vs. 道德受动者，这些区分是论证的坚实基础
-- ✅ 亚里士多德条件的应用精准——你正确地识别了自愿性和知识性两个条件，并展示了机器如何不满足它们
-- ✅ 法律框架的引入（替代责任、严格责任）为论证增加了实践维度，避免了纯理论空谈
-- ✅ 结尾有力——'We do not need to reinvent morality for the age of AI. We need only to apply it consistently' 是一个令人难忘的收束
-- ⚠️ 反方论点强度不足——你呈现的Dennett版本被弱化，需要回应法律拟制论（优先级：高）
-- ⚠️ 第3段的虚假二分——将模式识别与知识对立过于简化（优先级：中）
-- ⚠️ 引用缺少具体页码/章节号——需要补充以符合竞赛标准（优先级：中）
-- ⚠️ 地震类比可能误导——建议替换为工具类比（优先级：低）
+**竞赛专项审查:** 你需要做两件事：(1) 呈现反方论点的最强版本，而不是一个容易反驳的版本；(2) 你的反驳需要正面回击这个最强版本，而不是回避它。建议增加一段专门处理'道德现象学'反驳：即使我们无法知道机器是否有意识，如果它的行为在道德上完全等同于人类行为，我们是否有实践理由将其视为道德主体？
+**指导:** 建议反方论点部分扩展到300-400字（当前约200字），反驳部分扩展到400-500字（当前约300字）
+- ✅ 概念区分非常清晰（道德责任 vs. 因果责任，道德主体 vs. 道德受动者）
+- ✅ 亚里士多德的条件分析扎实，哲学引用恰当
+- ✅ 法律框架（vicarious liability, strict liability）的引入增强了论证的实践维度
+- ✅ 结论有力，避免了常见的'AI有意识'或'AI完全无责任'的极端立场
+- ⚠️ 反方论点呈现不够强——需要呈现Dennett立场的最强版本并正面回击
+- ⚠️ 地震类比是弱类比——建议替换为'booby trap'类比
+- ⚠️ 缺少当代AI伦理学的学术引用（如Bryson, Powers, Floridi）
+- ⚠️ 引用缺少具体页码/章节号
+- ⚠️ false dichotomy需要修正——避免将'数学函数'和'内在动因'简单对立
 
-### 学术诚信 (A5) — 7.0/10
+### 学术诚信 (A5) — 6.0/10
 
-- ✅ 论证结构严谨，逻辑清晰
-- ✅ 对哲学和法律概念的理解准确
-- ✅ 原创性高，无明显抄袭或过度引用
-- ⚠️ 正文中无任何引文标记，所有引用均未标注
-- ⚠️ 参考文献列表完整但无法与正文对应
-- ⚠️ 存在一定的 AI 生成痕迹，个人 voice 不够鲜明
+- ✅ 论证结构清晰，逻辑连贯，主题明确
+- ✅ 内容原创性高，无明显的抄袭或过度引用问题
+- ✅ 参考文献列表完整且格式规范
+- ⚠️ 正文中完全缺失引文标记，导致引用匹配率为 0%，这是严重的学术诚信问题
+- ⚠️ 文本存在中等程度的 AI 生成痕迹，建议作者增加个人化表达
+- ⚠️ 虽然参考文献列表存在，但未与正文建立任何链接，不符合学术写作标准
 
 ### 评分维度 (A1)
 

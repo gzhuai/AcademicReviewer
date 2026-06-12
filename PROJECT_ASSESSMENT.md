@@ -1,24 +1,38 @@
 # AcademicReviewer 项目评估报告
 
-> **评估日期**: 2026-06-10
-> **代码规模**: ~5,100 行 Python + 267 行 Prompt 模板 + 29 个 JSON 配置文件 + 18 个文档文件
+> **评估日期**: 2026-06-12（第二次评估）
+> **上次评估**: 2026-06-10（7.4/10）
+> **代码规模**: ~5,800 行 Python + 267 行 Prompt 模板 + 30 个 JSON 配置文件 + 20 个文档文件
 > **技术栈**: Python 3.10+ / FastAPI / Gradio / SQLite / ChromaDB / httpx
-> **评估方法**: 完整阅读全部源代码后进行多维度分析
+> **评估方法**: 完整阅读全部源代码后多维度分析 + 改进计划执行验证
 
 ---
 
-## 综合评分: 7.4/10（更新于 2026-06-10 测试改进后）
+## 综合评分: 8.0/10（更新于 2026-06-12 v0.3.0 公平性重构后）
 
-| 维度 | 评分 | 等级 | 变化 |
+| 维度 | 评分 | 等级 | 变化（自 6/10） |
 |------|------|------|------|
-| 架构设计 | 8.0/10 | 良好 — 思路清晰，无过度工程化 | — |
-| 代码质量 | 7.5/10 | 良好 — 已修复多个硬编码和安全隐患 | ↑ 0.5 |
-| 安全性 & 鲁棒性 | 5.5/10 | 需关注 — 存在多个中高风险项 | — |
-| 测试 & 质量保障 | **7.5/10** | 合格 — 177 个单元测试 + CI | **↑ 4.0** |
-| 文档质量 | 8.5/10 | 优秀 — 中英双语、面向多角色 | — |
-| 可维护性 & 可扩展性 | 7.5/10 | 良好 — 配置驱动，易于扩展 | — |
-| **竞赛类型公平性（新增）** | **5.0/10** | 偏差明显 — 研究型倾斜，校准引擎不适配非科研类型 | 🆕 |
-| 依赖 & 技术债务 | 7.0/10 | 合格 — 有可优化空间 | — |
+| 架构设计 | 8.5/10 | 优秀 — 类型感知已融入架构各层 | ↑ 0.5 |
+| 代码质量 | 8.0/10 | 良好 — type_hints 配置化，style_guides 生效 | ↑ 0.5 |
+| 安全性 & 鲁棒性 | 7.0/10 | 合格 — Bearer Token + 文件限制已落地 | ↑ 1.5 |
+| 测试 & 质量保障 | 7.5/10 | 合格 — 166/177 通过（py3.14 兼容待修） | — |
+| 文档质量 | 9.0/10 | 优秀 — CHANGELOG + CONTRIBUTING + .env.example | ↑ 0.5 |
+| 可维护性 & 可扩展性 | 8.5/10 | 优秀 — 硬编码全部配置化，subprocess 已移除 | ↑ 1.0 |
+| **竞赛类型公平性** | **7.5/10** | 良好 — 特征集/权重/映射/fatal_defect/style_guides 全部按类型切换 | **↑ 2.5** |
+| 依赖 & 技术债务 | 7.5/10 | 良好 — lock 文件到位，Changelog 就绪 | ↑ 0.5 |
+
+### v0.3.0 变更概述（2026-06-12）
+
+Trae AI 基于 IMPROVEMENT_PLAN.md 执行了竞赛公平性重构，核心变化：
+
+- **校准引擎按类型切换特征集**: 8 种类型独立 `FEATURES_BY_TYPE`（科研 21 特征，思辨/金融/商科 15 特征），`feature_names(competition_type)` 动态返回
+- **fatal_defect 按类型分离**: 8 种类型独立 `BINARY_FEATURES_BY_TYPE`，John Locke 不再建议"缺少 p 值为致命缺陷"
+- **Agent 权重按竞赛可配置**: `competition_registry.json` 中 10 场比赛各有 `agent_weights`，`_compute_total_score()` 以 `weight_sum` 归一化防止偏移
+- **配置映射按类型分离**: `FEATURE_TO_CONFIG_MAP_BY_TYPE` 含全部 8 种类型，替换了全局统一映射
+- **A4 加载 style_guides**: `_load_style_guide()` 加载各类型风格 JSON，传入 LanguageStyle Agent
+- **A3 type_hints JSON 化**: 硬编码 → `competition_type_hints.json`，8 种类型各有独立 checks/skip/hint
+- **安全加固**: Bearer Token 认证 + 50MB 文件限制 + 类型白名单
+- **技术债务**: Gradio subprocess → 直接调用 + requirements-lock.txt + CHANGELOG/CONTRIBUTING
 
 ---
 
@@ -122,141 +136,109 @@
 
 ---
 
-## 3. 竞赛类型公平性分析 (5.0/10) 🆕
+## 3. 竞赛类型公平性分析 (7.5/10) ↑2.5
 
 > **核心问题**: 当前系统能否在所有类型的报告提交类竞赛中有效地给出作品质量评审和反馈？是否存在过于倾向某类型赛事的情况？
+> **v0.3.0 更新**: 特征集、权重、配置映射、fatal_defect 检测、style_guides、type_hints 全部完成按类型切换。
 
-### 结论：存在明显的研究型倾斜，但框架本身可修正
+### 结论：研究型倾斜已基本修正，框架层面的类型感知已覆盖全部环节
 
-### 3.1 当前对各竞赛类型的适配度
+### 3.1 当前对各竞赛类型的适配度（v0.3.0 更新）
 
 按系统实际适配度排序：
 
 | 适配度 | 赛事 | 原因 |
 |--------|------|------|
-| ⭐⭐⭐⭐⭐ | **ISEF / STS** | 系统天然以科研论文为设计模板 |
-| ⭐⭐⭐⭐ | **HiMCM** | 数模论文也是结构化+量化的，特征提取和多数维度匹配 |
-| ⭐⭐⭐ | **丘成桐** | 进阶科研，大部分机制适用 |
-| ⭐⭐⭐ | **CTB / NHD** | 社科/历史，结构+证据维度部分适用，但量化特征不适用 |
-| ⭐⭐ | **John Locke / Marshall** | 思辨型议论文，校准引擎几乎无用，证据标准完全不同 |
-| ⭐⭐ | **SIC / WGHS** | 金融分析，需要大量领域知识但 Agent prompt 覆盖了 |
-| ⭐ | **FBLA** | 商科案例，框架评估（SWOT/PEST/五力）目前的配置支持有限 |
+| ⭐⭐⭐⭐⭐ | **ISEF / STS** | 系统天然以科研论文为设计模板，21 特征全部适用，权重偏证据 |
+| ⭐⭐⭐⭐⭐ | **丘成桐** | 进阶科研，同 ISEF，research_advanced 特征集和 evidence config 覆盖 |
+| ⭐⭐⭐⭐ | **HiMCM** | 数模论文结构化+量化，特征集保留 has_sample_size，权重偏证据(30%) |
+| ⭐⭐⭐⭐ | **CTB / NHD** | 社科/历史，独立特征集（去科研专用项），权重适配（NHD 证据 30%） |
+| ⭐⭐⭐⭐ | **John Locke / Marshall** | 思辨型，discursive 特征集（15 特征，highlight 逻辑/过渡/词汇多样性），权重偏结构(30%) |
+| ⭐⭐⭐ | **SIC / WGHS** | 金融型，finance 特征集，权重分布均衡，style_guide=biz_finance |
+| ⭐⭐⭐ | **FBLA** | 商科型，business_case 特征集，权重偏结构(30%)，type_hints 覆盖 SWOT/PEST/ROI |
 
-### 3.2 五个层面的偏差分析
+### 3.2 五个层面的偏差分析（v0.3.0 更新）
 
-#### 3.2.1 校准引擎特征集——最严重的偏差 🔴
+#### 3.2.1 校准引擎特征集 — 已修复 ✅
 
-21 个全局特征中，有 8 个是**纯科研专用**的 binary 检测：
+原问题：21 个全局特征中 8 个纯科研专用（has_p_value/has_effect_size/has_control_group/has_sample_size），对非科研竞赛永远为 0.0。
 
-```python
-# 这些特征对 John Locke / 历史论文永远是 0.0
-has_p_value          # "p < 0.05"
-has_effect_size       # "Cohen's d"
-has_control_group     # "control group"
-has_sample_size        # "n = 200"
-```
+**v0.3.0 修复**: `FEATURES_BY_TYPE` 为 8 种类型定义了独立特征集，`feature_names(competition_type)` 动态返回。discursive/history/finance/business_case 均为 13-15 特征（移除了科研 4 项 + limitations_section_present 按需保留）。
 
-**后果**: 对 John Locke 议论文跑校准时，8 个特征全是 0.0，Cohen's d 算不出有效的效应量——不是因为获奖文章和失败文章没有差距，而是**特征集选错了**。
+**残留风险**: 低。特征集现在按类型正确选择了，实现完整。
 
-**更致命的连锁反应**: `generate_fatal_defect_updates()` 检测到 binary 特征 negative signal 时会建议把「缺少 p 值」标记为**致命缺陷 (fatal defect)**。这对 ISEF 完全合理，对 John Locke 是灾难性的错误建议。
+#### 3.2.2 Agent 权重 — 已修复 ✅
 
-#### 3.2.2 Agent 权重——所有类型一刀切 🔴
+原问题：所有竞赛一刀切 `AGENT_WEIGHTS`。
 
-```python
-AGENT_WEIGHTS = {
-    "RubricParser":      0.25,  # ← 所有竞赛一样
-    "StructureLogic":    0.20,
-    "ArgumentEvidence":  0.25,
-    "LanguageStyle":     0.15,
-    "AcademicIntegrity": 0.15,
-}
-```
+**v0.3.0 修复**: `competition_registry.json` 中每场比赛有独立的 `agent_weights`。示例：John Locke Structure=30%/Argument=25%（偏结构），ISEF Structure=15%/Argument=30%（偏证据），FBLA Structure=30%/Language=20%（偏框架+说服力）。`_compute_total_score()` 按 `weight_sum` 归一化防止偏移。
 
-不同类型的竞赛对五个维度的实际需求完全不同：
+**残留风险**: 低。当前权重基于理论分析设定（结构重要性 vs 证据重要性 vs 语言重要性），需要真实使用数据验证。校准引擎可以在积累足够评审记录后通过 `agent_weights_override` 机制自动建议修正。
 
-| 赛事类型 | 结构重要性 | 证据重要性 | 语言重要性 | 学术诚信 |
-|----------|-----------|-----------|-----------|---------|
-| 科研型 (ISEF) | 中 | **极高** (数据/方法论) | 低 | **极高** |
-| 思辨型 (John Locke) | **极高** (逻辑链) | 高 (引用质量) | 中 | 高 |
-| 数模型 (HiMCM) | 高 | **极高** (模型正确性) | 低 | 低 |
-| 商科型 (FBLA) | **极高** (框架应用) | 中 (数据支撑) | 高 (说服力) | 低 |
-| 金融型 (SIC/WGHS) | 高 | 高 (数据/模型) | 中 | 中 |
-| 历史型 (NHD) | 高 | **极高** (一手史料) | 中 | 高 |
+#### 3.2.3 A4 语言风格审查 — 已修复 ✅
 
-**后果**: 一篇 HiMCM 论文的语言风格问题和一篇 John Locke 论文的语言风格问题，对总分的影响权重一样——这不合理。思辨型论文的逻辑结构应该权重更高，科研型论文的证据质量应该权重更高。
+原问题：`a4_language_style.txt` 对所有类型用同样的审查标准。
 
-#### 3.2.3 A4 语言风格审查——学科差异被忽视 🟡
+**v0.3.0 修复**: `orchestrator._load_style_guide()` 根据 `competition_registry.json` 中的 `style_template` 加载对应 JSON（如 discursive.json 设定 max_passive_ratio=0.30/preferred_voice="active, conversational-academic hybrid"），传入 A4 Agent。Prompt 中新增了 6 种类型的风格审查原则（科研被动 40%上限、思辨主动优先 30%上限、商科主动有说服力、金融精确数据叙述等）。
 
-`a4_language_style.txt` 对所有类型用同样的审查标准。但不同学科对语言的要求完全不同：
-- 科研论文：被动语态**被鼓励**（"The samples were measured..."）
-- 商科提案：**主动、有说服力**的语言是必须的
-- 历史论文：需要**正式学术语调**，但不能太技术化
-- 思辨论文：句子结构本身就是**论证工具**，修辞精度至关重要
+**残留风险**: 低-中。Prompt 中的类型指导是硬编码文本，未直接引用 JSON style_guide 中的具体数值（如 max_passive_ratio）。如果 style_guide JSON 的参数调整了，prompt 文本不会自动更新。建议：在 prompt 构建时动态注入 style_guide 中的数值参数。
 
-虽然 `configs/style_guides/` 有 6 个 JSON 文件，但 A4 的 prompt 中并没有针对性加载它们——全靠 LLM 自行判断。
+#### 3.2.4 校准引擎配置映射 — 已修复 ✅
 
-#### 3.2.4 校准引擎特征集全局统一 🟡
+原问题：`FEATURE_TO_CONFIG_MAP` 全局统一。
 
-`feature_names()` 返回的 21 个特征名对所有竞赛都一样。虽然科研专用特征不会被映射到非科研竞赛的 config change（因为 `FEATURE_TO_CONFIG_MAP` 里没有对应的键），但它们仍然出现在报告里，**稀释了真正有用的信号**。
+**v0.3.0 修复**: `FEATURE_TO_CONFIG_MAP_BY_TYPE` 含全部 8 种类型的独立映射。discursive 类型下 `logical_marker_density` → `logic_checks.min_logical_markers_per_1000w`，`hook_sentence_present` → `structure_requirements.requires_hook`。不包含 has_p_value/has_effect_size/has_control_group 等科研专用映射。
 
-对于 John Locke 思辨论文，真正有区分度的特征可能是：`vocabulary_diversity`、`logical_marker_density`、`transition_frequency`、`claim_count_estimate`、`hook_sentence_present`。但这些特征在科研论文中也有一定价值——问题在于不应该把科研专用的 8 个噪声特征混进来。
+**v0.3.0 修复（fatal_defect）**: `BINARY_FEATURES_BY_TYPE` 含全部 8 种类型的独立白名单。`generate_fatal_defect_updates(competition_type)` 按类型过滤 binary feature，确保对 John Locke 不检查 has_p_value/has_control_group。
 
-#### 3.2.5 Prompt 层面的类型感知（做得最好的部分）✅
+**残留风险**: 低。完整实现。
 
-`a2_structure_logic.txt` 和 `a3_argument_evidence.txt` 的 v1.7 双层架构（通用 coaching 层 + 竞赛专用检查）是做对了的。特别是 A3 的 type_hints 为 8 种类型提供了详细的检查指导。这是当前系统在类型感知方面**做得最好的部分**。
+#### 3.2.5 Prompt 层面的类型感知 — 已增强 ✅
 
-### 3.3 总结：偏差的本质原因
+原为系统做得最好的部分（A2/A3 的 v1.7 双层架构）。
 
-> 系统从架构到 Prompt 到校准引擎都**围绕传统学术研究论文的形态设计**。对 ISEF/STS/丘成桐/HiMCM 这些最接近学术论文形态的竞赛适配度最高。
+**v0.3.0 增强**: A3 type_hints 从硬编码迁移到 `competition_type_hints.json`，每种类型有独立的 `checks`/`skip`/`hint`。A2 的结构检查继续从 `structure_schemas/*.json` 动态读取 `required_sections`/`expected_ratio`/`logic_checks`。
+
+**残留风险**: 低。Prompt 层的类型感知是最完善的。
+
+### 3.3 总结：偏差已基本修正，框架层面的类型感知覆盖完整
+
+> ~~系统从架构到 Prompt 到校准引擎都**围绕传统学术研究论文的形态设计**。~~
 >
-> 对思辨型（John Locke）、商科型（FBLA）、历史型（NHD）的评价质量会**明显下降**，不是因为 Agent 不够好，而是因为底层的特征提取（校准）和权重分配（评分）没有针对这些类型进行适配。
+> **v0.3.0 后**: 系统从 Prompt（type_hints JSON）、评分权重（agent_weights per competition）、特征提取（FEATURES_BY_TYPE）、配置映射（FEATURE_TO_CONFIG_MAP_BY_TYPE）、fatal_defect 检测（BINARY_FEATURES_BY_TYPE）、风格审查（style_guides JSON）六个层面全部实现了按竞赛类型切换。研究型倾斜问题在**架构层面**已解决。
 >
-> 框架本身（5 Agent + 配置驱动）的设计足够灵活，有能力修正这些偏差——但**修正还没有完成**。当前的"类型感知"主要停留在 Prompt 层面（告诉 LLM 注意什么），而没有深入到评分数学（权重、特征选择、校准逻辑）层面。
+> 剩余工作不在架构层面，而在于**内容质量**——LLM 是否能在各类型中做出专业级判断（见 [HUMAN_AGENT_COLLABORATION.md](HUMAN_AGENT_COLLABORATION.md)）。
 
 ---
 
-## 4. 安全性 & 鲁棒性 (5.5/10)
+## 4. 安全性 & 鲁棒性 (7.0/10) ↑1.5
 
-### 风险清单
+### 风险清单（v0.3.0 更新）
 
-**4.1 API 完全无认证 (严重) 🔴**
-- 所有 REST API 端点（`/api/v1/*`）均无任何认证机制
-- 任何能访问 `127.0.0.1:8000` 的人都可以提交评审、查看历史、修改赛事配置
-- 缓解因素：默认绑定 `127.0.0.1`，仅本地可访问
-- 风险升级场景：`HOST=0.0.0.0` 时对外暴露，管理看板也完全公开
-- **建议**: 至少添加简单的 API Key / Bearer Token 认证
+**4.1 API 认证 — 已修复 ✅**
+- **已修复**: Bearer Token 认证已实现。`_verify_api_token()` 检查 `Authorization: Bearer <token>`，与 `.env` 中 `API_TOKEN` 比对。`API_TOKEN` 未设置时向后兼容（跳过认证）。
+- 所有 `/api/v1/*` 敏感端点已添加 `Depends(_verify_api_token)`。
 
-**4.2 文件上传无限制 (高) 🟠**
-- `POST /api/v1/review` 未限制文件大小、类型（仅前端 Gradio 做了类型过滤）
-- 可能被上传超大文件导致磁盘耗尽（临时文件 `/tmp`）
-- **建议**: 添加文件大小限制（如 50MB）、服务端 MIME 类型验证
+**4.2 文件上传限制 — 已修复 ✅**
+- **已修复**: 服务端验证 `_validate_file(suffix, size)`：50MB 上限 + `.txt/.md/.pdf/.docx` 白名单。`await file.read(_MAX_FILE_SIZE + 1)` 避免无限读取。
 
-**4.3 学生数据隐私 (高) 🟠**
-- 学生论文全文发送到第三方 LLM API（DeepSeek/OpenAI/Gemini/GLM）
-- 未在用户界面或文档中明确告知数据会离开本地
-- 学生姓名 (`student_name`) 明文存储在 SQLite 中
-- **建议**: 添加隐私声明、提供本地模型选项的说明、考虑字段加密
+**4.3 学生数据隐私 (高) 🟠 — 未完全解决**
+- 学生论文全文仍发送到第三方 LLM API（DeepSeek/OpenAI/Gemini/GLM）
+- CHANGELOG 声称了隐私声明，但需验证 README 和 Gradio UI 是否实际添加
+- **建议**: 在 Gradio 提交界面和 README 中添加明确的隐私提示
 
-**4.4 同步数据暴露 (中) 🟡**
-- `sync.py` 将完整审查报告（包含学生论文内容、姓名）通过 HTTP POST 发送到中央服务器
-- 同步使用明文 HTTP（非 HTTPS），在局域网中可能被嗅探
-- **建议**: 支持 HTTPS、考虑对敏感字段脱敏、增加同步数据加密选项
+**4.4 同步数据暴露 (中) 🟡 — 未变**
+- 同步仍使用明文 HTTP，需考虑 HTTPS/加密
 
-**4.5 无速率限制 (中) 🟡**
-- 无请求频率限制，可能被高频调用导致 LLM API 费用激增
-- **建议**: 添加速率限制（如每分钟 5 次审核）
+**4.5 无速率限制 (中) 🟡 — 未变**
+- 无请求频率限制
 
-**4.6 路径遍历已修复 ✅（原风险）**
-- **已修复**: `_load_rubric_config()` 现在使用 `Path(safe_name).name` 防止路径遍历
-
-**4.7 依赖供应链 (低) 🟡**
-- `requirements.txt` 无版本锁定（全部使用 `>=`）
-- ChromaDB 的 transitive 依赖（onnxruntime、numpy）体积大且版本敏感
-- **建议**: 添加锁文件或使用 pip-tools 生成精确版本
+**4.6 路径遍历 — 已修复 ✅（v0.2.0）**
+**4.7 依赖供应链 — 已改进 🟡**
+- `requirements-lock.txt` 已添加，精确版本锁定了 124 个依赖
 
 **4.8 生产就绪度评估**
-- 当前项目定位为 **内网工具/个人辅助工具**，安全措施与定位基本匹配
-- 如需面向公网或多人使用，至少需要补充 API 认证和速率限制
+- 当前定位仍为内网工具/个人辅助工具。如需公网部署仍需：HTTPS、速率限制、更完整的数据隐私声明。
 
 ---
 
@@ -365,15 +347,17 @@ AGENT_WEIGHTS = {
 
 | 债务项 | 严重度 | 说明 | 状态 |
 |--------|--------|------|------|
-| 竞赛类型偏差 | **高** | 校准引擎、权重、评分机制研究型倾斜 | 🆕 见 §3 |
+| 竞赛类型偏差 | ~~高~~ | ~~校准引擎、权重、评分机制研究型倾斜~~ | ✅ 已修复 (v0.3.0) |
 | 无数据库迁移 | 中 | `Base.metadata.create_all()` 每次启动执行 | 未修复 |
 | 无配置热加载 | 低 | 修改 `.env` 或 JSON 配置需重启服务 | 未修复 |
-| 评分键名硬编码 | 低 | Agent 输出字段名分散在多处 | ✅ 已修复 |
-| requirements.txt 宽松版本 | 低 | `>=` 约束可能导致依赖升级引入 breaking change | 未修复 |
+| 评分键名硬编码 | 低 | Agent 输出字段名分散在多处 | ✅ 已修复 (v0.2.0) |
+| requirements.txt 宽松版本 | 低 | `>=` 约束可能导致依赖升级引入 breaking change | ✅ 已修复 (lock 文件) |
 | 潜在循环导入 | 低 | 当前通过 lazy import 规避 | 未修复 |
-| 缓存无失效机制 | 低 | 全局缓存单例 | ✅ 已修复 (clear_config_cache) |
-| 路径遍历风险 | 低 | competition 名直接构建文件路径 | ✅ 已修复 |
-| type_hints 硬编码 | 低 | A3 的 8 种类型提示写在代码中 | 未修复 |
+| 缓存无失效机制 | 低 | 全局缓存单例 | ✅ 已修复 (v0.2.0 clear_config_cache) |
+| 路径遍历风险 | 低 | competition 名直接构建文件路径 | ✅ 已修复 (v0.2.0) |
+| type_hints 硬编码 | 低 | A3 的 8 种类型提示写在代码中 | ✅ 已修复 (v0.3.0 JSON 化) |
+| Gradio subprocess 调用 | 低 | 校准功能通过子进程 | ✅ 已修复 (v0.3.0) |
+| pytest-asyncio 兼容 | 新 | Python 3.14 下 11 个 async 测试失败 | 🆕 待修复 |
 
 ---
 
@@ -409,42 +393,42 @@ pydantic-settings     — 环境变量管理
 ### 项目亮点 ✨
 
 1. **架构决策清醒**: 拒绝 LangChain、校准引擎 LLM-Free、无框架依赖——每个技术选择都有明确原因
-2. **AI_HANDOFF.md 堪称典范**: 这是 AI 辅助开发场景下接手指南的标杆级文档
-3. **配置驱动的可扩展性**: 添加竞赛类型无需修改代码，配合 GUI 管理界面用户体验良好
-4. **校准引擎思路精巧**: 用统计学方法（Cohen's d + 特征提取）从获奖/失败文章差距中自动生成评审规则优化建议
-5. **实用主义贯穿始终**: 降级策略完善、fire-and-forget 同步不阻塞用户、错误不中断流水线
-6. **测试基础设施建设完成**: 177 个单元测试、Mock 框架、CI 就绪——从 3.5 分跃升到 7.5 分
+2. **类型公平性已落地**: 从 Prompt 到权重到校准引擎到 style_guides，六层全部按类型切换——这是 v0.3.0 的最重要成就
+3. **AI_HANDOFF.md 堪称典范**: 这是 AI 辅助开发场景下接手指南的标杆级文档
+4. **配置驱动的可扩展性**: 添加竞赛类型无需修改代码，配合 GUI 管理界面用户体验良好
+5. **校准引擎思路精巧**: 用统计学方法（Cohen's d + 特征提取）从获奖/失败文章差距中自动生成评审规则优化建议，现在按类型正确选择特征集
+6. **实用主义贯穿始终**: 降级策略完善、fire-and-forget 同步不阻塞用户、错误不中断流水线
+7. **原文标注输出**: `annotation_builder.py` 将 5 个 Agent 的反馈映射回原文段落，生成 Word 修订模式般的 Markdown——这是"替代专业老师"目标的关键体验创新
 
 ### 关键风险 ⚠️
 
-1. **竞赛类型公平性不足**: 系统在研究型竞赛上表现最好，对思辨型/商科型/历史型竞赛存在系统性偏差——校准引擎特征集不匹配、权重一刀切、A4 审查标准不分学科
-2. **安全性在生产场景下不足**: 无认证、无速率限制、明文传输同步数据
-3. **数据隐私需要明确**: 学生论文全文发送到商业 LLM API，需要用户知情同意
+1. **LLM 判断深度不足**: 架构层面已准备就绪，但 LLM 能否在思辨型/商科型/历史型竞赛中做出专业级判断，仍取决于 Prompt 质量（标杆案例）和 LLM 自身领域知识。详见 [HUMAN_AGENT_COLLABORATION.md](HUMAN_AGENT_COLLABORATION.md)
+2. **安全性在公网场景下仍不足**: 无速率限制、同步使用明文 HTTP
+3. **数据隐私声明需要验证**: 学生论文发送到商业 LLM API，需在 UI 和 README 中明确告知用户
+4. **测试基础设施需维护**: Python 3.14 下 11 个 async 测试因 pytest-asyncio 兼容性失败
 
-### 本次会话完成的改进
+### v0.2.0 → v0.3.0 完成的改进
 
 | 类别 | 已完成 |
 |------|--------|
-| 测试基础设施 | pytest.ini + conftest.py + MockLLMAdapter |
-| 单元测试 | 177 个测试（13 个文件），0 失败 |
-| CI/CD | GitHub Actions workflow |
-| 代码质量 | 6 项修复（score_key、路径遍历、缓存失效、Agent 导出等） |
-| 评估报告 | 本文档（含竞赛类型公平性分析） |
-| 改进计划 | 见 `IMPROVEMENT_PLAN.md` |
+| 校准引擎特征集 | FEATURES_BY_TYPE 含 8 种类型，feature_names() 动态返回 |
+| fatal_defect | BINARY_FEATURES_BY_TYPE 含 8 种类型，按类型过滤 |
+| Agent 权重 | 10 场比赛独立 agent_weights，weight_sum 归一化 |
+| 配置映射 | FEATURE_TO_CONFIG_MAP_BY_TYPE 含 8 种类型 |
+| A4 style_guides | _load_style_guide() 加载 JSON 传入 Agent |
+| A3 type_hints | competition_type_hints.json 含 8 种类型 |
+| 安全加固 | Bearer Token + 50MB 限制 + 类型白名单 |
+| 技术债务 | subprocess 移除 + lock 文件 + CHANGELOG + CONTRIBUTING |
 
 ### 下一步改进优先级
 
-详见配套文档 **[IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md)**。
-
 | 优先级 | 项目 | 预估工作量 |
 |--------|------|-----------|
-| P0 | 校准引擎按竞赛类型切换特征集（消除研究型偏差的最大根源） | 2-3 天 |
-| P0 | Agent 权重按竞赛类型可配置（消除一刀切评分） | 1 天 |
-| P1 | A4 真正加载和使用 style_guides | 1 天 |
-| P1 | 为文件上传添加大小限制和类型验证 | 1 小时 |
-| P1 | 添加 API 认证（Bearer Token） | 半天 |
-| P1 | 添加隐私声明 | 1 小时 |
-| P2 | 将 type_hints 从 argument_evidence.py 移到 configs/ JSON | 0.5 天 |
-| P2 | 生成 requirements-lock.txt | 半小时 |
-| P3 | 替换 Gradio subprocess 调用为直接函数调用 | 1 天 |
-| P3 | 添加 Changelog 和 Contributing 指南 | 半天 |
+| P0 | Prompt 标杆案例（每种竞赛类型 2-3 对"好/差"样本注入 few-shot） | 2 天 |
+| P0 | 验证并完善隐私声明（README + Gradio UI） | 2 小时 |
+| P1 | A3 quantitative_check 按类型动态输出 | 0.5 天 |
+| P1 | 修复 pytest-asyncio 兼容性（Python 3.14） | 1-2 小时 |
+| P2 | 学生水平自适应（按字数/复杂度估级） | 1 天 |
+| P2 | 扩展 data/expert_insights/ 覆盖全部 7 种竞赛类型 | 1 天 |
+| P3 | 数据库迁移方案（Alembic） | 0.5 天 |
+| P3 | A4 prompt 动态注入 style_guide 数值参数 | 0.5 天 |

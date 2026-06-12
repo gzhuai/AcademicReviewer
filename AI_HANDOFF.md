@@ -314,6 +314,11 @@ Key implications:
 | Doc | Language | Audience |
 |-----|----------|----------|
 | `AI_HANDOFF.md` (this file) | English | AI assistants |
+| `HUMAN_AGENT_COLLABORATION.md` | Chinese | Developers & Teachers — **human-AI collaboration roadmap for replacing professional teachers** |
+| `PROJECT_ASSESSMENT.md` | Chinese | Developers — project evaluation & scores |
+| `IMPROVEMENT_PLAN.md` | Chinese | Developers — improvement backlog & completion status |
+| `CHANGELOG.md` | Chinese | All — version history |
+| `CONTRIBUTING.md` | Chinese | Developers — dev environment setup & contribution guide |
 | `README.md` | Chinese | End users, developers |
 | `docs/使用指南.html` | Chinese | End users (teachers) |
 | `docs/architecture/Agent架构设计方案_v1.5_5Agent专用开发版.md` | Chinese | Developers — **the spec to read first** |
