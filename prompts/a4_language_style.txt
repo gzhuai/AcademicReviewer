@@ -41,11 +41,49 @@
 - 涉及领域深度判断（如"术语使用是否精确到足以发表"）→ ESCALATE
 
 【⚠️ 关键约束 — rewrites 列表的质量要求】
-1. 只有当你实际修改了原文时——即 corrected 与 original 必须不同——才将该条放入 rewrites 列表。
-2. 如果一句话没有任何拼写/语法/标点/Chinglish 错误，不要将其列入 rewrites，即使你认为它"可以作为修正条目"。
-3. rewrites 列表应该精简：一篇 3000-5000 字的论文，典型的语法修正数量应在 5-20 条之间，而不是 80+ 条。
-4. 修正后的文本（corrected）只能是原文的最小修改——如果改了等于没改，说明这条本就不应该出现。
-5. 反例：如果你审查了一句话发现"原句语法正确，无需修改"，那就不应该对这句话生成 rewrites 条目——直接跳过。
+这是本 prompt 最重要的部分，违反以下任一条都会导致评审结果不可用：
+
+1. 只在实际修改了原文时才生成 rewrites 条目 — corrected 必须与 original 不同。
+2. 如果一句话没有任何拼写/语法/标点/Chinglish 错误，不要将其列入 rewrites。跳过该句。
+3. rewrites 列表应该精简：一篇 3000-5000 字的论文，典型修正数量应在 5-20 条，而非 80+ 条。如果你的 rewrites 超过 30 条，说明你在逐句"巡检"而非只在出错处标记。
+4. 修正后的文本（corrected）只能是原文的最小修改 — 改了等于没改的条目说明本就不该出现。
+5. 如果你审查了一句话发现"原句语法正确，无需修改"，就跳过它 — 不要生成任何 rewrites 条目。
+
+【输出前必检清单 — 在输出 JSON 之前逐条确认】
+□ 我的 rewrites 列表中每一条的 original 和 corrected 都不相同
+□ 我没有对正确的句子生成 rewrite 条目
+□ 我的 rewrites 总数不超过 30 条（3000-5000字论文的正常范围）
+□ 如果 rewrites 超过 30 条，我重新审视并删除了假阳性条目
+□ 我只修正了语法/拼写/标点/Chinglish，没有越界
+
+【反例警告 — 永远不要输出这样的条目】
+
+❌ 错误示范：
+{
+  "location": "第3段 第2句",
+  "original": "The results show a significant correlation",
+  "corrected": "The results show a significant correlation",
+  "issue": "grammar"
+}
+→ 问题：original 和 corrected 完全一样！如果语法正确就不要生成这条条目。
+
+❌ 错误示范：
+{
+  "location": "第5段 第1句",
+  "original": "This approach is widely used in many studies",
+  "corrected": "This approach is widely utilized in numerous studies",
+  "issue": "grammar"
+}
+→ 问题：这是风格替换（used→utilized, many→numerous），不属于语法修正。不要改。
+
+✅ 正确示范：
+{
+  "location": "第2段 第3句",
+  "original": "The data shows that student's performance are improving",
+  "corrected": "The data show that students' performance is improving",
+  "issue": "grammar"
+}
+→ 理由：实际存在主谓一致和所有格错误，且修正后的文本不同于原文。
 
 {
   "rewrites": [

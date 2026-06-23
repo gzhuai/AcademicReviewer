@@ -19,6 +19,8 @@ echo ""
 echo -e "${YELLOW}  Starting Gradio UI...${NC}"
 echo -e "${WHITE}  URL: http://127.0.0.1:7860${NC}"
 echo ""
+echo -e "${YELLOW}  Press Ctrl+C to stop.${NC}"
+echo ""
 
 source venv/bin/activate
 python app/gradio_app.py

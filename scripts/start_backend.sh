@@ -20,6 +20,8 @@ echo -e "${YELLOW}  Starting backend server...${NC}"
 echo -e "${WHITE}  API:  http://127.0.0.1:8000${NC}"
 echo -e "${WHITE}  Docs: http://127.0.0.1:8000/docs${NC}"
 echo ""
+echo -e "${YELLOW}  Press Ctrl+C to stop.${NC}"
+echo ""
 
 source venv/bin/activate
 python run.py

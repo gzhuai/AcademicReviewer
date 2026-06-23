@@ -11,6 +11,18 @@ echo -e "${WHITE}      AcademicReviewer -- One-Click Install${NC}"
 echo -e "${CYAN}  ================================================${NC}"
 echo ""
 
+echo -e "${YELLOW}[Pre-check] Checking disk space (>= 2 GB required)...${NC}"
+free_kb=$(df -k "$PWD" 2>/dev/null | tail -1 | awk '{print $4}')
+if [[ -n "$free_kb" ]] && [[ "$free_kb" -lt 2000000 ]]; then
+    free_gb=$(echo "scale=1; $free_kb/1024/1024" | bc 2>/dev/null || echo "?")
+    echo -e "${RED}  [X] Only ${free_gb} GB free (need >= 2 GB). The venv will be ~800 MB.${NC}"
+    echo -e "${RED}      Please free up space and retry.${NC}"
+    read -r -p "Press Enter to exit"
+    exit 1
+fi
+echo -e "${GREEN}   Disk space OK${NC}"
+
+echo ""
 echo -e "${YELLOW}[1/5] Checking Python environment...${NC}"
 
 PYTHON_CMD=""

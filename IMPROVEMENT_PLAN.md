@@ -19,7 +19,7 @@
 | 4 | 校准引擎 FEATURE_TO_CONFIG_MAP 按类型分离 | 配置建议正确性 | P1 | 1 天 | ✅ 完成 |
 | 5 | 安全加固（认证+上传限制+隐私声明） | 生产就绪 | P1 | 1 天 | ✅ 完成 |
 | 6 | A3 type_hints 从代码移到配置文件 | 代码质量 | P2 | 0.5 天 | ✅ 完成 |
-| 7 | 其他技术债务清理 | 可持续性 | P2-P3 | 2 天 | ⚠️ 部分（subprocess/lock/CHANGELOG/CONTRIBUTING 已完成，数据库迁移待做） |
+| 7 | 其他技术债务清理 | 可持续性 | P2-P3 | 2 天 | ✅ 完成（subprocess/lock/CHANGELOG/CONTRIBUTING/死代码清理已完成） |
 
 ---
 
@@ -509,6 +509,9 @@ def _load_type_hints(self):
 | 17 | 修复 pytest-asyncio 兼容性 | Python 3.14 async 测试 | P2 | 4-6 小时 | 待开始 |
 | 18 | 数据库迁移 | Alembic 方案 | P3 | 0.5 天 | 未开始 |
 | 19 | 配置热加载 | 自动检测并刷新缓存 | P3 | 0.5 天 | 未开始 |
+| 20 | 速率限制 | FastAPI middleware | P2 | 2 小时 | 未开始 |
+| 21 | 学生水平中文适配 | 当前 TTR 基于英文分词 | P2 | 0.5 天 | 未开始 |
+| 22 | 知识卡质量自动化检查 | 上线前验证必填项完整性 | P3 | 0.5 天 | 未开始 |
 
 ---
 

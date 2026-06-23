@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.6.1 (2026-06-24) — 稳定性修复 + docx 导出 + 项目清理
+
+### A4 假阳性三层防御
+- **问题**: 评审结果中 ~80 条 rewrites 的 original==corrected（逐句照抄假阳性）
+- **修复**: 三层防御体系
+  - Prompt 层 — 反例警告 + 输出前必检清单 + 数量硬上限 30 条
+  - 数据管道层 — `confidence_engine._sanitize_rewrites()` 入库前强制剔除 identical 条目
+  - 渲染层 — `_render_feedback_markdown()` 展示前再次过滤
+- 日志: `[LanguageStyle] Sanitized rewrites: removed X false-positive entries`
+
+### .docx 批注导出
+- **新增 `app/utils/docx_exporter.py`** (370 行): 将原文 + 5 Agent 评审导出为 Word .docx 批注文档
+  - 真实 Word 批注 (comments.xml) — 右键点击气泡可见完整评审意见
+  - 语法修正内联显示 (删除线红色原文 → 加粗绿色修正)
+  - 段落注解 (A2 结构 / A3 论证 / A4 语言 / A5 学术诚信，分色标注)
+  - 置信度标记 (⚡ REVIEW / 🔴 ESCALATE / 无标记 FULL)
+  - 总结章节 (评分表格 + 各 Agent 发现 + 元数据)
+- **Gradio**: 评审结果页面新增「📥 导出批注文档 (.docx)」按钮
+- **API**: `GET /api/v1/reviews/{id}/export` → FileResponse
+- 通过 lxml + zipfile 直接操作 OOXML 包，python-docx 渲染内容
+
+### 安装指南修复 (12 项)
+- **严重**: `.env` API Key 泄露 → 占位值；`requirements-lock.txt` UTF-16→UTF-8 重新生成
+- **关键**: `start_all.sh` 新增 headless/SSH 后台进程 fallback；`install.bat` 新增 PowerShell 检测
+- **优化**: `requirements.txt` 收紧版本范围 (chromadb>=1.0.0/<2.0.0, gradio>=5.0.0/<7.0.0)，显式添加 python-dotenv
+- **新增**: `install.ps1`/`install.sh` 磁盘空间预检 (<2GB 拒绝安装)；README 首次安装前必读 + 常见问题表 + 手动安装步骤
+- `docs/使用指南.html` 15 个失效的 trae-api 占位图 → 📷 文字占位
+
+### 项目清理 (16 项)
+- **删除 8 个文件**: 一次性测试制品 (5Agent_审稿/测试计划等)、硬编码个人路径的 PDF 提取脚本、赛事注册自动备份
+- **移除 3 个未使用依赖**: `openai`、`google-generativeai`、`zhipuai` (所有适配器用 httpx 裸调)
+- **移除死代码**: `app/main.py` 未使用 import；`app/database.py` `get_db()`；`app/utils/vector_store.py` `index_document()`/`remove_document()`；`app/agents/academic_integrity.py` `submission_id` 参数
+- **消除重复**: `_split_paragraphs()`/`_parse_location()` 提取到 `app/utils/text_utils.py` 统一维护
+- 修正 `AI_HANDOFF.md` 中不存在的 `launcher.py` 引用、Tab 计数 6→7
+
+### 文本提取修复
+- `app/utils/docx_exporter._extract_original_text()`: 增加从 annotated_md 解析段落的 fallback，确保 .docx 导出包含原文内容
+
 ## v0.6.0 (2026-06-13) — Phase 4: 深度增强
 
 ### A3 推理链分解

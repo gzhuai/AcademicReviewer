@@ -20,7 +20,6 @@ class AcademicIntegrityAgent(BaseAgent):
         document_text: str = "",
         references_section: str = "",
         similarity_report: str = "",
-        submission_id: str = "",
         run_originality_check: bool = True,
         **kwargs,
     ) -> dict:

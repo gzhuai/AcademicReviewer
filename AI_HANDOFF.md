@@ -28,8 +28,7 @@ scripts/start_all.bat                      # Windows one-click launcher
 | File | Role |
 |------|------|
 | `run.py` | `ensure_dirs()` → `init_db()` → `uvicorn.run("app.main:app")` |
-| `app/gradio_app.py` | Gradio Web UI. Calls backend via `httpx`. 6 tabs (Submit Review, History, System Status, Calibration, Dashboard, Competition Management). |
-| `launcher.py` | (Optional) Single-process launcher that starts backend in thread + frontend. Not in main workflow. |
+| `app/gradio_app.py` | Gradio Web UI. Calls backend via `httpx`. 7 tabs (Submit Review, History, System Status, Calibration, Dashboard, Competition Management, Teacher Review). |
 
 ### Core App (`app/`)
 | File | Role |
@@ -235,20 +234,23 @@ python-docx>=1.1.0
 PyPDF2>=3.0.0
 python-multipart>=0.0.12
 httpx>=0.28.0
-chromadb>=0.5.0
-gradio>=5.0.0
+chromadb>=1.0.0,<2.0.0
+gradio>=5.0.0,<7.0.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
 openai>=1.0.0
 google-generativeai>=0.8.0
 zhipuai>=2.0.0
 ```
 
 Key implications:
-- `chromadb` brings `onnxruntime`, `numpy`, `tokenizers` as transitive deps (~400MB venv)
+- `chromadb` brings `onnxruntime`, `numpy`, `tokenizers` as transitive deps (~400MB in venv, ~800MB total)
 - `gradio` brings `rich`, `markdown_it`, `pygments`, `huggingface_hub`, `safehttpx`, `groovy`
+- `python-dotenv` is required by `pydantic-settings` for `.env` loading
 - `PyPDF2` for PDF parsing (note: scanned PDFs extract poorly, prefer .txt/.docx)
 - All LLM calls are raw HTTP — the `openai`/`google-generativeai`/`zhipuai` packages may not be needed at all (most adapters use httpx directly)
+- `requirements-lock.txt` is a snapshot of the current venv for reproducibility
 
 ---
 

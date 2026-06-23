@@ -336,15 +336,21 @@ def _render_feedback_markdown(result: dict) -> str:
                 parts.append("")
 
             rewrites = lang_data.get("rewrites", [])
+            # 过滤掉 original==corrected 的假阳性条目（LLM 常见行为：逐句照抄）
+            rewrites = [rw for rw in rewrites
+                        if isinstance(rw, dict)
+                        and rw.get("original", "") != rw.get("corrected", "")]
+            # 同时过滤空条目
+            rewrites = [rw for rw in rewrites
+                        if rw.get("original", "").strip() and rw.get("corrected", "").strip()]
             if rewrites:
                 parts.append(f"### 🔧 修正 ({len(rewrites)} 处)\n")
                 for i, rw in enumerate(rewrites, 1):
                     parts.append(f"**{i}. {rw.get('location', '?')}** `{rw.get('issue', '?')}`")
                     original = rw.get("original", "")
                     corrected = rw.get("corrected", "")
-                    if original and corrected:
-                        parts.append(f"> ~~{original}~~")
-                        parts.append(f"> → **{corrected}**")
+                    parts.append(f"> ~~{original}~~")
+                    parts.append(f"> → **{corrected}**")
                     parts.append("")
 
             suggestions = lang_data.get("suggestions", [])
@@ -588,9 +594,9 @@ def fetch_competitions():
 
 def submit_review(file_obj, competition, student_name, model_provider):
     if file_obj is None:
-        return "请先上传文件", None
+        return "请先上传文件", None, None
     if not competition:
-        return "请先选择竞赛", None
+        return "请先选择竞赛", None, None
 
     tmp_path = None
     try:
@@ -642,15 +648,32 @@ def submit_review(file_obj, competition, student_name, model_provider):
 
         full_report = json.dumps(result, ensure_ascii=False, indent=2)
 
-        return scores_md + meta_md + errors_md + "\n" + feedback_md, full_report
+        # 将完整结果存为 JSON 字符串，供导出 docx 使用
+        result_json = json.dumps(result, ensure_ascii=False)
+
+        return scores_md + meta_md + errors_md + "\n" + feedback_md, full_report, result_json
 
     except httpx.HTTPStatusError as e:
-        return f"请求失败: HTTP {e.response.status_code}\n{e.response.text[:800]}", None
+        return f"请求失败: HTTP {e.response.status_code}\n{e.response.text[:800]}", None, None
     except Exception as e:
-        return f"错误: {e}", None
+        return f"错误: {e}", None, None
     finally:
         if tmp_path:
             Path(tmp_path).unlink(missing_ok=True)
+
+
+def export_review_docx(result_json_str: str) -> str | None:
+    """将评审结果导出为 .docx 批注文档，返回文件路径供下载。"""
+    if not result_json_str:
+        return None
+    try:
+        result = json.loads(result_json_str)
+        from app.utils.docx_exporter import export_review_to_docx
+        output_path = export_review_to_docx(result)
+        return output_path
+    except Exception as e:
+        logger.error(f"docx export failed: {e}")
+        return None
 
 
 # -------------- Review History Tab --------------
@@ -1011,12 +1034,21 @@ def build_ui():
                     with gr.Column(scale=2):
                         gr.Markdown("### 评审结果")
                         result_md = gr.Markdown("等待提交...")
-                        result_json = gr.Code(label="完整 JSON 报告", language="json", visible=False)
+                        with gr.Row():
+                            result_json = gr.Code(label="完整 JSON 报告", language="json", visible=False)
+                            result_state = gr.State("")
+                            download_btn = gr.Button("📥 导出批注文档 (.docx)", variant="secondary", size="sm", visible=True)
+                            download_file = gr.File(label="", visible=True, interactive=False)
 
                 submit_btn.click(
                     fn=submit_review,
                     inputs=[file_input, competition_dropdown, student_name, model_provider],
-                    outputs=[result_md, result_json],
+                    outputs=[result_md, result_json, result_state],
+                )
+                download_btn.click(
+                    fn=export_review_docx,
+                    inputs=[result_state],
+                    outputs=[download_file],
                 )
 
             # Tab 2: Review History

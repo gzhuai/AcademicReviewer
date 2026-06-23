@@ -12,14 +12,12 @@ python -m venv venv
 venv\Scripts\activate  # Windows
 source venv/bin/activate  # macOS/Linux
 
-# 3. 安装依赖（开发者建议用 lock 文件）
-pip install -r requirements-lock.txt
-# 或宽松安装
+# 3. 安装依赖（推荐用 requirements.txt；lock 文件仅供参考）
 pip install -r requirements.txt
 
 # 4. 配置 API Key
 cp .env.example .env
-# 编辑 .env，填入 DeepSeek API Key
+# 编辑 .env，填入至少一个 LLM API Key
 ```
 
 ## 启动服务

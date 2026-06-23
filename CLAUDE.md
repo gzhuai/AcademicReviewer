@@ -40,6 +40,7 @@
 | `app/gradio_app.py` | Gradio UI，7 个 Tab，反馈渲染，校准保存 |
 | `app/utils/confidence_engine.py` | 置信度标签引擎（FULL/REVIEW/ESCALATE） |
 | `app/utils/annotation_builder.py` | 标注报告生成 |
+| `app/utils/docx_exporter.py` | .docx 批注导出（Word 批注 + 段落注解 + 总结表格） |
 | `prompts/` | 5 个 Agent 的 System Prompt 模板（a1-a5） |
 | `configs/rubrics/` | 各竞赛评分标准 |
 | `configs/structure_schemas/` | 各竞赛类型结构模板 |
@@ -77,7 +78,12 @@
 ### 3. A4 语言 Agent 假阳性问题
 
 A4 (LanguageStyle) 的 prompt 历史上缺少"无错误则不输出"的约束，导致 LLM 逐句原样照抄产生大量假修正（85/87 条 original==corrected）。
-已在 2026-06-23 修复 prompt（增加 5 条硬性约束），但如果再次出现大量回退到旧行为的情况，检查 prompt 是否被覆盖。
+已在 2026-06-23 修复 prompt（增加 5 条硬性约束 + 输出前必检清单 + 正反例示范）。
+**2026-06-23 二轮修复**：增加到三层防御：
+  1. **Prompt 层** — 反例警告 + 必检清单 + 数量上限
+  2. **数据管道层** — `confidence_engine._sanitize_rewrites()` 在数据入库前剔除 original==corrected 条目
+  3. **渲染层** — `_render_feedback_markdown()` 在 UI 展示前再次过滤
+如果再次出现大量回退，检查这三层是否均生效。
 
 ### 4. 校准→知识卡管道需要手动确认
 

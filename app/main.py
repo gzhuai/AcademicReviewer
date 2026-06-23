@@ -1,12 +1,11 @@
 import json
 import hashlib
 import logging
-import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Header, Request, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Header, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
@@ -255,6 +254,71 @@ async def get_review(submission_id: int):
             "submitted_at": submission.submitted_at.isoformat() if submission.submitted_at else None,
             "reviews": review_items,
         }
+    finally:
+        db.close()
+
+
+@app.get("/api/v1/reviews/{submission_id}/export")
+async def export_review(submission_id: int):
+    """将评审结果导出为 .docx 批注文档（包含 Word 批注）。"""
+    from fastapi.responses import FileResponse
+
+    db = SessionLocal()
+    try:
+        submission = db.query(Submission).filter(Submission.id == submission_id).first()
+        if not submission:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        latest_review = (
+            db.query(Review)
+            .filter(Review.submission_id == submission_id)
+            .order_by(Review.created_at.desc())
+            .first()
+        )
+        if not latest_review:
+            raise HTTPException(status_code=404, detail="No review found for this submission")
+
+        # 重建完整的评审结果 dict
+        result = {
+            "competition": submission.competition,
+            "competition_type": submission.competition_type,
+            "total_score": latest_review.total_score,
+            "scores": {
+                "RubricParser": latest_review.score_rubric,
+                "StructureLogic": latest_review.score_structure,
+                "ArgumentEvidence": latest_review.score_argument,
+                "LanguageStyle": latest_review.score_language,
+                "AcademicIntegrity": latest_review.score_integrity,
+            },
+            "meta": {
+                "word_count": submission.word_count,
+                "model": latest_review.model_provider,
+                "duration_seconds": latest_review.duration_seconds,
+            },
+        }
+
+        # 尝试从 feedback_json 中恢复完整的 Agent 输出
+        if latest_review.feedback_json:
+            try:
+                feedback = json.loads(latest_review.feedback_json)
+                result["structure"] = feedback.get("structure")
+                result["argument"] = feedback.get("argument")
+                result["language"] = feedback.get("language")
+                result["integrity"] = feedback.get("integrity")
+                result["rubric"] = feedback.get("rubric")
+                result["meta"] = feedback.get("meta", result["meta"])
+            except json.JSONDecodeError:
+                pass
+
+        from app.utils.docx_exporter import export_review_to_docx
+        output_path = export_review_to_docx(result)
+
+        filename = f"AcademicReviewer_{submission.competition}_{submission_id}.docx"
+        return FileResponse(
+            path=output_path,
+            filename=filename,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
     finally:
         db.close()
 

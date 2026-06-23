@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 
 from app.utils.confidence_engine import get_substitutability_emoji
+from app.utils.text_utils import split_paragraphs, parse_location
 
 
 def build_annotated_markdown(
@@ -20,7 +21,7 @@ def build_annotated_markdown(
     rubric: dict | None = None,
 ) -> str:
     """生成带标注的 Markdown 文档。"""
-    paragraphs = _split_paragraphs(original_text)
+    paragraphs = split_paragraphs(original_text)
     if not paragraphs:
         return original_text or "*（空文档）*"
 
@@ -34,7 +35,7 @@ def build_annotated_markdown(
     rewrites_by_para = {}
     if language:
         for rw in language.get("rewrites", []):
-            loc = _parse_location(rw.get("location", ""))
+            loc = parse_location(rw.get("location", ""))
             rewrites_by_para.setdefault(loc, []).append(rw)
 
     # Suggest paragraphs with weak spots
@@ -181,23 +182,9 @@ def build_annotated_markdown(
     return "\n".join(lines)
 
 
-def _split_paragraphs(text: str) -> list[str]:
-    """按空行分割段落，保留非空段落。"""
-    paras = re.split(r"\n\s*\n", text)
-    return [p.strip() for p in paras if p.strip()]
-
-
-def _parse_location(loc: str) -> int:
-    """解析 '第X段' 样式的定位文字，返回段落索引(0-based)。"""
-    m = re.search(r"第\s*(\d+)\s*段", loc)
-    if m:
-        return int(m.group(1)) - 1
-    return -1
-
-
 def _match_location(loc_text: str, paragraph: str, para_index: int) -> bool:
     """模糊匹配位置描述与段落。"""
-    idx = _parse_location(loc_text)
+    idx = parse_location(loc_text)
     if idx >= 0 and idx == para_index:
         return True
     # fallback: keyword match

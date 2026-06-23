@@ -32,50 +32,6 @@ def _get_chroma():
     return _chroma_client, _collection
 
 
-def index_document(
-    text: str,
-    doc_id: str,
-    metadata: dict | None = None,
-    chunk_size: int = 500,
-    chunk_overlap: int = 50,
-) -> int:
-    _, collection = _get_chroma()
-
-    words = text.split()
-    chunks = []
-    chunk_metas = []
-    chunk_ids = []
-
-    start = 0
-    idx = 0
-    while start < len(words):
-        end = min(start + chunk_size, len(words))
-        chunk_text = " ".join(words[start:end])
-        chunks.append(chunk_text)
-        chunk_metas.append({
-            **(metadata or {}),
-            "chunk_index": idx,
-            "total_chunks": 0,
-        })
-        chunk_ids.append(f"{doc_id}_chunk_{idx}")
-        start = end - chunk_overlap if end < len(words) else end
-        idx += 1
-
-    total = len(chunks)
-    for m in chunk_metas:
-        m["total_chunks"] = total
-
-    if chunks:
-        collection.add(
-            documents=chunks,
-            metadatas=chunk_metas,
-            ids=chunk_ids,
-        )
-
-    logger.info(f"Indexed doc {doc_id}: {total} chunks")
-    return total
-
-
 def query_similar(
     text: str,
     top_k: int = 5,
@@ -159,23 +115,6 @@ def check_originality(
         "medium_similarity_count": medium_count,
         "similarity_flags": similarity_flags,
     }
-
-
-def remove_document(doc_id: str) -> bool:
-    _, collection = _get_chroma()
-    try:
-        existing = collection.get(ids=[f"{doc_id}_chunk_0"])
-        if existing and existing["ids"]:
-            chunk_ids = [f"{doc_id}_chunk_{i}" for i in range(100)]
-            actual_ids = [cid for cid in chunk_ids if cid in collection.get(ids=chunk_ids).get("ids", [])]
-            if actual_ids:
-                collection.delete(ids=actual_ids)
-                logger.info(f"Removed {len(actual_ids)} chunks for doc {doc_id}")
-                return True
-        return False
-    except Exception as e:
-        logger.warning(f"Failed to remove doc {doc_id}: {e}")
-        return False
 
 
 def collection_count() -> int:

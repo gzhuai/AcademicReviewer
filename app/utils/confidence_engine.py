@@ -87,9 +87,10 @@ _A2_SECTION_SEVERITY_MAP: dict[str, str] = {
 
 
 def apply_confidence_labels(agent_name: str, result: dict | None) -> dict | None:
-    """对 Agent 输出应用规则引擎的置信度标签。
+    """对 Agent 输出应用规则引擎的置信度标签 + 数据清洗。
 
     在 LLM 输出的基础上，根据规则微调每条目的 substitutability。
+    同时执行数据清洗：剔除 original==corrected 的假阳性 rewrite 条目。
     保留 LLM 可能已经填写的 confidence_rationale，如果 LLM 没填则不补充。
     """
     if not result or not isinstance(result, dict):
@@ -108,6 +109,8 @@ def apply_confidence_labels(agent_name: str, result: dict | None) -> dict | None
                        type_map=_A3_FALLACY_TYPE_MAP, type_key="fallacy_type")
 
     elif agent_name == "LanguageStyle":
+        # ── 数据清洗：剔除 original==corrected 的假阳性 rewrite 条目 ──
+        _sanitize_rewrites(result)
         _apply_to_list(result, "rewrites", agent_name,
                        type_map=_A4_REWRITE_ISSUE_MAP, type_key="issue")
         _apply_to_list(result, "suggestions", agent_name,
@@ -118,6 +121,49 @@ def apply_confidence_labels(agent_name: str, result: dict | None) -> dict | None
         _apply_to_report_field(result, "originality_report", agent_name)
 
     return result
+
+
+def _sanitize_rewrites(result: dict) -> None:
+    """剔除 A4 rewrites 列表中 original == corrected 的假阳性条目。
+
+    LLM（尤其是 DeepSeek）常见的幻觉行为：逐句检查每一句话，
+    即使没有语法错误也生成一条 rewrite 条目，导致 80+ 条完全相同的条目。
+    此函数在数据入库前进行后处理清洗。
+    """
+    rewrites = result.get("rewrites")
+    if not isinstance(rewrites, list):
+        return
+
+    removed_count = 0
+    kept = []
+    for rw in rewrites:
+        if not isinstance(rw, dict):
+            removed_count += 1
+            continue
+        orig = (rw.get("original") or "").strip()
+        corr = (rw.get("corrected") or "").strip()
+        if not orig or not corr:
+            removed_count += 1
+            continue
+        if orig == corr:
+            removed_count += 1
+            continue
+        kept.append(rw)
+
+    if removed_count > 0:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(
+            f"[LanguageStyle] Sanitized rewrites: removed {removed_count} "
+            f"false-positive entries (original==corrected or empty), kept {len(kept)}"
+        )
+        result["rewrites"] = kept
+        # 同步更新 summary 中的 rewrite_count（如果存在）
+        summary = result.get("summary")
+        if isinstance(summary, dict):
+            summary["rewrite_count"] = len(kept)
+            # 如果之前是包含水分的数量，记录原始值
+            summary["rewrite_count_before_sanitize"] = len(rewrites)
 
 
 def _apply_to_list(result: dict, field: str, agent_name: str,

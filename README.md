@@ -8,7 +8,8 @@
 - **多竞赛适配** —— 内置 11 个竞赛评审规则，**按类型差异化适配**：科研型重证据权重、思辨型重结构权重、商科型重框架应用
 - **教练型反馈** —— 缺→问→改三步法，逐段标注原文，给出可操作的改写方案
 - **多格式解析** —— 支持 TXT / PDF / DOCX 文档上传
-- **Web 界面** —— Gradio 图形界面，6 个功能 Tab（评审/历史/状态/校准/看板/赛事管理）
+- **Web 界面** —— Gradio 图形界面，7 个功能 Tab（评审/历史/状态/校准/看板/赛事管理/教师审核）
+- **Word 批注导出** —— 评审结果一键导出为 .docx，原文 + Word 批注 + 内联语法修正
 - **校准引擎** —— 对比获奖/非获奖文章，自动提取特征差异，**按竞赛类型切换特征集**（科研 21 特征/思辨 15 特征）
 - **多 LLM 支持** —— DeepSeek / OpenAI / Gemini / GLM 可切换
 - **团队协作** —— 多实例上报 → 中央服务器汇总 → 管理看板
@@ -16,32 +17,61 @@
 
 ## 环境要求
 
-- **Python** >= 3.10
-- 至少一个 LLM API Key（DeepSeek / OpenAI / Gemini / GLM 任一）
+| 项目 | 最低要求 | 说明 |
+|------|---------|------|
+| **操作系统** | Windows 10+ / macOS 12+ / Ubuntu 22.04+ | 推荐 Windows 11 或 macOS 14+ |
+| **Python** | >= 3.10（推荐 3.11/3.12） | [python.org/downloads](https://www.python.org/downloads/) |
+| **磁盘空间** | >= 2 GB 可用 | venv ~800MB + 其他文件 |
+| **网络** | 需要 | pip install 首次下载依赖 + LLM API 调用 |
+| **LLM API Key** | 至少一个 | DeepSeek（推荐，最便宜）/ OpenAI / Gemini / GLM |
+| **Git / 压缩包** | 任一 | clone 或直接下载 ZIP |
+
+> 无需 GPU、Docker、或外部数据库。所有数据存本地 SQLite + ChromaDB。
+
+### ⚠️ 首次安装前必读
+
+**如果你是竞赛指导老师（非技术背景），以下是同事常卡住的几个点：**
+
+1. **装 Python 时一定要勾选 "Add Python to PATH"**（安装界面的一个复选框）—— 不勾选会导致系统找不到 `python` 命令，安装脚本报错。
+
+2. **验证 Python 是否装好**：打开终端（Windows 按 `Win+R`，输入 `cmd`，回车），输入 `python --version`，应该显示 `Python 3.x.x`。如果显示"不是内部或外部命令"，说明没勾选 PATH，需要重装或手动添加环境变量。
+
+3. **pip 安装依赖需要网络**：首次安装会从 PyPI 下载约 400MB 的包。如果你在公司网络、有防火墙或代理，可能需要先配置代理：
+   ```bash
+   set HTTPS_PROXY=http://你的代理地址:端口  # Windows CMD
+   $env:HTTPS_PROXY="http://你的代理地址:端口"  # PowerShell
+   ```
+
+4. **API Key 是必填项**：系统依赖 LLM 进行评审，没有 API Key（如 DeepSeek 的 `sk-xxx` 格式 Key）系统能启动但无法运行评审。至少配置一个服务商。
 
 ## 安装与启动
 
 ### Windows
 
 ```bash
-# 1. Clone 仓库
-git clone https://github.com/gzhuai/AcademicReviewer.git
+# 1. 获取代码（二选一）
+git clone https://github.com/gzhuai/AcademicReviewer.git   # 命令行
+# 或访问 GitHub 页面 → Code → Download ZIP → 解压       # 无需 Git
+
+# 2. 进入项目目录
 cd AcademicReviewer
 
-# 2. 一键安装（自动创建虚拟环境并安装依赖）
+# 3. 一键安装（双击 scripts\install.bat 或在终端运行）
 scripts\install.bat
+# 安装过程：检测 Python → 创建虚拟环境 → 安装依赖(~5分钟) → 复制配置文件 → 创建数据目录
+# 安装完成后会询问是否编辑 .env，输入 y 打开记事本
 
-# 3. 编辑 .env 文件，填入 API Key
+# 4. 编辑 .env 文件，填入 API Key（如果安装时跳过了）
 notepad .env
 
-# 4. 启动系统
+# 5. 启动系统（双击 scripts\start_all.bat）
 scripts\start_all.bat
 ```
 
 ### macOS / Linux
 
 ```bash
-# 1. Clone 仓库
+# 1. 获取代码
 git clone https://github.com/gzhuai/AcademicReviewer.git
 cd AcademicReviewer
 
@@ -57,21 +87,60 @@ bash scripts/start_all.sh
 
 启动后浏览器访问 **http://127.0.0.1:7860** 即可使用。
 
+### 手动安装（如果一键脚本失败）
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\pip install -r requirements.txt
+copy .env.example .env
+python run.py                    # 终端 1：后端
+python app/gradio_app.py         # 终端 2：前端
+
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python run.py                    # 终端 1：后端
+python app/gradio_app.py         # 终端 2：前端
+
+启动后浏览器访问 **http://127.0.0.1:7860** 即可使用。
+
 ## 配置说明
 
 复制 `.env.example` 为 `.env`，填入至少一个 LLM API Key：
 
 ```env
+# 必填项（至少一个）→ 获取地址见 .env.example 中的注释
 DEEPSEEK_API_KEY=sk-xxx
 OPENAI_API_KEY=sk-xxx
 GEMINI_API_KEY=xxx
 GLM_API_KEY=xxx
+
+# 使用哪个模型（默认 deepseek，推荐性价比最高）
 LLM_PROVIDER=deepseek
 ```
 
+> **如何获取 API Key？** DeepSeek 最便宜且国内可直接注册（[platform.deepseek.com](https://platform.deepseek.com)）。其他选项：OpenAI 需海外信用卡、Gemini 免费额度较低、GLM 国内可注册。
+
+## 常见安装问题
+
+| 症状 | 原因 | 解决 |
+|------|------|------|
+| `'python' 不是内部或外部命令` | Python 未安装或未勾选 PATH | 重装 Python，**勾选 "Add Python to PATH"** |
+| `powershell: command not found` | Windows 精简版系统 | 手动安装步骤见上方「手动安装」 |
+| `pip install` 报网络错误 | 代理/防火墙拦截 PyPI | 配置代理（见上方首次安装前必读） |
+| `No module named 'venv'` | Python 安装不完整 | 重装 Python，确保勾选 pip 和 venv |
+| 依赖安装一半失败 | C 盘空间不足 | 清理空间，需要 ~2GB |
+| `start_all.sh` 无反应 | SSH/远程服务器（无 GUI） | 已自动回退到后台进程模式 |
+| 启动后访问 7860 无响应 | 后端未就绪 | 等 5-10 秒刷新，或查看终端日志 |
+
 ## 使用指南
 
-详细使用说明请参阅：[docs/使用指南.html](docs/使用指南.html)
+- **教师用户**: [docs/教师使用指南.md](docs/教师使用指南.md) — 从零到评审的完整教程
+- **图文版**: [docs/使用指南.html](docs/使用指南.html) — 含 UI 界面说明
+- **开发者**: [AI_HANDOFF.md](AI_HANDOFF.md) + [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 团队协作：数据集中汇总
 

@@ -19,7 +19,7 @@
 | 文档质量 | 9.5/10 | 卓越 — 面向多角色的完整文档体系 | ↑ 0.5 |
 | 可维护性 & 可扩展性 | 9.0/10 | 优秀 — 知识卡系统零侵入已有架构 | ↑ 0.5 |
 | **竞赛类型公平性** | **8.0/10** | 良好 — 7 种类型全部有专家经验覆盖 | **↑ 0.5** |
-| 依赖 & 技术债务 | 8.0/10 | 良好 — 反馈闭环+自动建议已落地 | ↑ 0.5 |
+| 依赖 & 技术债务 | 8.5/10 | 良好 — 死代码已清理，未使用依赖已移除 | ↑ 0.5 |
 
 ### v0.4.0–v0.6.0 变更概述（2026-06-13）
 
@@ -296,8 +296,7 @@ v0.4.0–v0.6.0 新增的以下模块**缺少专门的单元测试**：
 ### 需补充
 
 - 缺少 API 文档——FastAPI 自动生成的 Swagger UI 可用，但未定制
-- 没有 Changelog
-- 没有 Contributing 指南（如何设置开发环境、运行测试、提 PR）
+- 新功能模块（confidence_engine / student_level / knowledge_cards）缺少专门单元测试
 
 ---
 
@@ -328,7 +327,6 @@ v0.4.0–v0.6.0 新增的以下模块**缺少专门的单元测试**：
 | 无数据库迁移 | 中 | `Base.metadata.create_all()` 每次启动执行 | 未修复 |
 | 无配置热加载 | 低 | 修改 `.env` 或 JSON 配置需重启服务 | 未修复 |
 | 评分键名硬编码 | 低 | Agent 输出字段名分散在多处 | ✅ 已修复 (v0.2.0) |
-| requirements.txt 宽松版本 | 低 | `>=` 约束可能导致依赖升级引入 breaking change | ✅ 已修复 (lock 文件) |
 | 潜在循环导入 | 低 | 当前通过 lazy import 规避 | 未修复 |
 | 缓存无失效机制 | 低 | 全局缓存单例 | ✅ 已修复 (v0.2.0 clear_config_cache) |
 | 路径遍历风险 | 低 | competition 名直接构建文件路径 | ✅ 已修复 (v0.2.0) |
@@ -351,9 +349,7 @@ httpx                 — 统一 HTTP 客户端（LLM API + 内部通信）
 pydantic-settings     — 环境变量管理
 ```
 
-**潜在冗余**: `openai`、`google-generativeai`、`zhipuai` 三个包在 `requirements.txt` 中列出，但实际 LLM 调用全部走 `httpx`（AI_HANDOFF.md 也指出这一点）。这些包可能不是必需的。
-
-**ChromaDB 体积**: 含 `onnxruntime`、`numpy`、`tokenizers` 等依赖，venv 约 400MB。对于本地部署可接受，但值得文档化说明。
+**ChromaDB 体积**: 含 `onnxruntime`、`numpy`、`tokenizers` 等依赖，venv 约 800MB。对于本地部署可接受，但值得文档化说明。
 
 ### 性能特征
 
