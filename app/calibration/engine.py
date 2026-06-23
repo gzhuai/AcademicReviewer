@@ -160,7 +160,8 @@ def run_calibration(
     external_winner_files: list[str] | None = None,
     expert_doc_paths: list[str] | None = None,
     output_report_path: str | None = None,
-) -> str:
+) -> tuple[str, "ExpertInsights | None"]:
+    """Run calibration and return (report_markdown, merged_expert_insights_or_None)."""
     external_winner_files = external_winner_files or []
     expert_doc_paths = expert_doc_paths or []
 
@@ -242,6 +243,7 @@ def run_calibration(
     config_changes.sort(key=lambda c: c.effect_size, reverse=True)
 
     expert_insights_report = None
+    merged = None
     if expert_doc_paths:
         logger.info("Step 5a/6: Parsing expert documents...")
 
@@ -302,4 +304,4 @@ def run_calibration(
     except Exception:
         pass
 
-    return report
+    return report, merged

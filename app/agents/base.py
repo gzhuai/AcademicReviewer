@@ -35,7 +35,7 @@ class BaseAgent:
                 system_prompt=system_prompt,
                 user_message=user_message,
                 temperature=0.2,
-                max_tokens=4096,
+                max_tokens=16384,
             )
         except Exception as e:
             logger.error(f"[{self.agent_name}] LLM call failed: {e}")

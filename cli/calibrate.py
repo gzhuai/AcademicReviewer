@@ -73,7 +73,7 @@ def main():
         f"Calibration starting: W={len(winner_files)}, L={len(loser_files)}, Ext={len(external_files)}, ExpertDocs={len(expert_doc_files)}"
     )
 
-    report = run_calibration(
+    report, _expert_insights = run_calibration(
         competition=args.competition,
         competition_type=args.competition_type,
         winner_files=winner_files,

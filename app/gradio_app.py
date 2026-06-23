@@ -15,6 +15,447 @@ logger = logging.getLogger("gradio_app")
 API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 
 
+# ── Feedback rendering helpers ──
+
+
+def _try_parse_raw_output(agent_result: dict) -> dict | None:
+    """尝试从 agent 返回的 raw_output 中重新解析 JSON。
+
+    当 LLM 的 chat_json 解析失败时（通常因为 max_tokens 截断），
+    agent 会将原始输出存在 raw_output 字段中。在最后一个安全结构边界截断并闭合。
+    """
+    raw = agent_result.get("raw_output", "")
+    if not raw or not isinstance(raw, str):
+        return None
+
+    # 尝试直接解析
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+
+    # 找到 JSON 起始位置
+    start = raw.find("{")
+    if start == -1:
+        return None
+
+    # 遍历字符，同时跟踪 {} 和 [] 深度，记录每个安全截断点
+    brace_depth = 0    # { } 深度
+    bracket_depth = 0  # [ ] 深度
+    last_safe_pos = start
+    # 栈记录结构序列，用于确定截断后需要多少闭合符号
+    struct_stack: list[str] = []  # '{' or '['
+    safe_stack: list[str] = []    # 截断点时的栈快照
+    in_string = False
+    escape_next = False
+
+    for i, ch in enumerate(raw[start:], start):
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\" and in_string:
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+
+        if ch == "{":
+            brace_depth += 1
+            struct_stack.append("{")
+        elif ch == "}":
+            brace_depth -= 1
+            if struct_stack and struct_stack[-1] == "{":
+                struct_stack.pop()
+            if brace_depth == 0:
+                # 完整 JSON — 不应该到这里
+                try:
+                    return json.loads(raw[start : i + 1])
+                except json.JSONDecodeError:
+                    break
+        elif ch == "[":
+            bracket_depth += 1
+            struct_stack.append("[")
+        elif ch == "]":
+            bracket_depth -= 1
+            if struct_stack and struct_stack[-1] == "[":
+                struct_stack.pop()
+            # ] 是一个安全截断点（数组元素完整）
+            if brace_depth >= 1:
+                last_safe_pos = i + 1
+                safe_stack = list(struct_stack)
+        elif ch == "," and brace_depth >= 1 and bracket_depth == 0:
+            # 在对象顶层（不在数组内）的逗号 — 安全截断点
+            last_safe_pos = i
+            safe_stack = list(struct_stack)
+
+    # JSON 被截断：尝试两种恢复策略
+    candidates_to_try = []
+
+    # 策略1：在最后一个安全截断点截断
+    if last_safe_pos > start:
+        c = raw[start:last_safe_pos].rstrip()
+        if c.endswith(","):
+            c = c[:-1].rstrip()
+        closing = "".join("}" if ch == "{" else "]" for ch in reversed(safe_stack))
+        candidates_to_try.append(c + "\n" + closing)
+
+    # 策略2：使用全部输入，在末尾加闭合符号（适用场景：最后一个字符串值已完整闭合，仅缺结束括号）
+    c = raw[start:].rstrip()
+    closing = "".join("}" if ch == "{" else "]" for ch in reversed(struct_stack))
+    candidates_to_try.append(c + "\n" + closing)
+
+    for candidate in candidates_to_try:
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
+def _render_feedback_markdown(result: dict) -> str:
+    """将评审反馈（rubric/structure/argument/language/integrity）渲染为 Markdown。
+
+    每个 Agent 的反馈如果没有内容则跳过。
+    当 agent 返回 parse_error 时，尝试从 raw_output 中恢复结构化数据。
+    """
+    parts: list[str] = []
+
+    # ── A1 Rubric Parser ──
+    rubric = result.get("rubric", {})
+    if rubric and isinstance(rubric, dict):
+        parts.append("---\n## 📋 评分标准解析 (A1-RubricParser)\n")
+        dims = rubric.get("dimensions", [])
+        if dims:
+            parts.append("### 评分维度\n")
+            for d in dims:
+                name = d.get("name", "?")
+                weight = d.get("weight", 0)
+                max_s = d.get("max_score", "?")
+                parts.append(f"- **{name}** (权重 {weight}, 满分 {max_s})")
+                criteria = d.get("criteria", [])
+                for c in criteria:
+                    parts.append(f"  - {c}")
+            parts.append("")
+        taboo = rubric.get("taboo_items", [])
+        if taboo:
+            parts.append("### ⛔ 一票否决项\n")
+            for t in taboo:
+                parts.append(f"- {t}")
+            parts.append("")
+
+    # ── A2 Structure & Logic ──
+    structure = result.get("structure", {})
+    if structure and isinstance(structure, dict):
+        parts.append("---\n## 🏗️ 结构与逻辑 (A2-StructureLogic)\n")
+        score = structure.get("structure_score")
+        if score is not None:
+            parts.append(f"**结构评分**: {score}\n")
+
+        sections_found = structure.get("sections_found", [])
+        missing = structure.get("missing_sections", [])
+        if sections_found:
+            parts.append(f"**已找到章节**: {', '.join(sections_found)}")
+        if missing:
+            parts.append(f"**⚠️ 缺失章节**: {', '.join(missing)}\n")
+
+        section_issues = structure.get("section_issues", [])
+        if section_issues:
+            parts.append("### 章节问题\n")
+            for i, si in enumerate(section_issues, 1):
+                sev = si.get("severity", "")
+                sev_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(sev, "")
+                parts.append(f"**{i}. {si.get('section', '?')}** {sev_icon}{sev}")
+                if si.get("current_problem"):
+                    parts.append(f"> 问题: {si['current_problem']}")
+                if si.get("should_only_do"):
+                    parts.append(f"> 应做: {si['should_only_do']}")
+                if si.get("hint"):
+                    parts.append(f"> 建议: {si['hint']}")
+                parts.append("")
+
+        logic_issues = structure.get("logic_issues", [])
+        if logic_issues:
+            parts.append("### 逻辑衔接问题\n")
+            for i, li in enumerate(logic_issues, 1):
+                sev = li.get("severity", "")
+                sev_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(sev, "")
+                parts.append(f"**{i}. {li.get('location', '?')}** [{li.get('type', '?')}] {sev_icon}{sev}")
+                if li.get("issue"):
+                    parts.append(f"> {li['issue']}")
+                if li.get("transition_suggestion"):
+                    parts.append(f"> 💡 过渡句: _{li['transition_suggestion']}_")
+                parts.append("")
+
+        main_arg = structure.get("main_argument_coaching", {})
+        if main_arg and main_arg.get("current_statement"):
+            parts.append("### 💪 核心论点辅导\n")
+            parts.append(f"**当前论点**: {main_arg.get('current_statement', '')}")
+            if main_arg.get("vulnerability"):
+                parts.append(f"**脆弱点**: {main_arg.get('vulnerability', '')}")
+            if main_arg.get("stronger_version"):
+                parts.append(f"**增强版**: {main_arg.get('stronger_version', '')}")
+            parts.append("")
+
+        dup_report = structure.get("duplication_report", [])
+        if dup_report:
+            parts.append("### 🔄 内容重复\n")
+            for i, dr in enumerate(dup_report, 1):
+                parts.append(f"**{i}.** 段落 {', '.join(dr.get('paragraphs', []))}")
+                if dr.get("repeated_content"):
+                    parts.append(f"> 重复内容: {dr['repeated_content']}")
+                if dr.get("fix"):
+                    parts.append(f"> 修正: {dr['fix']}")
+                parts.append("")
+
+        positive = structure.get("positive_points", [])
+        if positive:
+            parts.append("### ✅ 做得好的\n")
+            for p in positive:
+                parts.append(f"- {p}")
+            parts.append("")
+
+        key_issues = structure.get("key_issues", [])
+        if key_issues:
+            parts.append("### 🔑 优先修改项\n")
+            for i, ki in enumerate(key_issues, 1):
+                parts.append(f"{i}. {ki}")
+            parts.append("")
+
+    # ── A3 Argument & Evidence ──
+    argument = result.get("argument", {})
+    if argument and isinstance(argument, dict):
+        # 如果 LLM JSON 解析失败，尝试从 raw_output 恢复
+        arg_data = argument
+        arg_skip = False
+        if argument.get("parse_error") or argument.get("raw_output"):
+            recovered = _try_parse_raw_output(argument)
+            if recovered:
+                arg_data = recovered
+                parts.append("---\n## 🧠 论点与证据 (A3-ArgumentEvidence) ⚠️ 自动修复解析\n")
+            else:
+                parts.append("---\n## 🧠 论点与证据 (A3-ArgumentEvidence) ⚠️ 解析失败\n")
+                raw = argument.get("raw_output", "")
+                if raw:
+                    parts.append(f"<pre>{raw[:3000]}</pre>\n")
+                arg_skip = True
+        else:
+            parts.append("---\n## 🧠 论点与证据 (A3-ArgumentEvidence)\n")
+
+        if not arg_skip:
+            score = arg_data.get("overall_score") or arg_data.get("argument_score")
+            if score is not None:
+                parts.append(f"**论据评分**: {score}\n")
+
+            claims = arg_data.get("claims", [])
+            if claims:
+                parts.append("### 主张分析\n")
+                for i, cl in enumerate(claims, 1):
+                    parts.append(f"**{i}.** {cl.get('claim', '?')}")
+                    if cl.get("missing_chain"):
+                        parts.append(f"> 缺失链条: {cl['missing_chain']}")
+                    if cl.get("coach_rewrite"):
+                        parts.append(f"> 教练重写: {cl['coach_rewrite']}")
+                    # A3 也用 evidence 字段
+                    evidence = cl.get("evidence", [])
+                    if evidence:
+                        for ev in evidence:
+                            if isinstance(ev, str):
+                                parts.append(f"> 证据: {ev}")
+                            elif isinstance(ev, dict):
+                                parts.append(f"> 证据: {ev.get('description', str(ev))}")
+                    parts.append("")
+
+            fallacies = arg_data.get("logical_fallacies", [])
+            if fallacies:
+                parts.append("### ⚠️ 逻辑谬误\n")
+                for i, fl in enumerate(fallacies, 1):
+                    sev = fl.get("severity", "")
+                    sev_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(sev, "")
+                    parts.append(f"**{i}. {fl.get('fallacy_type', '?')}** {sev_icon}{sev}")
+                    if fl.get("why_it_fails"):
+                        parts.append(f"> {fl['why_it_fails']}")
+                    parts.append("")
+
+            evidence_issues = arg_data.get("evidence_issues", [])
+            if evidence_issues:
+                parts.append("### 📊 证据问题\n")
+                for i, ei in enumerate(evidence_issues, 1):
+                    parts.append(f"**{i}.** {ei.get('claim', '?')}")
+                    if ei.get("issue"):
+                        parts.append(f"> 问题: {ei['issue']}")
+                    if ei.get("fix"):
+                        parts.append(f"> 修正: {ei['fix']}")
+                    parts.append("")
+
+            positive = arg_data.get("positive_points", [])
+            if positive:
+                parts.append("### ✅ 做得好的\n")
+                for p in positive:
+                    parts.append(f"- {p}")
+                parts.append("")
+
+            key_issues = arg_data.get("key_issues", [])
+            if key_issues:
+                parts.append("### 🔑 优先修改项\n")
+                for i, ki in enumerate(key_issues, 1):
+                    parts.append(f"{i}. {ki}")
+                parts.append("")
+
+    # ── A4 Language & Style ──
+    language = result.get("language", {})
+    if language and isinstance(language, dict):
+        # 如果 LLM JSON 解析失败，尝试从 raw_output 恢复
+        lang_data = language
+        lang_skip = False
+        if language.get("parse_error") or language.get("raw_output"):
+            recovered = _try_parse_raw_output(language)
+            if recovered:
+                lang_data = recovered
+                parts.append("---\n## ✍️ 语言与风格 (A4-LanguageStyle) ⚠️ 自动修复解析\n")
+            else:
+                parts.append("---\n## ✍️ 语言与风格 (A4-LanguageStyle) ⚠️ 解析失败\n")
+                raw = language.get("raw_output", "")
+                if raw:
+                    parts.append(f"<pre>{raw[:3000]}</pre>\n")
+                lang_skip = True
+        else:
+            parts.append("---\n## ✍️ 语言与风格 (A4-LanguageStyle)\n")
+
+        if not lang_skip:
+            summary = lang_data.get("summary", {})
+            if summary:
+                gs = summary.get("grammar_score")
+                ss = summary.get("style_score")
+                ol = summary.get("overall_language_score")
+                if gs is not None:
+                    parts.append(f"**语法**: {gs}  |  **风格**: {ss}  |  **综合**: {ol}")
+                parts.append("")
+
+            rewrites = lang_data.get("rewrites", [])
+            if rewrites:
+                parts.append(f"### 🔧 修正 ({len(rewrites)} 处)\n")
+                for i, rw in enumerate(rewrites, 1):
+                    parts.append(f"**{i}. {rw.get('location', '?')}** `{rw.get('issue', '?')}`")
+                    original = rw.get("original", "")
+                    corrected = rw.get("corrected", "")
+                    if original and corrected:
+                        parts.append(f"> ~~{original}~~")
+                        parts.append(f"> → **{corrected}**")
+                    parts.append("")
+
+            suggestions = lang_data.get("suggestions", [])
+            if suggestions:
+                parts.append(f"### 💡 风格建议 ({len(suggestions)} 条)\n")
+                for i, sg in enumerate(suggestions, 1):
+                    sev = sg.get("severity", "")
+                    sev_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(sev, "")
+                    parts.append(f"**{i}. [{sg.get('type', '?')}]** {sg.get('location', '')} {sev_icon}{sev}")
+                    if sg.get("description"):
+                        parts.append(f"> {sg['description']}")
+                    if sg.get("hint"):
+                        parts.append(f"> 方向: {sg['hint']}")
+                    parts.append("")
+
+            if summary:
+                positive = summary.get("positive_points", [])
+                if positive:
+                    parts.append("### ✅ 做得好的\n")
+                    for p in positive:
+                        parts.append(f"- {p}")
+                    parts.append("")
+                key_issues = summary.get("key_issues", [])
+                if key_issues:
+                    parts.append("### 🔑 优先修改项\n")
+                    for i, ki in enumerate(key_issues, 1):
+                        parts.append(f"{i}. {ki}")
+                    parts.append("")
+
+    # ── A5 Academic Integrity ──
+    integrity = result.get("integrity", {})
+    if integrity and isinstance(integrity, dict):
+        # 如果 LLM JSON 解析失败，尝试从 raw_output 恢复
+        integ_data = integrity
+        integ_skip = False
+        if integrity.get("parse_error") or integrity.get("raw_output"):
+            recovered = _try_parse_raw_output(integrity)
+            if recovered:
+                integ_data = recovered
+                parts.append("---\n## 🔍 学术诚信 (A5-AcademicIntegrity) ⚠️ 自动修复解析\n")
+            else:
+                parts.append("---\n## 🔍 学术诚信 (A5-AcademicIntegrity) ⚠️ 解析失败\n")
+                raw = integrity.get("raw_output", "")
+                if raw:
+                    parts.append(f"<pre>{raw[:3000]}</pre>\n")
+                integ_skip = True
+        else:
+            parts.append("---\n## 🔍 学术诚信 (A5-AcademicIntegrity)\n")
+
+        if not integ_skip:
+            score = integ_data.get("integrity_score")
+            if score is not None:
+                parts.append(f"**诚信评分**: {score}\n")
+
+            citation = integ_data.get("citation_report", {})
+            if citation:
+                parts.append("### 📚 引用报告\n")
+                format_issues = citation.get("format_issues", [])
+                if format_issues:
+                    parts.append("**格式问题**:\n")
+                    for fi in format_issues:
+                        if isinstance(fi, dict):
+                            parts.append(f"- {fi.get('citation', '')}: {fi.get('issue', '')}")
+                        else:
+                            parts.append(f"- {fi}")
+                    parts.append("")
+                suspicious = citation.get("suspicious_citations", [])
+                if suspicious:
+                    parts.append("**可疑引用**:\n")
+                    for sc in suspicious:
+                        if isinstance(sc, dict):
+                            parts.append(f"- {sc.get('citation', '')}: {sc.get('reason', '')}")
+                        else:
+                            parts.append(f"- {sc}")
+                    parts.append("")
+
+            originality = integ_data.get("originality_report", {})
+            if originality:
+                parts.append("### 📝 原创性报告\n")
+                sim_flags = originality.get("similarity_flags", [])
+                if sim_flags:
+                    parts.append("**相似度标记**:\n")
+                    for sf in sim_flags:
+                        if isinstance(sf, dict):
+                            parts.append(f"- {sf.get('location', '')}: {sf.get('description', sf.get('match', ''))}")
+                        else:
+                            parts.append(f"- {sf}")
+                    parts.append("")
+                ai_flags = originality.get("ai_generation_flags", [])
+                if ai_flags:
+                    parts.append("**AI 生成标记**:\n")
+                    for af in ai_flags:
+                        if isinstance(af, dict):
+                            parts.append(f"- {af.get('location', '')}: {af.get('reason', af.get('description', ''))}")
+                        else:
+                            parts.append(f"- {af}")
+                    parts.append("")
+
+            positive = integ_data.get("positive_points", [])
+            if positive:
+                parts.append("### ✅ 做得好的\n")
+                for p in positive:
+                    parts.append(f"- {p}")
+                parts.append("")
+
+    if not parts:
+        return ""
+
+    return "\n".join(parts)
+
+
 # ── Feedback extraction helper ──
 
 def _extract_review_items(feedback_json: dict) -> list[dict]:
@@ -196,9 +637,12 @@ def submit_review(file_obj, competition, student_name, model_provider):
         if result.get("errors"):
             errors_md = "\n## 错误\n" + "\n".join(f"- {e}" for e in result["errors"])
 
+        # 渲染各 Agent 的具体反馈文字
+        feedback_md = _render_feedback_markdown(result)
+
         full_report = json.dumps(result, ensure_ascii=False, indent=2)
 
-        return scores_md + meta_md + errors_md, full_report
+        return scores_md + meta_md + errors_md + "\n" + feedback_md, full_report
 
     except httpx.HTTPStatusError as e:
         return f"请求失败: HTTP {e.response.status_code}\n{e.response.text[:800]}", None
@@ -267,6 +711,16 @@ def load_review_detail(submission_id: int):
 - **耗时**: {rv.get('duration_seconds')}s
 - **时间**: {rv.get('created_at')}
 """
+
+        # 渲染该次评审的具体反馈文字
+        feedback = rv.get("feedback", {})
+        if isinstance(feedback, str):
+            try:
+                feedback = json.loads(feedback)
+            except json.JSONDecodeError:
+                feedback = {}
+        if feedback and isinstance(feedback, dict):
+            reviews_md += "\n" + _render_feedback_markdown(feedback) + "\n"
 
     return info + reviews_md
 
@@ -652,6 +1106,7 @@ def build_ui():
                 cal_output = gr.Textbox(label="报告输出路径 (可选)", placeholder="留空则在下方显示")
                 cal_btn = gr.Button("运行校准", variant="primary", size="lg")
                 cal_report = gr.Markdown("等待运行...", elem_classes="report-box")
+                cal_expert_state = gr.State(None)  # holds serialized expert insights for saving
 
                 def run_calibration_ui(competition, comp_type, winners, losers, external, expert_docs, output_path):
                     winners = winners or []
@@ -659,7 +1114,7 @@ def build_ui():
                     external = external or []
                     expert_docs = expert_docs or []
                     if not (winners or losers or external or expert_docs):
-                        return "❌ 请至少上传一组文件（获奖文章 / 失败文章 / 外部获奖文章 / 教师经验文档 任选其一即可）"
+                        return "❌ 请至少上传一组文件（获奖文章 / 失败文章 / 外部获奖文章 / 教师经验文档 任选其一即可）", None
 
                     import shutil
                     from app.calibration.engine import run_calibration
@@ -695,7 +1150,7 @@ def build_ui():
                         if expert_docs and expert_dir:
                             expert_files = [str(Path(expert_dir) / Path(f).name) for f in expert_docs] if expert_dir else []
 
-                        report = run_calibration(
+                        report, expert_insights = run_calibration(
                             competition=competition,
                             competition_type=comp_type,
                             winner_files=winner_files,
@@ -705,13 +1160,34 @@ def build_ui():
                             output_report_path=output_file,
                         )
 
+                        # Serialize expert insights for potential saving
+                        insights_state = None
+                        if expert_insights is not None:
+                            from app.calibration.expert_annotator import ExpertInsights, ExpertAnnotation
+                            insights_state = json.dumps({
+                                "competition": competition,
+                                "competition_type": comp_type,
+                                "authors": getattr(expert_insights, "authors", []),
+                                "annotations": [
+                                    {
+                                        "annotation_type": getattr(a, "annotation_type", ""),
+                                        "title": getattr(a, "title", ""),
+                                        "description": getattr(a, "description", ""),
+                                        "author": getattr(a, "author", ""),
+                                        "mapped_features": getattr(a, "mapped_features", []),
+                                    }
+                                    for a in getattr(expert_insights, "annotations", [])
+                                ],
+                            }, ensure_ascii=False)
+
+                        result_md = report or "校准完成（无输出）"
                         if output_file:
-                            return f"报告已保存到: {output_file}\n\n{report[-3000:]}" if report else "校准完成"
-                        return report or "校准完成（无输出）"
+                            result_md = f"报告已保存到: {output_file}\n\n{report[-3000:]}" if report else "校准完成"
+                        return result_md, insights_state
 
                     except Exception as e:
                         import traceback
-                        return f"校准失败:\n{traceback.format_exc()}"
+                        return f"校准失败:\n{traceback.format_exc()}", None
                     finally:
                         shutil.rmtree(winner_dir, ignore_errors=True)
                         shutil.rmtree(loser_dir, ignore_errors=True)
@@ -720,10 +1196,70 @@ def build_ui():
                         if expert_dir:
                             shutil.rmtree(expert_dir, ignore_errors=True)
 
+                def save_expert_insights(insights_state):
+                    """将校准引擎解析的专家洞察保存到 data/expert_insights/ 目录。"""
+                    if not insights_state:
+                        return "❌ 无可保存的专家经验数据。请先上传教师经验文档并运行校准。"
+
+                    import json as _json
+                    data = _json.loads(insights_state) if isinstance(insights_state, str) else insights_state
+                    comp_name = data.get("competition", "unknown").lower().replace(" ", "_").replace("-", "_")
+                    comp_type = data.get("competition_type", "unknown")
+                    authors = data.get("authors", [])
+                    annotations = data.get("annotations", [])
+
+                    if not annotations:
+                        return "❌ 专家洞察中未解析到任何标注。请检查上传的文档格式。"
+
+                    # Build markdown file
+                    out_dir = Path(__file__).resolve().parent.parent / "data" / "expert_insights"
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    out_path = out_dir / f"{comp_name}_{comp_type}.md"
+
+                    from datetime import datetime
+                    lines = [
+                        f"## 竞赛: {data.get('competition', '')}",
+                        f"## 作者: {', '.join(authors) if authors else '系统生成'}",
+                        f"## 创建日期: {datetime.now().strftime('%Y-%m-%d')}",
+                        f"## 经验来源: 校准引擎上传",
+                        "",
+                    ]
+
+                    for a in annotations:
+                        anno_type = a.get("annotation_type", "")
+                        title = a.get("title", "")
+                        desc = a.get("description", "")
+                        features = a.get("mapped_features", [])
+                        author = a.get("author", "")
+
+                        feature_str = ""
+                        if features:
+                            feature_str = " ".join(features)
+
+                        lines.append(f"### [{anno_type}] {feature_str}".rstrip())
+                        lines.append(f"**标题**: {title}")
+                        lines.append(f"**描述**: {desc}")
+                        if author:
+                            lines.append(f"**贡献者**: {author}")
+                        lines.append("")
+
+                    out_path.write_text("\n".join(lines), encoding="utf-8")
+                    return f"✅ 已保存 {len(annotations)} 条专家经验到 `{out_path}`\n\n下次评审「{data.get('competition', '')}」时将自动加载这些经验。"
+
+                # 保存按钮 — 仅在校准完成且含专家文档时使用
+                cal_save_btn = gr.Button("💾 确认保存为正式经验", variant="secondary", size="lg")
+                cal_save_result = gr.Markdown("")
+
                 cal_btn.click(
                     fn=run_calibration_ui,
                     inputs=[cal_competition, cal_type, cal_winners, cal_losers, cal_external, cal_expert, cal_output],
-                    outputs=[cal_report],
+                    outputs=[cal_report, cal_expert_state],
+                )
+
+                cal_save_btn.click(
+                    fn=save_expert_insights,
+                    inputs=[cal_expert_state],
+                    outputs=[cal_save_result],
                 )
 
             # Tab 5: Admin Dashboard

@@ -1,0 +1,160 @@
+{
+  "competition_name": "SIC / WGHS",
+  "season": "2026",
+  "dimensions": [
+    {
+      "name": "投资框架与论点",
+      "weight": 0.2,
+      "max_score": 10,
+      "criteria": [
+        "投资框架有清晰的逻辑链路：宏观→行业→个股→估值→风险",
+        "核心投资论点明确可验证，不是泛泛而谈",
+        "框架中每一步推导都有数据或文献支撑",
+        "方法论选择有合理的理由说明"
+      ],
+      "keywords": [
+        "investment framework", "thesis", "macro", "industry", "stock selection",
+        "MFM", "P-F", "V-F", "top-down", "bottom-up", "factor model"
+      ],
+      "level_descriptions": {
+        "excellent": "框架设计科学且有创新性，从宏观到个股的三层逻辑闭环完整，每一步推导有量化数据支撑，方法论选择有清晰的理论依据",
+        "good": "框架设计合理，逻辑链路基本完整，多数推导有数据支撑",
+        "needs_improvement": "框架描述不清晰或逻辑链路中断（如从宏观直接跳到选股），缺乏方法论依据，推导过程缺乏数据支撑"
+      }
+    },
+    {
+      "name": "宏观与行业分析",
+      "weight": 0.2,
+      "max_score": 10,
+      "criteria": [
+        "至少引用3类宏观数据点（GDP/PMI、CPI/利率、就业/消费等）并注明来源",
+        "宏观判断明确说明了如何影响行业选择和仓位配置",
+        "行业筛选过程透明：展示候选行业评分、筛选阈值和最终结果",
+        "行业分析覆盖PESTEL或Porter五力等系统框架"
+      ],
+      "keywords": [
+        "GDP", "CPI", "PMI", "interest rate", "inflation", "PESTEL",
+        "Porter's Five Forces", "industry analysis", "sector rotation"
+      ],
+      "level_descriptions": {
+        "excellent": "宏观数据来源权威且时效性强，宏观判断与行业/仓位配置之间的逻辑链完整透明，行业筛选有量化的多维评分表",
+        "good": "有宏观数据引用，宏观判断基本合理，行业筛选有一定逻辑",
+        "needs_improvement": "宏观分析以框架描述或主观判断为主，缺少具体数据点和数据来源，未说明宏观判断如何影响行业选择"
+      }
+    },
+    {
+      "name": "公司分析与选股",
+      "weight": 0.2,
+      "max_score": 10,
+      "criteria": [
+        "财务分析覆盖核心指标（ROE、利润率、现金流、杠杆）",
+        "完成杜邦分析拆解：净利率 × 资产周转率 × 权益乘数，覆盖至少2年数据，说明ROE变化驱动因素",
+        "候选标的筛选过程透明：展示候选池、排序结果和淘汰原因",
+        "公司介绍客观专业，避免口语化或宣传化表达",
+        "ESG分析使用权威评级（如MSCI），逐家列示具体等级和分项分数"
+      ],
+      "keywords": [
+        "ROE", "DuPont", "net profit margin", "asset turnover", "equity multiplier",
+        "PEG", "revenue growth", "free cash flow", "ESG", "MSCI", "competitive advantage"
+      ],
+      "level_descriptions": {
+        "excellent": "杜邦分析三项完整拆解+2年趋势，候选池展示透明，ESG逐家列示MSCI等级和分项分数，公司介绍专业客观",
+        "good": "财务分析覆盖主要指标，有一些候选人筛选过程，ESG有涉及",
+        "needs_improvement": "缺乏杜邦分析拆解，选股过程不透明（只展示最终标的无候选池），缺少ESG具体评级或公司介绍语气不专业"
+      }
+    },
+    {
+      "name": "估值分析",
+      "weight": 0.2,
+      "max_score": 10,
+      "criteria": [
+        "至少使用两种估值方法（如DCF + 相对估值），并说明两种方法的权重",
+        "DCF模型展示WACC完整拆解（无风险利率、Beta、市场风险溢价、债务成本、税率、资本结构权重）",
+        "DCF现金流预测说明核心假设（收入增速、利润率路径、资本开支节奏等）",
+        "估值结论应统一全文所有位置的目标价和upside",
+        "至少有一项DCF关键假设的敏感性分析（WACC ±1%、永续增长率 ±0.5%等）"
+      ],
+      "keywords": [
+        "DCF", "WACC", "discount rate", "terminal value", "free cash flow",
+        "relative valuation", "PE", "PB", "comparable company", "sensitivity analysis"
+      ],
+      "level_descriptions": {
+        "excellent": "DCF+相对估值两种方法完整，WACC拆解清晰可复核，现金流假设有明确依据，敏感性分析覆盖DCF核心参数",
+        "good": "使用了至少两种估值方法，WACC有基本说明，有敏感性分析",
+        "needs_improvement": "估值方法单一或WACC缺乏拆解，现金流假设无依据，全文目标价不一致，缺少敏感性分析"
+      }
+    },
+    {
+      "name": "风险管理与组合构建",
+      "weight": 0.1,
+      "max_score": 10,
+      "criteria": [
+        "每只深度分析股票需覆盖三类风险：系统性风险、行业风险、公司特定风险",
+        "每类风险有具体说明和触发减仓/止损的条件",
+        "组合权重推导逻辑透明：说明权重如何由收益预期、估值判断和风险约束得出",
+        "展示关键风控指标：波动率、最大回撤、VaR、行业/个股集中度上限等",
+        "如有回测，需区分Alpha和Beta、说明回测期选择理由、警惕后见之明偏误"
+      ],
+      "keywords": [
+        "risk management", "systematic risk", "industry risk", "company-specific risk",
+        "stop-loss", "drawdown", "VaR", "Sharpe ratio", "alpha", "beta",
+        "position sizing", "portfolio optimization", "mean-variance"
+      ],
+      "level_descriptions": {
+        "excellent": "每只股票三类风险完整覆盖+具体触发条件，组合权重有清晰的推导逻辑和风控指标支撑，回测有Alpha/Beta分解",
+        "good": "风险分析覆盖主要类型，组合构建有基本逻辑说明",
+        "needs_improvement": "风险分析流于形式（一段话概括），未逐只股票覆盖三类风险，组合权重缺乏推导过程，缺少风控指标"
+      }
+    },
+    {
+      "name": "展示与写作质量",
+      "weight": 0.1,
+      "max_score": 10,
+      "criteria": [
+        "正文页数不超过12页（封面、目录、References、Appendix不计入正文）",
+        "有正式封面：队伍名称、所有成员姓名及分工、提交日期",
+        "正文中ticker、公司名、数字和计算准确且全文一致",
+        "英文表达客观准确，无口语化/宣传化表达，无拼写错误",
+        "参考文献格式规范，正文引用的所有来源均在参考文献中列出"
+      ],
+      "keywords": [
+        "cover page", "formatting", "citation", "ticker", "spelling",
+        "professional writing", "consistency", "reference list"
+      ],
+      "level_descriptions": {
+        "excellent": "格式完全符合要求，封面信息完整，数字准确、ticker一致，英文表达专业客观，引用规范",
+        "good": "格式基本合规，有封面但可能缺某些信息，偶尔有不专业表达，引用基本完整",
+        "needs_improvement": "缺少封面，正文超页数，存在ticker错误或目标价前后不一致，出现'Chinese legend'等不专业表达，引文缺少关键来源"
+      }
+    }
+  ],
+  "overall_standards": [
+    "报告需用英文撰写",
+    "正文不超过12页（不含封面/目录/References/Appendix）",
+    "投资决策必须有清晰的数据支撑和逻辑推演",
+    "所有引用的数据、模型和假设必须在文中可复核",
+    "估值结论必须统一（同一股票在全文各处目标价一致）"
+  ],
+  "taboo_items": [
+    "目标价或关键数据在全文不同位置出现明显矛盾",
+    "候选标的筛选过程完全不透明（只展示结果无过程）",
+    "引用虚构的数据源或AI幻觉引用",
+    "抄袭或直接复制他人投资报告",
+    "使用AI生成全篇内容而未做实质性修改"
+  ],
+  "format_requirements": {
+    "word_limit": {
+      "min": 3000,
+      "max": 5000
+    },
+    "page_limit": 12,
+    "citation_style": "APA",
+    "extra": [
+      "需要正式封面（队伍名称、成员及分工、日期）",
+      "需要目录",
+      "需要References",
+      "附录不计入正文页数",
+      "正文需12pt字体、双倍行距"
+    ]
+  }
+}

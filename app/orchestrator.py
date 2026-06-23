@@ -271,12 +271,38 @@ class Orchestrator:
             return None
 
     def _load_rubric_config(self, competition: str) -> dict:
+        """Load the rubric JSON for a competition.
+
+        Resolution order:
+        1. configs/rubrics/{competition_normalized}_2026.json  (exact match)
+        2. configs/rubrics/{competition_type}_2026.json         (type fallback)
+        3. configs/rubrics/isef_2026.json                        (ultimate fallback)
+        """
         safe_name = competition.lower().replace(" ", "_").replace("-", "_")
-        # Prevent path traversal: only use the basename portion
         safe_name = Path(safe_name).name
         rubric_path = CONFIGS_DIR / "rubrics" / f"{safe_name}_2026.json"
+
         if not rubric_path.exists():
-            rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
+            # Try type-based fallback before the generic ISEF default
+            comp_config = self.lookup_competition(competition)
+            comp_type = comp_config.get("type", "")
+            if comp_type:
+                type_rubric = CONFIGS_DIR / "rubrics" / f"{comp_type}_2026.json"
+                if type_rubric.exists():
+                    rubric_path = type_rubric
+                    logger.info(
+                        f"No competition-specific rubric for '{competition}', "
+                        f"using type-based fallback: {type_rubric.name}"
+                    )
+                else:
+                    rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
+                    logger.warning(
+                        f"No rubric found for '{competition}' (competition) "
+                        f"or type '{comp_type}', falling back to ISEF default"
+                    )
+            else:
+                rubric_path = CONFIGS_DIR / "rubrics" / "isef_2026.json"
+
         return json.loads(rubric_path.read_text(encoding="utf-8"))
 
     @staticmethod
